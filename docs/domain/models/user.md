@@ -1,0 +1,22 @@
+---
+title: docs/domain/models/user.md
+status: active
+---
+
+# docs/domain/models/user.md
+
+## 계약
+
+`User`는 사람 또는 account를 나타낸다. `WorkspaceMembership`은 해당 user가 한 workspace 안에서 갖는 identity다.
+
+## 책임
+
+- Account/auth 작업을 위한 stable identity를 제공한다.
+- 한 user가 나중에 여러 workspace에 참여할 수 있게 한다.
+- Workspace-specific display detail은 membership에 둔다.
+
+## 책임이 아닌 것
+
+- First skeleton의 authorization과 role enforcement.
+- Production authentication flow는 첫 skeleton 책임이 아니다.
+- Presence color 자체. Presence color는 membership의 책임이다.
