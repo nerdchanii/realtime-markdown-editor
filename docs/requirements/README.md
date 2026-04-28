@@ -42,30 +42,13 @@
 | `related_features` | 제품 capability ID 목록 |
 | `acceptance` | 요구사항 충족 여부를 확인하는 기준 |
 
-## Feature IDs
+## Relationship To Features
 
-`docs/features/**`가 별도로 작성되기 전까지, 요구사항은 다음 feature ID를 참조한다.
+요구사항 레지스트리는 feature를 정의하지 않는다. 요구사항은 검증 가능한 조건이고, feature는 하나 이상의 요구사항을 만족시키는 제품 capability다.
 
-| Feature ID | Capability |
-| --- | --- |
-| `F-WORKSPACE` | B2B workspace, project, folder, document 도메인 |
-| `F-IDENTITY` | User와 WorkspaceMembership 기반 사용자 모델 |
-| `F-COLLAB` | 실시간 공동 편집 |
-| `F-PRESENCE` | 사용자 presence |
-| `F-OFFLINE-SYNC` | IndexedDB 기반 오프라인 편집과 재동기화 |
-| `F-HISTORY` | autosave/save와 분리된 checkpoint/history |
-| `F-RICH-EDITOR` | Rich default, Markdown source, Split view 편집 |
-| `F-PROPERTIES` | Markdown body 밖의 문서 metadata/properties |
-| `F-LINKS` | 표준 Markdown link, backlink, document connection |
-| `F-MARKDOWN-IO` | 표준 Markdown source와 export |
-| `F-UI-SHELL` | 3-panel shell, foldable side panels, ToC rail, inspector shell |
-| `F-I18N` | ko/en 국제화 |
-| `F-STORAGE` | Postgres/RDB, MinIO/object storage, optional Redis support |
-| `F-ENGINE-POC` | 협업 엔진 POC와 선택 |
-| `F-COMMENTS` | 향후 comment, suggestion, mention, notification, chat 계열 기능 |
-| `F-TASK-EXTRACTION` | 향후 task extraction과 task metadata parsing |
-| `F-LOCAL-SETUP` | 채점자 로컬 실행과 제출 산출물 |
-| `F-BACKLOG` | MVP 제외 또는 후속 검토 기능 |
+- Feature의 공식 목록과 scope는 `docs/features/README.md`와 각 feature spec을 기준으로 한다.
+- `related_features` 필드는 요구사항이 어떤 feature capability와 연결되는지 추적하기 위한 참조다.
+- 요구사항을 추가하거나 변경할 때는 `docs/requirements/traceability.md`와 관련 feature spec의 연결 요구사항도 함께 확인한다.
 
 ## Relationship Review
 

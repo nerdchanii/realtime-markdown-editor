@@ -4,7 +4,7 @@
 
 ## Catalog Rules
 
-- Feature ID는 `docs/requirements/README.md`에 등록된 ID를 그대로 사용한다.
+- Feature ID는 이 catalog에서 관리하고, 요구사항 레지스트리는 `related_features` 필드로 해당 ID를 참조한다.
 - 각 feature 문서는 목적, MVP 범위, 제외/후속 범위, 연결 요구사항, acceptance 요약, open questions/research를 포함한다.
 - MVP에서 제외된 기능도 capability로 보존하되, backlog 또는 research 상태를 명확히 표시한다.
 - 기능 간 dependency, blocker, contradiction의 전체 분석은 다음 요구사항 분석 세션에서 보강한다.
