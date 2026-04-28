@@ -1,6 +1,6 @@
 ---
 id: ADR-0001
-title: 도메인 우선 설계와 협업 엔진 격리 원칙
+title: "ADR-0001: 도메인 우선 설계와 협업 엔진 격리 원칙"
 status: proposed
 date: 2026-04-28
 authors:
@@ -11,13 +11,19 @@ tags:
   - collaboration
   - architecture-boundary
 related_requirements:
-  - CE-01
-  - CE-02
-  - CE-03
-  - CE-04
-  - CE-05
+  - CE-01-CONCURRENT-EDITING
+  - CE-02-PRESENCE
+  - CE-03-OFFLINE-MERGE
+  - REQ-COLLAB-ENGINE-ADAPTER
+  - REQ-WORKSPACE-DOCUMENT-SCOPE
+  - REQ-IDENTITY-MEMBERSHIP
+  - REQ-WORKSPACE-HIERARCHY
+  - REQ-PLATFORM-PORTABILITY-GUARDRAIL
 related_documents:
   - subject.md
+  - ARCHITECTURE.md
+  - docs/domain/README.md
+  - docs/product/README.md
 supersedes: []
 superseded_by: null
 ---
@@ -26,80 +32,79 @@ superseded_by: null
 
 ## 맥락
 
-이 프로젝트는 여러 사용자가 하나의 마크다운 문서를 동시에 편집하는 에디터를 만들고, 그 위에 프로젝트 매니지먼트 또는 개발 협업 관점을 녹여야 한다. 필수 요구사항은 실시간 공동 편집, presence, 단절 후 자동 병합, 변경 이력 조회, 마크다운 Rich Preview를 포함한다.
+필수 요구사항은 실시간 공동 편집, presence, offline merge, revision history, rich preview를 요구한다. 이 기능들은 협업 엔진의 도움을 받지만, 제품 언어는 엔진이 아니라 `Workspace`, `Document`, `WorkspaceMembership`, `Checkpoint`, `DocumentState` 같은 도메인 개념을 기준으로 유지되어야 한다.
 
-협업 엔진은 CE-01, CE-02, CE-03의 핵심 구현 수단이지만, 제품의 중심 개념은 엔진 자체가 아니다. 제품 도메인은 B2B workspace 안의 `Workspace > Project > Folder > Document`, `User`, `WorkspaceMembership`, `DocumentProperty`, `Checkpoint`, `History`, `Link` 같은 언어를 기준으로 설명되어야 한다. 엔진 선택이 바뀌더라도 제품 요구사항과 도메인 언어가 흔들리지 않도록 경계를 둘 필요가 있다.
+협업 엔진은 아직 POC 전이며, 최종 선택이 바뀔 수 있다. 엔진 API가 UI와 도메인 전반에 퍼지면 POC 결과 반영과 향후 platform portability가 어려워진다.
 
 ## 결정
 
-도메인 모델과 제품 기능을 협업 엔진보다 상위에 둔다. 애플리케이션 내부에서는 `Workspace`, `Project`, `Folder`, `Document`, `DocumentProperty`, `User`, `WorkspaceMembership`, `Checkpoint`, `History`, `Presence`, `EditorSession`, `SyncState` 같은 제품 개념을 기준으로 설계하고, Yjs, Yorkie, Hocuspocus, ProseMirror 계열 구현은 협업 인프라 어댑터 뒤에 격리한다.
+도메인 모델과 제품 기능을 협업 엔진보다 상위에 둔다. Yjs, Hocuspocus, Yorkie, ProseMirror, Tiptap 같은 구현 후보는 collaboration adapter 뒤에 둔다.
 
-협업 엔진 어댑터는 최소한 다음 책임을 가진다.
+어댑터는 최소한 다음 책임을 가진다.
 
 - 문서 편집 상태 동기화
-- 사용자 커서와 선택 영역 presence 전파
-- 네트워크 단절 후 재접속 시 병합 처리 연결
+- cursor/selection presence 전달
+- reconnect merge 연결
 - checkpoint/history 생성을 위한 현재 문서 상태 추출
-- 에디터 UI가 사용할 연결 상태 제공
+- sync state 제공
 
 ## 후보안
 
 ### 1. 도메인 우선 설계와 협업 엔진 격리
 
-- 장점: 엔진 교체나 POC 결과 반영이 쉽고, 기능 문서와 구현 언어가 제품 요구사항 중심으로 유지된다.
-- 단점: 초기에는 어댑터 경계를 설계해야 하므로 단순 샘플 구현보다 코드가 늘어날 수 있다.
-- 리스크: 경계를 과도하게 일반화하면 실제 엔진의 장점을 제대로 쓰지 못할 수 있다.
+- 장점: POC 결과 반영과 엔진 교체가 쉽다.
+- 단점: 초기 adapter 경계 설계가 필요하다.
+- 리스크: 지나친 추상화가 엔진 장점을 가릴 수 있다.
 
-### 2. 선택한 협업 엔진을 애플리케이션 전역에 직접 사용
+### 2. 선택 엔진을 앱 전역에 직접 사용
 
-- 장점: 초기 구현 속도가 빠르고 예제가 많다.
-- 단점: 엔진 API가 UI와 도메인 코드에 퍼져 이후 변경 비용이 커진다.
-- 리스크: POC 결과 엔진을 바꾸기로 하면 대부분의 기능 코드를 다시 조정해야 한다.
+- 장점: 초기 구현 속도가 빠르다.
+- 단점: 엔진 교체 비용이 커진다.
+- 리스크: domain과 provider 경계가 무너진다.
 
-### 3. 자체 협업 추상화 없이 기능별로 독립 구현
+### 3. 기능별 독립 구현
 
-- 장점: 각 기능을 그때그때 단순하게 붙일 수 있다.
-- 단점: presence, revision, offline merge가 서로 다른 상태 모델을 갖게 된다.
-- 리스크: 필수 요구사항 간 정합성 검증이 어려워지고 충돌 처리 결함을 숨기기 쉽다.
+- 장점: 개별 화면은 빠르게 만들 수 있다.
+- 단점: editing, presence, history, offline merge의 상태 모델이 분리된다.
+- 리스크: CE 요구사항 간 정합성 결함이 숨는다.
 
 ## 선택 근거
 
-필수 요구사항은 모두 협업 엔진의 지원을 받지만, 평가 대상은 엔진 데모가 아니라 협업 제품이다. 따라서 문서와 협업 경험을 먼저 정의하고, 엔진은 그 요구를 만족시키는 구현 세부사항으로 격리하는 편이 적합하다.
-
-특히 협업 엔진은 아직 최종 선택하지 않고 POC와 벤치로 평가할 예정이므로, 초기에 엔진 API가 화면과 기능 전반에 직접 노출되면 이후 변경 리스크가 커진다. 도메인 우선 설계는 이 리스크를 낮추면서 CE-01~CE-05를 하나의 제품 경험으로 연결한다.
+평가 대상은 엔진 데모가 아니라 협업 제품이다. 도메인 우선 경계는 CE-01~CE-05를 하나의 제품 경험으로 묶고, 자유영역 제품 확장을 엔진 내부 표현에 종속시키지 않는다.
 
 ## 결과
 
 ### 긍정적 영향
 
-- 필수 요구사항과 자유 영역 기능을 같은 도메인 언어로 추적할 수 있다.
-- 협업 엔진 POC 결과를 반영하기 쉬워진다.
-- revision, preview, PM/개발 협업 기능이 엔진 내부 표현에 과하게 묶이지 않는다.
+- 요구사항과 제품 문서가 provider-independent 언어를 유지한다.
+- POC 이후 최종 엔진 선택을 반영하기 쉽다.
+- DocumentState, history, properties, links 같은 도메인 개념이 editor internals에 잠기지 않는다.
 
 ### 부정적 영향 또는 트레이드오프
 
-- 초기 구현에서 어댑터와 도메인 경계를 정의해야 한다.
-- 엔진 고유 기능을 사용할 때 도메인 인터페이스와의 균형을 계속 점검해야 한다.
+- adapter 경계가 필요한 만큼 초기 코드가 늘어날 수 있다.
+- POC 중 실제 provider 기능과 domain API 균형을 계속 조정해야 한다.
 
 ### 후속 작업
 
-- 협업 엔진 어댑터가 제공해야 할 최소 인터페이스를 구현 단계에서 확정한다.
-- POC 결과에 따라 어댑터 경계가 충분한지 검토한다.
-- requirements와 feature catalog에서 도메인 개념 이름을 일관되게 맞춘다.
+- POC 결과 후 final sync ADR을 작성한다.
+- domain docs와 adapter interface가 충돌하지 않는지 점검한다.
 
 ## 검증 방법
 
-- 에디터 UI가 특정 협업 엔진 타입을 직접 참조하지 않고 동작하는지 확인한다.
-- CE-01~CE-03 시나리오를 동일한 도메인 이벤트와 상태로 설명할 수 있는지 확인한다.
-- revision과 preview 기능이 협업 엔진 내부 자료구조에 직접 의존하지 않는지 확인한다.
+- UI/domain code가 provider-specific 타입을 직접 노출하지 않는지 확인한다.
+- CE-01~CE-03 시나리오가 adapter를 통해 설명되는지 확인한다.
+- checkpoint/history와 rich preview가 engine internals에 직접 묶이지 않는지 확인한다.
 
 ## 관련 문서
 
-- 요구사항: `subject.md`
-- 관련 ADR: ADR-0002
+- `docs/domain/rules/collaboration-boundaries.md`
+- `docs/research/poc-001-collaboration-engine/README.md`
+- ADR-0002
 
 ## 변경 이력
 
 | 날짜 | 변경 내용 | 작성자 |
 | --- | --- | --- |
 | 2026-04-28 | 최초 작성 | Codex |
+| 2026-04-28 | 새 요구사항 ID와 도메인 경계 문서 구조에 맞게 정리 | Codex |
