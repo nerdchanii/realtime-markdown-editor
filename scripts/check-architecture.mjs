@@ -71,22 +71,8 @@ function importSpecifiersFor(file, content) {
   const specifiers = [];
 
   function visit(node) {
-    if (
-      (ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) &&
-      node.moduleSpecifier &&
-      ts.isStringLiteral(node.moduleSpecifier)
-    ) {
-      specifiers.push(node.moduleSpecifier.text);
-    }
-
-    if (
-      ts.isImportTypeNode(node) &&
-      ts.isLiteralTypeNode(node.argument) &&
-      ts.isStringLiteral(node.argument.literal)
-    ) {
-      specifiers.push(node.argument.literal.text);
-    }
-
+    const specifier = importSpecifierTextFor(node);
+    if (specifier) specifiers.push(specifier);
     ts.forEachChild(node, visit);
   }
 
@@ -94,27 +80,55 @@ function importSpecifiersFor(file, content) {
   return specifiers;
 }
 
+function importSpecifierTextFor(node) {
+  if (hasStringModuleSpecifier(node)) return node.moduleSpecifier.text;
+  if (isStringImportTypeNode(node)) return node.argument.literal.text;
+  return null;
+}
+
+function hasStringModuleSpecifier(node) {
+  return (
+    (ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) &&
+    node.moduleSpecifier &&
+    ts.isStringLiteral(node.moduleSpecifier)
+  );
+}
+
+function isStringImportTypeNode(node) {
+  return (
+    ts.isImportTypeNode(node) &&
+    ts.isLiteralTypeNode(node.argument) &&
+    ts.isStringLiteral(node.argument.literal)
+  );
+}
+
+function domainImportFailuresFor(file, content) {
+  const currentModule = apiModuleNameForPath(file);
+  const specifierFailures = importSpecifiersFor(file, content).flatMap((specifier) =>
+    domainSpecifierFailuresFor(file, currentModule, specifier),
+  );
+  if (!nestDecoratorPattern.test(content)) return specifierFailures;
+  return [...specifierFailures, `Domain file contains Nest/framework decorator: ${file}`];
+}
+
+function domainSpecifierFailuresFor(file, currentModule, specifier) {
+  const specifierFailures = [];
+  if (domainImportPattern.test(specifier)) {
+    specifierFailures.push(
+      `Domain file imports forbidden framework/provider package: ${file} -> ${specifier}`,
+    );
+  }
+
+  const importedDomainModule = apiDomainModuleNameForSpecifier(file, specifier);
+  if (importedDomainModule && importedDomainModule !== currentModule) {
+    specifierFailures.push(`Domain file imports another module's domain: ${file} -> ${specifier}`);
+  }
+  return specifierFailures;
+}
+
 for (const file of walk("apps/api/src/modules")) {
   if (!toPosixPath(file).includes("/domain/")) continue;
-  const currentModule = apiModuleNameForPath(file);
-  const content = readFileSync(file, "utf8");
-
-  for (const specifier of importSpecifiersFor(file, content)) {
-    if (domainImportPattern.test(specifier)) {
-      failures.push(
-        `Domain file imports forbidden framework/provider package: ${file} -> ${specifier}`,
-      );
-    }
-
-    const importedDomainModule = apiDomainModuleNameForSpecifier(file, specifier);
-    if (importedDomainModule && importedDomainModule !== currentModule) {
-      failures.push(`Domain file imports another module's domain: ${file} -> ${specifier}`);
-    }
-  }
-
-  if (nestDecoratorPattern.test(content)) {
-    failures.push(`Domain file contains Nest/framework decorator: ${file}`);
-  }
+  failures.push(...domainImportFailuresFor(file, readFileSync(file, "utf8")));
 }
 
 if (failures.length > 0) {
