@@ -1,10 +1,10 @@
 ---
 title: TASK-030-history-ui-integration
-status: todo
+status: archived
 phase: P5
 task_type: feature
 task_mode: parallel-ui
-owner: unassigned
+owner: codex
 depends_on:
   - TASK-028
 write_set:
@@ -82,6 +82,13 @@ Connect history panel to checkpoint metadata and inspect API.
 - 실행 명령: `pnpm test:e2e e2e/ce-04-history.spec.ts`
 - 기대 결과: all commands pass on Node `v24.15.0`.
 
+## 검증 결과
+
+- Runtime: `node -v` -> `v24.15.0`; `pnpm -v` -> `10.28.2`.
+- `pnpm --filter @rme/web typecheck` -> passed.
+- `pnpm lint` -> passed.
+- `pnpm test:e2e e2e/ce-04-history.spec.ts` -> passed (`1 passed`).
+
 ## Review
 
 - Spec compliance review 필요 여부: 필요.
@@ -91,12 +98,14 @@ Connect history panel to checkpoint metadata and inspect API.
 
 ## Archive Checklist
 
-- [ ] `status`를 `archived`로 변경했다.
-- [ ] 파일을 `tasks/archive/`로 이동했다.
-- [ ] 검증 결과를 이 문서에 기록했다.
-- [ ] 필요한 공식 문서 업데이트를 완료했다.
-- [ ] follow-up 또는 blocker를 기록했다.
+- [x] `status`를 `archived`로 변경했다.
+- [x] 파일을 `tasks/archive/`로 이동했다.
+- [x] 검증 결과를 이 문서에 기록했다.
+- [x] 필요한 공식 문서 업데이트를 완료했다.
+- [x] follow-up 또는 blocker를 기록했다.
 
 ## 메모
 
 - Unblocks `TASK-031` with `TASK-029`.
+- History UI now creates collaboration checkpoints through the API client and inspects created snapshots from the artifact boundary.
+- No blocker.

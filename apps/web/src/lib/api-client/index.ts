@@ -1,6 +1,10 @@
 import type {
   CollaborationSessionDto,
   CollaborationSessionResponseDto,
+  CheckpointId,
+  CheckpointSnapshotInspectDto,
+  CreateCheckpointRequestDto,
+  CreateCheckpointResponseDto,
   SeedReviewContextDto,
   WorkspaceMembershipId,
 } from "@rme/contracts";
@@ -49,6 +53,48 @@ export async function fetchCollaborationSession(
   return mapCollaborationSessionResponse(
     (await response.json()) as CollaborationSessionResponseDto,
   );
+}
+
+export async function createCollaborationCheckpoint(
+  client: ApiClient,
+  documentId: string,
+  request: CreateCheckpointRequestDto,
+): Promise<CreateCheckpointResponseDto> {
+  const body = new URLSearchParams({
+    documentId: request.documentId,
+    authorMembershipId: request.authorMembershipId,
+    message: request.message,
+    markdownSnapshot: request.markdownSnapshot,
+    source: request.source,
+  });
+  const response = await fetch(
+    `${client.baseUrl}/collaboration/documents/${encodeURIComponent(documentId)}/checkpoints`,
+    {
+      method: "POST",
+      body,
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(`Checkpoint creation request failed with ${response.status}`);
+  }
+
+  return (await response.json()) as CreateCheckpointResponseDto;
+}
+
+export async function inspectCheckpointSnapshot(
+  client: ApiClient,
+  checkpointId: CheckpointId,
+): Promise<CheckpointSnapshotInspectDto> {
+  const response = await fetch(
+    `${client.baseUrl}/documents/checkpoints/${encodeURIComponent(checkpointId)}/snapshot`,
+  );
+
+  if (!response.ok) {
+    throw new Error(`Checkpoint inspect request failed with ${response.status}`);
+  }
+
+  return (await response.json()) as CheckpointSnapshotInspectDto;
 }
 
 function mapCollaborationSessionResponse(

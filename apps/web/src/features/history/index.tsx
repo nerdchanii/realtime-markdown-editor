@@ -1,20 +1,8 @@
-import { useMemo, useState } from "react";
+import type { HistoryCheckpoint, HistoryInspectorViewModel } from "./types";
+import { useHistoryInspectorState } from "./useHistoryInspectorState";
 
 export const historyFeatureId = "history";
-
-export type HistoryCheckpoint = Readonly<{
-  id: string;
-  message: string;
-  author: string;
-  createdAt: string;
-  snapshot: string;
-}>;
-
-export type HistoryInspectorViewModel = Readonly<{
-  replacementPoint: string;
-  label: string;
-  checkpoints?: readonly HistoryCheckpoint[];
-}>;
+export type { HistoryCheckpoint, HistoryInspectorViewModel } from "./types";
 
 export type HistoryInspectorSlotProps = Readonly<{
   viewModel: HistoryInspectorViewModel;
@@ -44,9 +32,8 @@ const fallbackCheckpoints: readonly HistoryCheckpoint[] = [
   },
 ];
 
-// Mock replacement: checkpoint rows are seed data until TASK-016 wires real history providers.
 export function HistoryInspectorSlot({ viewModel }: HistoryInspectorSlotProps) {
-  const history = useHistoryInspectorState(viewModel);
+  const history = useHistoryInspectorState(viewModel, fallbackCheckpoints);
 
   return (
     <aside className="inspector-panel" aria-label="History inspector" data-testid="history-slot">
@@ -68,34 +55,6 @@ export function HistoryInspectorSlot({ viewModel }: HistoryInspectorSlotProps) {
   );
 }
 
-function useHistoryInspectorState(viewModel: HistoryInspectorViewModel) {
-  const incomingCheckpoints = useMemo(
-    () => [...(viewModel.checkpoints ?? fallbackCheckpoints)],
-    [viewModel.checkpoints],
-  );
-  const [checkpoints, setCheckpoints] = useState(incomingCheckpoints);
-  const [selectedCheckpointId, setSelectedCheckpointId] = useState(checkpoints[0]?.id);
-  const [revisionMessage, setRevisionMessage] = useState("");
-  const selected = checkpoints.find((checkpoint) => checkpoint.id === selectedCheckpointId);
-
-  const publishRevision = () => {
-    const checkpoint = createCheckpoint(revisionMessage);
-    setCheckpoints((current) => [checkpoint, ...current]);
-    setSelectedCheckpointId(checkpoint.id);
-    setRevisionMessage("");
-  };
-
-  return {
-    checkpoints,
-    publishRevision,
-    revisionMessage,
-    selected,
-    selectedCheckpointId,
-    setRevisionMessage,
-    setSelectedCheckpointId,
-  };
-}
-
 function RevisionComposer({
   message,
   onMessageChange,
@@ -107,7 +66,7 @@ function RevisionComposer({
 }>) {
   return (
     <section aria-label="Publish revision" style={sectionStyle}>
-      <button type="button" data-testid="publish-revision-button" onClick={onPublishRevision}>
+      <button type="button" data-testid="publish-revision-button">
         Publish revision
       </button>
       <input
@@ -222,25 +181,3 @@ const snapshotBodyStyle = {
   fontSize: "12px",
   lineHeight: 1.55,
 };
-
-function createCheckpoint(message: string): HistoryCheckpoint {
-  return {
-    id: `checkpoint-${Date.now()}`,
-    message: message.trim() || "Untitled revision",
-    author: "Alice",
-    createdAt: "Just now",
-    snapshot: readCurrentEditorMarkdown(),
-  };
-}
-
-function readCurrentEditorMarkdown() {
-  if (typeof document === "undefined") {
-    return "";
-  }
-
-  const editor = document.querySelector<HTMLTextAreaElement>(
-    '[data-testid="collaborative-markdown-editor"]',
-  );
-
-  return editor?.value ?? "";
-}
