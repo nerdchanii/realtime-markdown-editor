@@ -1,4 +1,11 @@
-import type { DocumentId, DocumentPropertyDto, WorkspaceMembershipId } from "@rme/contracts";
+import { useState } from "react";
+
+import type {
+  DocumentId,
+  DocumentPropertyDto,
+  MarkdownExportResponseDto,
+  WorkspaceMembershipId,
+} from "@rme/contracts";
 
 import { createMarkdownExport, createMockApiClient } from "@/lib/api-client";
 
@@ -13,26 +20,80 @@ export function MarkdownExportSurface({
   title: string;
   properties: readonly DocumentProperty[];
 }) {
-  const createExport = async () => {
-    const exportDocumentId = (documentId ?? readDocumentId()) as DocumentId;
-    await createMarkdownExport(createMockApiClient(), exportDocumentId, {
-      documentId: exportDocumentId,
-      filename: `${slugify(title)}.md`,
-      properties: properties.map(toPropertyDto),
-      markdownBody: readCurrentMarkdown(),
-    });
-  };
+  const { exportResult, exportError, createExport } = useMarkdownExport({
+    documentId,
+    properties,
+    title,
+  });
 
   return (
     <section aria-label="Markdown export" data-testid="markdown-export">
-      <button
-        type="button"
-        data-testid="markdown-export-button"
-        onClick={() => void createExport()}
-      >
-        Export Markdown
-      </button>
+      <ExportButton onExport={createExport} />
+      {exportResult ? <ExportResult result={exportResult} /> : null}
+      {exportError ? (
+        <div role="alert" data-testid="markdown-export-error">
+          {exportError}
+        </div>
+      ) : null}
     </section>
+  );
+}
+
+function ExportButton({ onExport }: { onExport: () => Promise<void> }) {
+  return (
+    <button type="button" data-testid="markdown-export-button" onClick={() => void onExport()}>
+      Export Markdown
+    </button>
+  );
+}
+
+function useMarkdownExport({
+  documentId,
+  title,
+  properties,
+}: Readonly<{
+  documentId: string | undefined;
+  title: string;
+  properties: readonly DocumentProperty[];
+}>) {
+  const [exportResult, setExportResult] = useState<MarkdownExportResponseDto | null>(null);
+  const [exportError, setExportError] = useState<string | null>(null);
+  const createExport = async () => {
+    try {
+      const result = await requestMarkdownExport(documentId, title, properties);
+      setExportError(null);
+      setExportResult(result);
+    } catch (error) {
+      setExportError(toErrorMessage(error));
+    }
+  };
+
+  return { exportResult, exportError, createExport };
+}
+
+function requestMarkdownExport(
+  documentId: string | undefined,
+  title: string,
+  properties: readonly DocumentProperty[],
+) {
+  const exportDocumentId = (documentId ?? readDocumentId()) as DocumentId;
+
+  return createMarkdownExport(createMockApiClient(), exportDocumentId, {
+    documentId: exportDocumentId,
+    filename: `${slugify(title)}.md`,
+    properties: properties.map(toPropertyDto),
+    markdownBody: readCurrentMarkdown(),
+  });
+}
+
+function ExportResult({ result }: { result: MarkdownExportResponseDto }) {
+  return (
+    <div data-testid="markdown-export-result" style={exportResultStyle}>
+      <div data-testid="markdown-export-filename">{result.filename}</div>
+      <pre data-testid="markdown-export-output" style={exportOutputStyle}>
+        {result.fileContents}
+      </pre>
+    </div>
   );
 }
 
@@ -86,3 +147,25 @@ function readDocumentId() {
 function slugify(value: string) {
   return value.trim().toLowerCase().replaceAll(/\s+/g, "-") || "document";
 }
+
+function toErrorMessage(error: unknown) {
+  return error instanceof Error ? error.message : "Markdown export failed";
+}
+
+const exportResultStyle = {
+  display: "grid",
+  gap: "6px",
+  marginTop: "8px",
+};
+
+const exportOutputStyle = {
+  maxHeight: "160px",
+  overflow: "auto",
+  margin: 0,
+  border: "1px solid var(--color-border)",
+  borderRadius: "6px",
+  padding: "8px",
+  whiteSpace: "pre-wrap" as const,
+  color: "var(--color-text-primary)",
+  fontSize: "12px",
+};

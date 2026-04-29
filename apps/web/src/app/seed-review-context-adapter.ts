@@ -60,6 +60,7 @@ function createDocumentContext(
   return {
     replacementPoint: "features.document.provider.seed-review-context",
     label: "Seeded document context",
+    documentId: document.id,
     title: document.title,
     path: createDocumentPath(context, document.folderId, document.title).join(" / "),
     properties: document.properties.map((property) => mapProperty(context, property)),

@@ -89,6 +89,7 @@ function DocumentNodeView({
         type="button"
         style={documentButtonStyle(isSelected)}
         aria-current={isSelected ? "page" : undefined}
+        data-testid={`workspace-document-${node.id}`}
         onClick={() => onSelectDocument(selection)}
       >
         <span style={panelStyles.nodeContent}>

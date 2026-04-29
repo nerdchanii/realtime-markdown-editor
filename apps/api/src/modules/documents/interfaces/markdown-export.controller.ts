@@ -1,4 +1,4 @@
-import { Body, Controller, Header, Param, Post } from "@nestjs/common";
+import { Body, Controller, Header, Inject, Param, Post } from "@nestjs/common";
 import type { CreateMarkdownExportRequestDto, MarkdownExportResponseDto } from "@rme/contracts";
 
 import { ExportMarkdownUseCase } from "@/modules/documents/use-cases/export-markdown-use-case.js";
@@ -11,7 +11,10 @@ type MarkdownExportRequestBody = Omit<CreateMarkdownExportRequestDto, "propertie
 
 @Controller("documents")
 export class MarkdownExportController {
-  constructor(private readonly exportMarkdown: ExportMarkdownUseCase) {}
+  constructor(
+    @Inject(ExportMarkdownUseCase)
+    private readonly exportMarkdown: ExportMarkdownUseCase,
+  ) {}
 
   @Post(":documentId/export")
   @Header("Access-Control-Allow-Origin", "*")
