@@ -1,10 +1,10 @@
 ---
 title: Foundation/Shell Exit Review
-status: todo
+status: archived
 phase: P1
 task_type: verification
 task_mode: verification
-owner: unassigned
+owner: main
 depends_on:
   - TASK-016
 write_set:
@@ -121,12 +121,35 @@ Plan 02 collaboration runtime work를 시작하기 전에 Plan 01 결과와 bloc
 
 ## Archive Checklist
 
-- [ ] `status`를 `archived`로 변경했다.
-- [ ] 파일을 `tasks/archive/`로 이동했다.
-- [ ] 검증 결과를 이 문서에 기록했다.
-- [ ] 필요한 공식 문서 업데이트를 완료했다.
-- [ ] follow-up 또는 blocker를 기록했다.
+- [x] `status`를 `archived`로 변경했다.
+- [x] 파일을 `tasks/archive/`로 이동했다.
+- [x] 검증 결과를 이 문서에 기록했다.
+- [x] 필요한 공식 문서 업데이트를 완료했다.
+- [x] follow-up 또는 blocker를 기록했다.
 
 ## 메모
 
 - This task is verification-only and should not change product code.
+- Plan 01 lifecycle review:
+  - `TASK-010` archived and committed.
+  - `TASK-011` archived and committed.
+  - `TASK-012` archived and committed.
+  - `TASK-013` archived and committed.
+  - `TASK-014` archived and committed.
+  - `TASK-015` archived and committed.
+  - `TASK-016` archived and committed.
+- Verification results recorded on 2026-04-30:
+  - `node -v`: passed, output `v24.15.0`.
+  - `pnpm -v`: passed, output `10.28.2`.
+  - `pnpm check`: passed.
+  - `pnpm exec playwright test --list`: passed and listed 5 CE specs.
+- First screen manual open path:
+  - Start with `pnpm dev`.
+  - Open `http://127.0.0.1:5173/?member=alice&document=seed-review-plan`.
+  - The shell fetches `GET http://127.0.0.1:4000/review-context/seed` and renders workspace navigation, document header, editor, properties, backlinks, presence, and history.
+- Plan 02 blockers:
+  - CE-01 still requires provider-backed realtime convergence across browser contexts.
+  - CE-03 still requires provider-backed offline merge/reconnect behavior.
+  - `apps/collab/**` remains untouched in Plan 01 and is the expected Plan 02 runtime integration area.
+  - Existing CE-02, CE-04, and CE-05 specs pass on the integrated shell.
+- Final re-review: passed with no critical, important, or minor findings.
