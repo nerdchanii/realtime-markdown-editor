@@ -172,6 +172,7 @@ export type CreateCheckpointRequestDto = Readonly<{
   authorMembershipId: WorkspaceMembershipId;
   message: string;
   markdownSnapshot: string;
+  source: "collaboration";
 }>;
 
 export type CreateCheckpointResponseDto = Readonly<{

@@ -1,10 +1,10 @@
 ---
 title: TASK-028-persistence-history-integration
-status: todo
+status: archived
 phase: P4
 task_type: integration
 task_mode: integration
-owner: unassigned
+owner: main-session
 depends_on:
   - TASK-025
   - TASK-026
@@ -91,12 +91,25 @@ Integrate live collab persistence with explicit checkpoint history.
 
 ## Archive Checklist
 
-- [ ] `status`를 `archived`로 변경했다.
-- [ ] 파일을 `tasks/archive/`로 이동했다.
-- [ ] 검증 결과를 이 문서에 기록했다.
-- [ ] 필요한 공식 문서 업데이트를 완료했다.
-- [ ] follow-up 또는 blocker를 기록했다.
+- [x] `status`를 `archived`로 변경했다.
+- [x] 파일을 `tasks/archive/`로 이동했다.
+- [x] 검증 결과를 이 문서에 기록했다.
+- [x] 필요한 공식 문서 업데이트를 완료했다.
+- [x] follow-up 또는 blocker를 기록했다.
 
 ## 메모
 
 - Unblocks `TASK-029` and `TASK-030`.
+- Verification:
+  - `node -v` -> `v24.15.0`
+  - `pnpm -v` -> `10.28.2`
+  - `pnpm typecheck` -> pass.
+  - `pnpm lint` -> pass.
+  - `pnpm arch:check` -> pass.
+  - `pnpm format:check` -> pass.
+  - `pnpm test:e2e e2e/ce-04-history.spec.ts` -> pass.
+- Integration notes:
+  - collaboration module imports document checkpoint use cases through `DocumentsModule`.
+  - collaboration checkpoint capture request explicitly declares `source: "collaboration"`.
+  - checkpoint artifact inspect remains under the document artifact boundary from TASK-027.
+  - restore, branching, and publication visibility policy remain excluded.

@@ -2,6 +2,7 @@ import { Module } from "@nestjs/common";
 
 import { SeedCollaborationSessionRepository } from "@/modules/collaboration/adapters/seed-collaboration-session-repository.js";
 import { CollaborationSessionController } from "@/modules/collaboration/interfaces/collaboration-session.controller.js";
+import { DocumentsModule } from "@/modules/documents/documents.module.js";
 import {
   COLLABORATION_SESSION_REPOSITORY,
   type CollaborationSessionRepository,
@@ -12,6 +13,7 @@ import {
 } from "@/modules/collaboration/use-cases/issue-collaboration-session-use-case.js";
 
 @Module({
+  imports: [DocumentsModule],
   controllers: [CollaborationSessionController],
   providers: [
     {

@@ -1,4 +1,15 @@
-import { Controller, Get, Header, Inject, NotFoundException, Param, Query } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Get,
+  Header,
+  Inject,
+  NotFoundException,
+  Param,
+  Post,
+  Query,
+} from "@nestjs/common";
+import type { CreateCheckpointRequestDto, CreateCheckpointResponseDto } from "@rme/contracts";
 
 import type { CollaborationSessionResponseDto } from "@/modules/collaboration/interfaces/collaboration-session.dto.js";
 import {
@@ -6,6 +17,10 @@ import {
   type CollaborationMembershipId,
 } from "@/modules/collaboration/ports/collaboration-session-repository.js";
 import { mapCollaborationSessionToResponseDto } from "@/modules/collaboration/interfaces/collaboration-session.mapper.js";
+import type { DocumentId } from "@/modules/documents/domain/document.js";
+import type { WorkspaceMembershipId } from "@/modules/documents/domain/references.js";
+import { mapCheckpointToDto } from "@/modules/documents/interfaces/checkpoints.mapper.js";
+import { CreateCheckpointUseCase } from "@/modules/documents/use-cases/create-checkpoint-use-case.js";
 import {
   IssueCollaborationSessionUseCase,
   IssueSeedCollaborationSessionUseCase,
@@ -18,6 +33,8 @@ export class CollaborationSessionController {
     private readonly issueCollaborationSession: IssueCollaborationSessionUseCase,
     @Inject(IssueSeedCollaborationSessionUseCase)
     private readonly issueSeedCollaborationSession: IssueSeedCollaborationSessionUseCase,
+    @Inject(CreateCheckpointUseCase)
+    private readonly createCheckpoint: CreateCheckpointUseCase,
   ) {}
 
   @Get("sessions/seed")
@@ -51,5 +68,23 @@ export class CollaborationSessionController {
     }
 
     return mapCollaborationSessionToResponseDto(session);
+  }
+
+  @Post("documents/:documentId/checkpoints")
+  @Header("Access-Control-Allow-Origin", "*")
+  async captureCheckpoint(
+    @Param("documentId") documentId: string,
+    @Body() body: CreateCheckpointRequestDto,
+  ): Promise<CreateCheckpointResponseDto> {
+    const snapshot = await this.createCheckpoint.execute({
+      documentId: documentId as DocumentId,
+      authorMembershipId: body.authorMembershipId as WorkspaceMembershipId,
+      message: body.message,
+      markdownSnapshot: body.markdownSnapshot,
+    });
+
+    return {
+      checkpoint: mapCheckpointToDto(snapshot.checkpoint, snapshot.markdownBody),
+    };
   }
 }
