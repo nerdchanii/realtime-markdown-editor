@@ -1,6 +1,6 @@
 ---
 title: Coding conventions design
-status: todo
+status: archived
 scope: repo
 approved_at: 2026-04-29
 ---
