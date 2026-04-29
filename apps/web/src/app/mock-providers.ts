@@ -1,7 +1,11 @@
 import { createMockApiClient } from "@/lib/api-client";
 
 import type { DocumentContextViewModel } from "@/features/document";
-import type { EditorWorkspaceViewModel } from "@/features/editor";
+import {
+  createMockCollaborationAdapter,
+  type CollaborationAdapter,
+  type EditorWorkspaceViewModel,
+} from "@/features/editor";
 import type { HistoryInspectorViewModel } from "@/features/history";
 import type { WorkspaceNavigationViewModel } from "@/features/workspace";
 
@@ -11,6 +15,7 @@ export type AppFeatureProviders = Readonly<{
   workspaceNavigation: WorkspaceNavigationViewModel;
   documentContext: DocumentContextViewModel;
   editorWorkspace: EditorWorkspaceViewModel;
+  editorCollaborationAdapter: CollaborationAdapter;
   historyInspector: HistoryInspectorViewModel;
 }>;
 
@@ -39,6 +44,7 @@ export function createMockAppProviders(): AppFeatureProviders {
       label: `Document slot via ${apiClient.providerName}`,
     },
     editorWorkspace,
+    editorCollaborationAdapter: createMockCollaborationAdapter(),
     historyInspector,
   };
 }

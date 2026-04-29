@@ -1,10 +1,10 @@
 ---
 title: TASK-023-web-collaboration-adapter-port
-status: todo
+status: archived
 phase: P2
 task_type: contract
 task_mode: parallel-ui
-owner: unassigned
+owner: worker-019ddaf9-3eff-7fa0-b15d-fb512c42342f
 depends_on:
   - TASK-020
 write_set:
@@ -94,12 +94,21 @@ Add a frontend adapter boundary for realtime editor providers.
 
 ## Archive Checklist
 
-- [ ] `status`를 `archived`로 변경했다.
-- [ ] 파일을 `tasks/archive/`로 이동했다.
-- [ ] 검증 결과를 이 문서에 기록했다.
-- [ ] 필요한 공식 문서 업데이트를 완료했다.
-- [ ] follow-up 또는 blocker를 기록했다.
+- [x] `status`를 `archived`로 변경했다.
+- [x] 파일을 `tasks/archive/`로 이동했다.
+- [x] 검증 결과를 이 문서에 기록했다.
+- [x] 필요한 공식 문서 업데이트를 완료했다.
+- [x] follow-up 또는 blocker를 기록했다.
 
 ## 메모
 
 - Unblocks `TASK-024` with `TASK-021` and `TASK-022`.
+- Verification:
+  - `node -v` -> `v24.15.0`
+  - `pnpm -v` -> `10.28.2`
+  - `pnpm --filter @rme/web typecheck` -> pass.
+  - `pnpm lint` -> pass after TASK-022 lint fix.
+  - `pnpm arch:check` -> pass.
+  - `pnpm format:check` -> pass after formatting the Tiptap/Yjs adapter.
+- Worker reported scoped web ESLint passed and acceptance met.
+- Worker reported no unresolved TASK-023 blocker after the TASK-022 lint issue was resolved.

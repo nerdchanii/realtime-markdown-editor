@@ -1,0 +1,37 @@
+import type { CollaborationSessionDto } from "@rme/contracts";
+
+export type EditorMode = "rich" | "markdown" | "split" | "preview";
+
+export type SyncStatusViewModel = Readonly<{
+  label: string;
+  detail: string;
+  pendingEdits: number;
+}>;
+
+export type PresenceMember = Readonly<{
+  id: string;
+  name: string;
+  color: string;
+  range: string;
+}>;
+
+export type CollaborationDocumentOptions = Readonly<{
+  documentId: string;
+  initialMarkdown: string;
+  initialSyncStatus: SyncStatusViewModel;
+  initialPresence: readonly PresenceMember[];
+  session?: CollaborationSessionDto;
+}>;
+
+export type CollaborationDocumentState = Readonly<{
+  markdown: string;
+  updateMarkdown: (markdown: string) => void;
+  syncStatus: SyncStatusViewModel;
+  presence: readonly PresenceMember[];
+  providerName: string;
+}>;
+
+export type CollaborationAdapter = Readonly<{
+  providerName: string;
+  useDocument: (options: CollaborationDocumentOptions) => CollaborationDocumentState;
+}>;

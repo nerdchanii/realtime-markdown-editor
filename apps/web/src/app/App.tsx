@@ -9,6 +9,8 @@ import { readReviewerRoute } from "./reviewer-route";
 import { createSeedReviewProviders } from "./seed-review-context-adapter";
 import { useSeedReviewContext } from "./useSeedReviewContext";
 
+type SeedReviewProviders = ReturnType<typeof createSeedReviewProviders>;
+
 export function App() {
   const route = useMemo(() => readReviewerRoute(), []);
   const seedContext = useSeedReviewContext();
@@ -25,6 +27,10 @@ export function App() {
     (selection) => setSelectedDocumentId(selection.documentId),
   );
 
+  return <ReviewWorkspace providers={providers} />;
+}
+
+function ReviewWorkspace({ providers }: Readonly<{ providers: SeedReviewProviders }>) {
   return (
     <main className="app-shell">
       <WorkspaceNavigationSlot viewModel={providers.workspaceNavigation} />
@@ -33,6 +39,7 @@ export function App() {
         <EditorWorkspaceSlot
           key={providers.editorWorkspace.documentId}
           viewModel={providers.editorWorkspace}
+          collaborationAdapter={providers.editorCollaborationAdapter}
         />
       </section>
       <HistoryInspectorSlot

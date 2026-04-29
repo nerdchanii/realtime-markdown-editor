@@ -4,6 +4,7 @@ import type { AppFeatureProviders } from "./mock-providers";
 import type { ReviewerRoute } from "./reviewer-route";
 
 import type { DocumentBacklink, DocumentProperty } from "@/features/document";
+import { createMockCollaborationAdapter } from "@/features/editor";
 import type { HistoryCheckpoint } from "@/features/history";
 import type { WorkspaceNavigationNode, WorkspaceNavigationSelection } from "@/features/workspace";
 
@@ -20,6 +21,7 @@ export function createSeedReviewProviders(
     workspaceNavigation: createWorkspaceNavigation(context, selectedDocument.id, onSelectDocument),
     documentContext: createDocumentContext(context, selectedDocument),
     editorWorkspace: createEditorWorkspace(context, currentMember, selectedDocument),
+    editorCollaborationAdapter: createMockCollaborationAdapter(),
     historyInspector: createHistoryInspector(context, selectedDocument.id),
   };
 }
@@ -82,6 +84,7 @@ function createEditorWorkspace(
       color: member.color,
       range: member.id === currentMember.id ? "editing locally" : "reviewing selection",
     })),
+    collaborationSession: context.collaboration,
   };
 }
 

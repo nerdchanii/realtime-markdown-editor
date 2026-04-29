@@ -1,6 +1,15 @@
 import { useCallback } from "react";
 
+import type { CollaborationSessionDto } from "@rme/contracts";
+
 import { MarkdownPreview } from "./MarkdownPreview";
+import { mockCollaborationAdapter } from "./adapters/mock-collaboration-adapter";
+import type {
+  CollaborationAdapter,
+  EditorMode,
+  PresenceMember,
+  SyncStatusViewModel,
+} from "./ports/collaboration-adapter";
 import {
   modeButtonStyle,
   modeGroupStyle,
@@ -12,24 +21,16 @@ import {
   toolbarStyle,
   workspaceGridStyle,
 } from "./styles";
-import { useMockMarkdownDocument } from "./useMockMarkdownDocument";
 
 export const editorFeatureId = "editor";
 
-export type EditorMode = "rich" | "markdown" | "split" | "preview";
-
-export type SyncStatusViewModel = Readonly<{
-  label: string;
-  detail: string;
-  pendingEdits: number;
-}>;
-
-export type PresenceMember = Readonly<{
-  id: string;
-  name: string;
-  color: string;
-  range: string;
-}>;
+export {
+  createMockCollaborationAdapter,
+  mockCollaborationAdapter,
+  mockCollaborationProviderName,
+} from "./adapters/mock-collaboration-adapter";
+export { createTiptapYjsCollaborationAdapter } from "./adapters/tiptap-yjs-collaboration-adapter";
+export type { CollaborationAdapter, EditorMode, PresenceMember, SyncStatusViewModel };
 
 export type EditorWorkspaceViewModel = Readonly<{
   replacementPoint: string;
@@ -39,10 +40,12 @@ export type EditorWorkspaceViewModel = Readonly<{
   documentId?: string;
   syncStatus?: SyncStatusViewModel;
   presence?: readonly PresenceMember[];
+  collaborationSession?: CollaborationSessionDto;
 }>;
 
 export type EditorWorkspaceSlotProps = Readonly<{
   viewModel: EditorWorkspaceViewModel;
+  collaborationAdapter?: CollaborationAdapter;
 }>;
 
 const fallbackMarkdown = `# Collaborative editor review plan
@@ -74,9 +77,15 @@ const fallbackPresence: readonly PresenceMember[] = [
   { id: "bob", name: "Bob", color: "#1a7f37", range: "table block" },
 ];
 
-// Mock replacement: TASK-016 should swap this seed surface for collab/editor providers.
-export function EditorWorkspaceSlot({ viewModel }: EditorWorkspaceSlotProps) {
-  const { markdown, mode, handleMarkdownChange } = useEditorWorkspaceState(viewModel);
+// The mock adapter remains the UI-test fallback until realtime integration.
+export function EditorWorkspaceSlot({
+  viewModel,
+  collaborationAdapter = mockCollaborationAdapter,
+}: EditorWorkspaceSlotProps) {
+  const { markdown, mode, syncStatus, presence, handleMarkdownChange } = useEditorWorkspaceState(
+    viewModel,
+    collaborationAdapter,
+  );
 
   return (
     <div
@@ -84,25 +93,30 @@ export function EditorWorkspaceSlot({ viewModel }: EditorWorkspaceSlotProps) {
       aria-label="Editor and rich preview"
       data-testid="editor-workspace"
     >
-      <EditorToolbar
-        label={viewModel.label}
-        mode={mode}
-        syncStatus={viewModel.syncStatus ?? fallbackSyncStatus}
-      />
+      <EditorToolbar label={viewModel.label} mode={mode} syncStatus={syncStatus} />
       <div style={workspaceGridStyle} data-testid="editor-split-view">
         <SourcePane markdown={markdown} onMarkdownChange={handleMarkdownChange} />
         <MarkdownPreview markdown={markdown} />
       </div>
-      <PresenceLayer members={viewModel.presence ?? fallbackPresence} />
+      <PresenceLayer members={presence} />
       <div className="replacement-point">{viewModel.replacementPoint}</div>
     </div>
   );
 }
 
-function useEditorWorkspaceState(viewModel: EditorWorkspaceViewModel) {
+function useEditorWorkspaceState(
+  viewModel: EditorWorkspaceViewModel,
+  collaborationAdapter: CollaborationAdapter,
+) {
   const documentId = viewModel.documentId ?? readDocumentIdFromLocation();
   const initialMarkdown = viewModel.markdown ?? fallbackMarkdown;
-  const { markdown, updateMarkdown } = useMockMarkdownDocument({ documentId, initialMarkdown });
+  const { markdown, updateMarkdown, syncStatus, presence } = collaborationAdapter.useDocument({
+    documentId,
+    initialMarkdown,
+    initialSyncStatus: viewModel.syncStatus ?? fallbackSyncStatus,
+    initialPresence: viewModel.presence ?? fallbackPresence,
+    ...(viewModel.collaborationSession ? { session: viewModel.collaborationSession } : {}),
+  });
   const mode = viewModel.mode ?? "split";
   const handleMarkdownChange = useCallback(
     (nextMarkdown: string) => {
@@ -111,7 +125,13 @@ function useEditorWorkspaceState(viewModel: EditorWorkspaceViewModel) {
     [updateMarkdown],
   );
 
-  return { markdown, mode, handleMarkdownChange };
+  return {
+    markdown,
+    mode,
+    syncStatus,
+    presence,
+    handleMarkdownChange,
+  };
 }
 
 function EditorToolbar({
