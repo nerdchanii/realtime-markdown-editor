@@ -1,1 +1,39 @@
 .note/
+.codex/
+
+# Dependency and package manager output
+node_modules/
+.pnpm-store/
+
+# Local worktrees
+.worktrees/
+worktrees/
+.worktree/
+
+# Build output
+dist/
+build/
+coverage/
+*.tsbuildinfo
+
+# Test and browser artifacts
+playwright-report/
+test-results/
+*.lcov
+
+# Runtime logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Local env and caches
+.env
+.env.*
+!.env.example
+.cache/
+.turbo/
+.vite/
+.eslintcache
+.DS_Store

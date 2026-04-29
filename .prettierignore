@@ -1,0 +1,13 @@
+.git/
+.note/
+.codex/
+node_modules/
+dist/
+build/
+coverage/
+playwright-report/
+test-results/
+.worktrees/
+worktrees/
+.worktree/
+pnpm-lock.yaml
