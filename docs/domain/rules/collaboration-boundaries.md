@@ -14,6 +14,7 @@ NestJS module은 DI와 composition을 위한 framework boundary다. `apps/api/sr
 ## 어댑터 경계
 
 - Collaboration engine adapter: concurrent editing, awareness, provider state serialization을 담당한다.
+- Live Yjs persistence adapter: open collaborative document reload/reconnect를 위한 provider binary state 저장과 재수화를 담당한다.
 - Artifact storage adapter: S3-compatible object artifact operation을 담당한다.
 - Local persistence adapter: browser-local document persistence를 담당한다.
 - Notification adapter: Browser Notification API를 우선 쓰되 future native notification adapter를 열어둔다.
@@ -25,6 +26,7 @@ NestJS module은 DI와 composition을 위한 framework boundary다. `apps/api/sr
 - Yjs, Hocuspocus, Yorkie, ProseMirror, Tiptap은 implementation candidates이지 domain concepts가 아니다.
 - S3, R2, MinIO는 object-storage-compatible boundary 뒤의 provider choices다.
 - IndexedDB는 local persistence 뒤의 browser implementation detail이다.
+- `apps/collab` filesystem Yjs persistence는 V1 local-compatible provider choice이며 product revision artifact store가 아니다.
 - MCP protocol shape는 interface adapter concern이다.
 
 ## Runtime/package ownership
@@ -39,4 +41,5 @@ NestJS module은 DI와 composition을 위한 framework boundary다. `apps/api/sr
 - User-visible checkpoint/revision history는 collaboration provider state를 직접 노출하지 않는다.
 - CE-04 read-only inspect path는 checkpoint metadata를 조회한 뒤 artifact storage adapter에서 Markdown snapshot을 읽어 반환한다.
 - Live Yjs binary persistence는 open collaborative document reload/reconnect를 위한 provider state persistence이며 product revision snapshot artifact와 같은 DTO 또는 domain concept로 합치지 않는다.
+- Live Yjs binary persistence provider는 local filesystem, memory, future durable provider로 교체 가능해야 하며 `apps/collab` adapter boundary 뒤에 둔다.
 - First skeleton은 production S3/R2/MinIO setup을 요구하지 않는다. Local-compatible artifact adapter를 쓰더라도 provider 이름과 storage key format은 domain code에 새지 않아야 한다.

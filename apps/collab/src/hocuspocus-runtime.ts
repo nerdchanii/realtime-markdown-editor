@@ -1,10 +1,16 @@
 import { Server } from "@hocuspocus/server";
 import * as Y from "yjs";
 
-import type { CollabRuntimeConfig } from "./config.js";
+import type { CollabRuntimeConfig, LiveYjsPersistenceConfig } from "./config.js";
 import type { CollaborationSessionClient } from "./session/session-client.js";
 import { createSeedCollaborationSessionClient } from "./seed/seed-collaboration-session-client.js";
-import { InMemorySeededYjsDocumentStore, type YjsDocumentStore } from "./yjs-document-store.js";
+import {
+  FileSystemLiveYjsPersistenceAdapter,
+  InMemoryLiveYjsPersistenceAdapter,
+  SeededYjsDocumentStore,
+  type LiveYjsPersistenceAdapter,
+  type YjsDocumentStore,
+} from "./yjs-document-store.js";
 
 type HocuspocusDocumentPayload = {
   document: Y.Doc;
@@ -36,6 +42,9 @@ export function createHocuspocusRuntime(
     },
     async onListen({ port }: { port: number }) {
       console.log(`[collab] websocket ws://${config.host}:${port}`);
+      console.log(
+        `[collab] live Yjs persistence ${dependencies.documentStore.persistenceProviderName}`,
+      );
     },
   });
 }
@@ -45,9 +54,20 @@ function createDefaultRuntimeDependencies(
 ): HocuspocusRuntimeDependencies {
   return {
     sessionClient: createSeedCollaborationSessionClient(config),
-    documentStore: new InMemorySeededYjsDocumentStore({
-      documentKey: config.seedDocumentKey,
-      markdown: "# Review Plan\n\nSeeded collaborative Markdown document.\n",
+    documentStore: new SeededYjsDocumentStore({
+      seed: {
+        documentKey: config.seedDocumentKey,
+        markdown: "# Review Plan\n\nSeeded collaborative Markdown document.\n",
+      },
+      persistence: createLiveYjsPersistenceAdapter(config.liveYjsPersistence),
     }),
   };
+}
+
+function createLiveYjsPersistenceAdapter(
+  config: LiveYjsPersistenceConfig,
+): LiveYjsPersistenceAdapter {
+  if (config.provider === "memory") return new InMemoryLiveYjsPersistenceAdapter();
+
+  return new FileSystemLiveYjsPersistenceAdapter(config.directory);
 }

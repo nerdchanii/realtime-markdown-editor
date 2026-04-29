@@ -45,12 +45,13 @@ superseded_by: null
 - S3/R2: future deployment provider 후보.
 - Redis: durable store가 아니라 presence, pub/sub, cache, queue 같은 optional support 후보.
 - IndexedDB/local persistence: open-page offline editing을 위한 browser-local document persistence adapter.
+- Local filesystem live Yjs persistence: V1 local/dev에서 Hocuspocus/Yjs provider state를 binary update로 저장/재수화하는 swappable adapter provider.
 
 여기서 `artifact`, `collaboration document artifact`는 storage/infrastructure payload를 가리키는 용어다. 이는 domain object classification의 `CollaborationArtifact`를 도메인 객체로 승격한다는 뜻이 아니며, artifact format과 provider-specific serialized state는 adapter/infrastructure boundary 뒤에 둔다.
 
 V1 CE skeleton에서는 checkpoint snapshot artifact를 inspectable Markdown snapshot과 artifact metadata로 정의한다. Read-only snapshot inspect path는 checkpoint/revision metadata를 조회한 뒤 artifact boundary에서 Markdown snapshot을 읽어 반환한다.
 
-Live Yjs binary persistence와 product revision snapshot artifact는 서로 다른 저장 책임이다. Hocuspocus/Yjs persistence는 열린 collaborative document의 provider state 재수화에만 사용하고, user-visible checkpoint/revision history는 product metadata와 snapshot artifact boundary로 관리한다.
+Live Yjs binary persistence와 product revision snapshot artifact는 서로 다른 저장 책임이다. Hocuspocus/Yjs persistence는 열린 collaborative document의 provider state 재수화에만 사용하고, user-visible checkpoint/revision history는 product metadata와 snapshot artifact boundary로 관리한다. V1 local-compatible provider는 filesystem-backed Yjs update 저장소이며, 동일한 `apps/collab` adapter port 뒤에서 memory, database, object storage backed provider로 교체할 수 있어야 한다.
 
 V1 CE skeleton의 local review는 production S3/R2/MinIO 구성을 요구하지 않는다. 구현은 S3-compatible adapter port를 유지하되, filesystem 또는 in-memory 같은 local-compatible artifact adapter로 checkpoint Markdown snapshot을 저장하고 inspect path를 검증할 수 있다.
 
@@ -112,6 +113,7 @@ V1 checkpoint artifact를 Markdown snapshot으로 두면 CE-04 reviewer path가 
 - durable document state가 Redis에만 존재하지 않는지 확인한다.
 - MinIO/S3/R2 provider 이름이 domain code에 새지 않는지 확인한다.
 - Local-compatible artifact adapter를 쓰더라도 API contract는 checkpoint metadata와 Markdown snapshot inspect response를 분리하는지 확인한다.
+- `apps/collab` runtime이 live Yjs binary state를 adapter port로 저장/재로딩하며, 이 binary state가 checkpoint/revision artifact API로 노출되지 않는지 확인한다.
 
 ## 관련 문서
 
@@ -131,3 +133,4 @@ V1 checkpoint artifact를 Markdown snapshot으로 두면 CE-04 reviewer path가 
 | 2026-04-29 | checkpoint artifact format과 inspect path 미결정으로 proposed 유지 사유 명시       | nerdchanii |
 | 2026-04-30 | V1 CE skeleton 범위에서 Markdown snapshot artifact와 read-only inspect path를 승인 | nerdchanii |
 | 2026-04-30 | 첫 skeleton에서 production S3/R2/MinIO setup이 필수가 아님을 명시                  | nerdchanii |
+| 2026-04-30 | live Yjs binary persistence의 local filesystem provider와 adapter 교체 가능성 명시 | nerdchanii |
