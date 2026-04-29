@@ -1,9 +1,10 @@
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 
 import type { CollaborationSessionDto } from "@rme/contracts";
 
-import { MarkdownPreview } from "./MarkdownPreview";
-import { SourcePane } from "./SourcePane";
+import { EditorToolbar } from "./EditorToolbar";
+import { EditorWorkspaceBody } from "./EditorWorkspaceBody";
+import { PresenceLayer } from "./PresenceLayer";
 import { mockCollaborationAdapter } from "./adapters/mock-collaboration-adapter";
 import { createTiptapYjsCollaborationAdapter } from "./adapters/tiptap-yjs-collaboration-adapter";
 import type {
@@ -13,16 +14,6 @@ import type {
   PresenceMember,
   SyncStatusViewModel,
 } from "./ports/collaboration-adapter";
-import {
-  modeButtonStyle,
-  modeGroupStyle,
-  presenceBadgeStyle,
-  presenceDotStyle,
-  presenceLayerStyle,
-  syncStatusStyle,
-  toolbarStyle,
-  workspaceGridStyle,
-} from "./styles";
 
 export const editorFeatureId = "editor";
 
@@ -92,6 +83,7 @@ export function EditorWorkspaceSlot({
 }: EditorWorkspaceSlotProps) {
   const { markdown, mode, syncStatus, presence, handleMarkdownChange, handleSelectionChange } =
     useEditorWorkspaceState(viewModel, collaborationAdapter);
+  const [selectedMode, setSelectedMode] = useState(mode);
 
   return (
     <div
@@ -99,15 +91,18 @@ export function EditorWorkspaceSlot({
       aria-label="Editor and rich preview"
       data-testid="editor-workspace"
     >
-      <EditorToolbar label={viewModel.label} mode={mode} syncStatus={syncStatus} />
-      <div style={workspaceGridStyle} data-testid="editor-split-view">
-        <SourcePane
-          markdown={markdown}
-          onMarkdownChange={handleMarkdownChange}
-          onSelectionChange={handleSelectionChange}
-        />
-        <MarkdownPreview markdown={markdown} />
-      </div>
+      <EditorToolbar
+        label={viewModel.label}
+        mode={selectedMode}
+        syncStatus={syncStatus}
+        onModeChange={setSelectedMode}
+      />
+      <EditorWorkspaceBody
+        markdown={markdown}
+        mode={selectedMode}
+        onMarkdownChange={handleMarkdownChange}
+        onSelectionChange={handleSelectionChange}
+      />
       <PresenceLayer members={presence} />
       <div className="replacement-point">{viewModel.replacementPoint}</div>
     </div>
@@ -162,79 +157,6 @@ function selectCollaborationAdapter(
   if (viewModel.collaborationSession) return createTiptapYjsCollaborationAdapter();
   return fallbackAdapter;
 }
-
-function EditorToolbar({
-  label,
-  mode,
-  syncStatus,
-}: {
-  label: string;
-  mode: EditorMode;
-  syncStatus: SyncStatusViewModel;
-}) {
-  return (
-    <div style={toolbarStyle}>
-      <div>
-        <div className="slot-kicker">Editor</div>
-        <div className="slot-title">{label}</div>
-      </div>
-      <ModeSwitcher mode={mode} />
-      <SyncStatusSlot status={syncStatus} />
-    </div>
-  );
-}
-
-function ModeSwitcher({ mode }: { mode: EditorMode }) {
-  return (
-    <div
-      role="group"
-      aria-label="Editor mode"
-      style={modeGroupStyle}
-      data-testid="editor-mode-switcher"
-    >
-      {(["rich", "markdown", "split", "preview"] as const).map((item) => (
-        <button key={item} type="button" aria-pressed={item === mode} style={modeButtonStyle}>
-          {modeLabels[item]}
-        </button>
-      ))}
-    </div>
-  );
-}
-
-function SyncStatusSlot({ status }: { status: SyncStatusViewModel }) {
-  return (
-    <div aria-label="Sync status" data-testid="sync-status" style={syncStatusStyle}>
-      <strong>{status.label}</strong>
-      <span>{status.detail}</span>
-      <span>{status.pendingEdits} pending</span>
-    </div>
-  );
-}
-
-function PresenceLayer({ members }: { members: readonly PresenceMember[] }) {
-  return (
-    <div aria-label="Remote presence" data-testid="presence-layer" style={presenceLayerStyle}>
-      {members.map((member) => (
-        <span
-          key={member.id}
-          data-testid={`presence-cursor-${member.id}`}
-          style={{ ...presenceBadgeStyle, borderColor: member.color }}
-        >
-          <span style={{ ...presenceDotStyle, background: member.color }} />
-          <span>{member.name} editing</span>
-          <span data-testid={`presence-selection-${member.id}`}>{member.range}</span>
-        </span>
-      ))}
-    </div>
-  );
-}
-
-const modeLabels: Record<EditorMode, string> = {
-  rich: "Rich",
-  markdown: "Markdown",
-  split: "Split",
-  preview: "Preview",
-};
 
 function readDocumentIdFromLocation() {
   if (typeof window === "undefined") {

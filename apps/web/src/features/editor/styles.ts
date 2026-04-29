@@ -33,6 +33,12 @@ export const workspaceGridStyle = {
   marginTop: "14px",
 };
 
+export const workspaceSinglePaneStyle = {
+  display: "grid",
+  gap: "12px",
+  marginTop: "14px",
+};
+
 export const textareaStyle = {
   boxSizing: "border-box" as const,
   width: "100%",

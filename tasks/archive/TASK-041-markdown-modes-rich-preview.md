@@ -1,10 +1,10 @@
 ---
 title: TASK-041-markdown-modes-rich-preview
-status: todo
+status: archived
 phase: P6
 task_type: feature
 task_mode: parallel-ui
-owner: unassigned
+owner: codex
 depends_on:
   - TASK-040
 write_set:
@@ -83,6 +83,13 @@ Implement source, rich, rendered preview, and split mode.
 - 실행 명령: `pnpm test:e2e e2e/ce-05-rich-preview.spec.ts`
 - 기대 결과: all commands pass on Node `v24.15.0`.
 
+## 검증 결과
+
+- Runtime: `node -v` -> `v24.15.0`; `pnpm -v` -> `10.28.2`.
+- `pnpm --filter @rme/web typecheck` -> passed.
+- `pnpm lint` -> passed.
+- `pnpm test:e2e e2e/ce-05-rich-preview.spec.ts` -> passed (`1 passed`).
+
 ## Review
 
 - Spec compliance review 필요 여부: 필요.
@@ -92,12 +99,15 @@ Implement source, rich, rendered preview, and split mode.
 
 ## Archive Checklist
 
-- [ ] `status`를 `archived`로 변경했다.
-- [ ] 파일을 `tasks/archive/`로 이동했다.
-- [ ] 검증 결과를 이 문서에 기록했다.
-- [ ] 필요한 공식 문서 업데이트를 완료했다.
-- [ ] follow-up 또는 blocker를 기록했다.
+- [x] `status`를 `archived`로 변경했다.
+- [x] 파일을 `tasks/archive/`로 이동했다.
+- [x] 검증 결과를 이 문서에 기록했다.
+- [x] 필요한 공식 문서 업데이트를 완료했다.
+- [x] follow-up 또는 blocker를 기록했다.
 
 ## 메모
 
 - Parallel with `TASK-042`, `TASK-043`, and `TASK-044` after `TASK-040`.
+- Mode buttons now switch Rich, Markdown, Preview, and Split views. Split keeps source and rendered preview visible.
+- Preview renderer covers headings, lists, tables, links, inline code, fenced code, task markers, and quotes without adding a dependency.
+- No blocker.

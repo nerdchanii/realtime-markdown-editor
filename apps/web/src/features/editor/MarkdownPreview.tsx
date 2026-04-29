@@ -3,6 +3,8 @@ import { previewHeadingStyle, previewLineStyle, previewStyle } from "./styles";
 type PreviewRow =
   | Readonly<{ kind: "heading"; key: string; text: string }>
   | Readonly<{ kind: "list"; key: string; text: string }>
+  | Readonly<{ kind: "quote"; key: string; text: string }>
+  | Readonly<{ kind: "task"; key: string; text: string; checked: boolean }>
   | Readonly<{ kind: "paragraph"; key: string; text: string }>
   | Readonly<{ kind: "code"; key: string; text: string }>
   | Readonly<{ kind: "table"; key: string; headers: readonly string[]; rows: readonly string[][] }>;
@@ -10,6 +12,8 @@ type PreviewRow =
 type PreviewRowWithoutKey =
   | Readonly<{ kind: "heading"; text: string }>
   | Readonly<{ kind: "list"; text: string }>
+  | Readonly<{ kind: "quote"; text: string }>
+  | Readonly<{ kind: "task"; text: string; checked: boolean }>
   | Readonly<{ kind: "paragraph"; text: string }>
   | Readonly<{ kind: "code"; text: string }>
   | Readonly<{ kind: "table"; headers: readonly string[]; rows: readonly string[][] }>;
@@ -38,12 +42,12 @@ function createPreviewRows(markdown: string): readonly PreviewRow[] {
 
     const block = readBlock(lines, index);
     if (block) {
-      rows.push(addKey(block.row, occurrences));
+      appendRow(rows, block.row, occurrences);
       index = block.endIndex;
       continue;
     }
 
-    rows.push(createPreviewRow(line, occurrences));
+    appendRow(rows, createPreviewRow(line), occurrences);
   }
 
   return rows;
@@ -94,24 +98,50 @@ function readTable(lines: readonly string[], startIndex: number) {
   return { row: { kind: "table" as const, headers, rows }, endIndex };
 }
 
-function createPreviewRow(line: string, occurrences: Map<string, number>): PreviewRow {
+function createPreviewRow(line: string): PreviewRowWithoutKey {
   if (line.startsWith("# ")) {
-    return addKey({ kind: "heading", text: line.slice(2) }, occurrences);
+    return { kind: "heading", text: line.slice(2) };
+  }
+
+  const task = /^-\s+\[(?<checked>[ xX])\]\s+(?<text>.+)$/.exec(line);
+  if (isTaskMatch(task)) {
+    return { kind: "task", text: task.groups.text, checked: task.groups.checked !== " " };
   }
 
   if (line.startsWith("- ")) {
-    return addKey({ kind: "list", text: line.slice(2) }, occurrences);
+    return { kind: "list", text: line.slice(2) };
   }
 
-  return addKey({ kind: "paragraph", text: line }, occurrences);
+  if (line.startsWith("> ")) {
+    return { kind: "quote", text: line.slice(2) };
+  }
+
+  return { kind: "paragraph", text: line };
 }
 
-function addKey(row: PreviewRowWithoutKey, occurrences: Map<string, number>): PreviewRow {
-  const contentKey = JSON.stringify(row);
-  const occurrence = (occurrences.get(contentKey) ?? 0) + 1;
-  occurrences.set(contentKey, occurrence);
+function isTaskMatch(
+  task: RegExpExecArray | null,
+): task is RegExpExecArray & { groups: { checked: string; text: string } } {
+  return typeof task?.groups?.checked === "string" && typeof task.groups.text === "string";
+}
 
-  return { ...row, key: `${contentKey}:${occurrence}` } as PreviewRow;
+function appendRow(
+  rows: PreviewRow[],
+  row: PreviewRowWithoutKey,
+  occurrences: Map<string, number>,
+) {
+  const keyedRow = addKey(row, occurrences);
+  if (keyedRow) rows.push(keyedRow);
+}
+
+function addKey(row: PreviewRowWithoutKey, occurrences: Map<string, number>): PreviewRow | null {
+  const contentKey = JSON.stringify(row);
+  const occurrence = occurrences.get(contentKey);
+  occurrences.set(contentKey, (occurrence ?? 0) + 1);
+
+  if (occurrence !== undefined) return null;
+
+  return { ...row, key: contentKey } as PreviewRow;
 }
 
 function PreviewLine({ row }: Readonly<{ row: PreviewRow }>) {
@@ -119,31 +149,66 @@ function PreviewLine({ row }: Readonly<{ row: PreviewRow }>) {
     return <h3 style={previewHeadingStyle}>{row.text}</h3>;
   }
 
-  if (row.kind === "list") {
-    return (
-      <ul style={previewLineStyle}>
-        <li>
-          <InlineMarkdown text={row.text} />
-        </li>
-      </ul>
-    );
-  }
-
   if (row.kind === "code") {
-    return (
-      <pre style={previewLineStyle}>
-        <code>{row.text}</code>
-      </pre>
-    );
+    return <PreviewCode text={row.text} />;
   }
 
   if (row.kind === "table") {
     return <PreviewTable row={row} />;
   }
 
+  return <PreviewTextRow row={row} />;
+}
+
+function PreviewCode({ text }: Readonly<{ text: string }>) {
+  return (
+    <pre style={previewLineStyle}>
+      <code>{text}</code>
+    </pre>
+  );
+}
+
+function PreviewTextRow({
+  row,
+}: Readonly<{ row: Exclude<PreviewRow, { kind: "heading" | "code" | "table" }> }>) {
+  if (row.kind === "list") return <PreviewList text={row.text} />;
+  if (row.kind === "quote") return <PreviewQuote text={row.text} />;
+  if (row.kind === "task") return <PreviewTask text={row.text} checked={row.checked} />;
+
+  return <PreviewParagraph text={row.text} />;
+}
+
+function PreviewList({ text }: Readonly<{ text: string }>) {
+  return (
+    <ul style={previewLineStyle}>
+      <li>
+        <InlineMarkdown text={text} />
+      </li>
+    </ul>
+  );
+}
+
+function PreviewQuote({ text }: Readonly<{ text: string }>) {
+  return (
+    <blockquote style={previewLineStyle}>
+      <InlineMarkdown text={text} />
+    </blockquote>
+  );
+}
+
+function PreviewTask({ text, checked }: Readonly<{ text: string; checked: boolean }>) {
+  return (
+    <label style={previewLineStyle}>
+      <input type="checkbox" checked={checked} readOnly />
+      <InlineMarkdown text={text} />
+    </label>
+  );
+}
+
+function PreviewParagraph({ text }: Readonly<{ text: string }>) {
   return (
     <p style={previewLineStyle}>
-      <InlineMarkdown text={row.text} />
+      <InlineMarkdown text={text} />
     </p>
   );
 }
