@@ -9,6 +9,8 @@ status: active
 
 Domain과 product language는 collaboration provider API, storage SDK, browser API, desktop/PWA packaging API에 직접 의존하면 안 된다.
 
+NestJS module은 DI와 composition을 위한 framework boundary다. `apps/api/src/modules/*/domain`에 Nest decorator, provider SDK, browser/editor/CRDT 타입이 들어가면 안 된다.
+
 ## 어댑터 경계
 
 - Collaboration engine adapter: concurrent editing, awareness, provider state serialization을 담당한다.
@@ -16,9 +18,11 @@ Domain과 product language는 collaboration provider API, storage SDK, browser A
 - Local persistence adapter: browser-local document persistence를 담당한다.
 - Notification adapter: Browser Notification API를 우선 쓰되 future native notification adapter를 열어둔다.
 - Platform adapter: PWA/Tauri/Electron 가능성은 domain code 밖에 둔다.
+- MCP server adapter: future agent integration surface이며 domain module이 아니다. MCP tools/resources는 application use case를 호출한다.
 
 ## 제공자 예시
 
 - Yjs, Hocuspocus, Yorkie, ProseMirror, Tiptap은 implementation candidates이지 domain concepts가 아니다.
 - S3, R2, MinIO는 object-storage-compatible boundary 뒤의 provider choices다.
 - IndexedDB는 local persistence 뒤의 browser implementation detail이다.
+- MCP protocol shape는 interface adapter concern이다.

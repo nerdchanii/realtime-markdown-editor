@@ -40,6 +40,9 @@ The system is a browser-based collaborative Markdown editor backed by a server-s
 - Presentation code calls application APIs and does not directly mutate durable domain state.
 - `DocumentState` is a domain concept, not just a UI badge.
 - Queryable metadata, collaboration artifacts, blob assets, local persistence, and ephemeral realtime state are not collapsed into one storage responsibility.
+- The first TypeScript monorepo keeps domain code app-private under `apps/api`; it does not introduce a shared domain package.
+- NestJS modules are composition and dependency-injection boundaries. Domain entities and values remain plain TypeScript with no Nest decorators.
+- Future HTTP, realtime, and MCP server interfaces call application use cases. MCP protocol shapes are interface adapter concerns, not domain concepts.
 
 ## Core Runtime Scenario
 
@@ -65,6 +68,16 @@ The first end-to-end product skeleton follows the subject requirement flow.
   - `docs/adr/0003-storage-strategy.md`
   - `docs/adr/0004-document-lifecycle-policy.md`
   - `docs/adr/0005-ui-shell-scope-model.md`
+
+## Planned Code Organization
+
+```text
+apps/api/src/modules/*/{domain,use-cases,ports,adapters,interfaces}
+apps/web/src/{app,features,lib,styles}
+packages/contracts/src/{http,realtime}
+```
+
+`packages/contracts` contains provider-neutral API and realtime wire contracts only. Domain entities, application use cases, ports, provider adapters, and UI view models do not live there.
 
 ## Risks And Open Decisions
 

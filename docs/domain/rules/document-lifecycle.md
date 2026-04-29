@@ -12,6 +12,7 @@ status: active
 - `DocumentState`는 sync status와 checkpoint history와 분리한다.
 - `saved`는 document workflow state이며 모든 client에 pending local edits가 없다는 증거가 아니다.
 - Future workflow hooks는 raw editor keystrokes가 아니라 `DocumentState` transition에 붙는다.
+- First skeleton에서 `DocumentState`는 `Document`가 가진 value/state로 구현하고 별도 aggregate로 키우지 않는다.
 
 ## MVP 경계
 
