@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 export const historyFeatureId = "history";
 
@@ -69,9 +69,11 @@ export function HistoryInspectorSlot({ viewModel }: HistoryInspectorSlotProps) {
 }
 
 function useHistoryInspectorState(viewModel: HistoryInspectorViewModel) {
-  const [checkpoints, setCheckpoints] = useState(() => [
-    ...(viewModel.checkpoints ?? fallbackCheckpoints),
-  ]);
+  const incomingCheckpoints = useMemo(
+    () => [...(viewModel.checkpoints ?? fallbackCheckpoints)],
+    [viewModel.checkpoints],
+  );
+  const [checkpoints, setCheckpoints] = useState(incomingCheckpoints);
   const [selectedCheckpointId, setSelectedCheckpointId] = useState(checkpoints[0]?.id);
   const [revisionMessage, setRevisionMessage] = useState("");
   const selected = checkpoints.find((checkpoint) => checkpoint.id === selectedCheckpointId);

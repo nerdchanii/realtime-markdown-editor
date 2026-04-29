@@ -1,10 +1,10 @@
 ---
 title: Shell Integration
-status: todo
+status: archived
 phase: P1
 task_type: integration
 task_mode: integration
-owner: unassigned
+owner: main
 depends_on:
   - TASK-013
   - TASK-014
@@ -111,12 +111,47 @@ Seed context API, workspace navigation shell, editor slots를 하나의 reviewer
 
 ## Archive Checklist
 
-- [ ] `status`를 `archived`로 변경했다.
-- [ ] 파일을 `tasks/archive/`로 이동했다.
-- [ ] 검증 결과를 이 문서에 기록했다.
-- [ ] 필요한 공식 문서 업데이트를 완료했다.
-- [ ] follow-up 또는 blocker를 기록했다.
+- [x] `status`를 `archived`로 변경했다.
+- [x] 파일을 `tasks/archive/`로 이동했다.
+- [x] 검증 결과를 이 문서에 기록했다.
+- [x] 필요한 공식 문서 업데이트를 완료했다.
+- [x] follow-up 또는 blocker를 기록했다.
 
 ## 메모
 
 - Expected CE failures must be concrete and limited before moving to `TASK-017`.
+- Main-session integration summary:
+  - Connected the web app to `GET /review-context/seed` through `apps/web/src/lib/api-client`.
+  - Added reviewer route parsing for `/?member=alice&document=seed-review-plan`.
+  - Mapped seed DTOs into workspace navigation, document context, editor, presence,
+    backlinks, and history view models.
+  - Added CORS read access for the seed route through the review-context controller.
+  - Aligned seeded member identity to Alice/Bob for the accepted CE presence path.
+  - Fixed reviewer-route identity so `?member=alice|bob` drives the active member label
+    and local/remote presence range in the editor surface.
+  - Normalized reviewer member route values case-insensitively and supports the review
+    shorthand `alice|bob`, full member IDs, and display names.
+  - Fixed workspace document selection so editor and history view models rehydrate from
+    the selected seed document instead of staying keyed to the original route alias.
+  - Keyed editor/history subtrees by selected document id so their local mock state
+    remounts cleanly when workspace navigation changes document.
+- Verification results recorded on 2026-04-30:
+  - `node -v`: passed, output `v24.15.0`.
+  - `pnpm -v`: passed, output `10.28.2`.
+  - `pnpm --filter @rme/api typecheck`: passed.
+  - `pnpm --filter @rme/web typecheck`: passed.
+  - `pnpm typecheck`: passed.
+  - `pnpm lint`: passed.
+  - `pnpm arch:check`: passed.
+  - `pnpm format:check`: passed.
+  - `pnpm exec playwright test --list`: passed and listed 5 CE specs.
+  - `pnpm --filter @rme/api exec tsx --tsconfig tsconfig.json --test src/modules/review-context/seed-review-context.controller.smoke.ts`: passed after sandbox escalation for `tsx` IPC.
+  - `pnpm test:e2e e2e/ce-02-presence.spec.ts e2e/ce-04-history.spec.ts e2e/ce-05-rich-preview.spec.ts`: passed after sandbox escalation for the Playwright dev server.
+  - `pnpm test:e2e e2e/ce-02-presence.spec.ts e2e/ce-04-history.spec.ts e2e/ce-05-rich-preview.spec.ts`: passed again after identity/selection fixes.
+  - `pnpm test:e2e e2e/ce-02-presence.spec.ts`: passed after member route normalization.
+  - `pnpm test:e2e e2e/ce-01-concurrent-editing.spec.ts`: failed at cross-context convergence only; selectors and local editor editing worked, but Bob's text did not appear in Alice's editor without realtime provider behavior. Rerun alone after the rehydration fix showed the same provider-only failure mode.
+  - `pnpm test:e2e e2e/ce-03-offline-merge.spec.ts`: failed at offline merge/convergence only; selectors and local offline edit worked, but Bob's online edit did not merge into Alice's editor without realtime/offline provider behavior.
+- Expected remaining CE gaps:
+  - CE-01 and CE-03 require provider-backed realtime/offline merge behavior in Plan 02.
+  - CE-02, CE-04, and CE-05 now pass on the integrated shell.
+- Final re-review: passed with no critical, important, or minor findings.

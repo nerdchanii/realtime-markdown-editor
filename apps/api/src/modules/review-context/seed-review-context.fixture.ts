@@ -22,9 +22,9 @@ const notesFolderId = "folder_project_notes" as FolderId;
 const reviewPlanDocumentId = "document_review_plan" as DocumentId;
 const decisionsDocumentId = "document_decision_log" as DocumentId;
 const aliceUserId = "user_alice" as UserId;
-const benUserId = "user_ben" as UserId;
+const bobUserId = "user_bob" as UserId;
 const aliceMembershipId = "member_alice" as WorkspaceMembershipId;
-const benMembershipId = "member_ben" as WorkspaceMembershipId;
+const bobMembershipId = "member_bob" as WorkspaceMembershipId;
 const reviewRevisionId = "revision_review_plan_001" as RevisionId;
 const decisionsRevisionId = "revision_decision_log_001" as RevisionId;
 const reviewCheckpointId = "checkpoint_review_plan_001" as CheckpointId;
@@ -57,11 +57,11 @@ const aliceMembership = {
   role: "owner",
 } as const;
 
-const benMembership = {
-  id: benMembershipId,
-  userId: benUserId,
+const bobMembership = {
+  id: bobMembershipId,
+  userId: bobUserId,
   workspaceId,
-  displayName: "Ben",
+  displayName: "Bob",
   color: "#1a7f37",
   role: "editor",
 } as const;
@@ -92,7 +92,7 @@ const decisionLogDocument = {
   state: "draft",
   properties: [
     { key: "Status", value: { type: "status", value: "Draft" } },
-    { key: "Owner", value: { type: "member", value: benMembershipId } },
+    { key: "Owner", value: { type: "member", value: bobMembershipId } },
   ],
   latestRevisionId: decisionsRevisionId,
   publishedRevisionId: null,
@@ -102,7 +102,7 @@ export const seedReviewContext: SeedReviewContext = {
   currentMemberId: aliceMembershipId,
   users: [
     { id: aliceUserId, email: "alice@example.test", name: "Alice Kim" },
-    { id: benUserId, email: "ben@example.test", name: "Ben Park" },
+    { id: bobUserId, email: "bob@example.test", name: "Bob Park" },
   ],
   workspace: {
     id: workspaceId,
@@ -151,7 +151,7 @@ export const seedReviewContext: SeedReviewContext = {
   ],
   selectedDocument: reviewPlanDocument,
   documents: [reviewPlanDocument, decisionLogDocument],
-  members: [aliceMembership, benMembership],
+  members: [aliceMembership, bobMembership],
   backlinks: [
     {
       sourceDocumentId: decisionsDocumentId,
@@ -166,7 +166,7 @@ export const seedReviewContext: SeedReviewContext = {
     documentKey: "workspace_review/document_review_plan",
     realtimeUrl: "ws://127.0.0.1:4000/collaboration/workspace_review/document_review_plan",
     currentMemberId: aliceMembershipId,
-    members: [aliceMembership, benMembership],
+    members: [aliceMembership, bobMembership],
     sync: {
       status: "synced",
       pendingLocalEdits: 0,
@@ -186,7 +186,7 @@ export const seedReviewContext: SeedReviewContext = {
     {
       id: decisionsRevisionId,
       documentId: decisionsDocumentId,
-      authorMembershipId: benMembershipId,
+      authorMembershipId: bobMembershipId,
       source: "checkpoint",
       message: "Capture initial decision log",
       createdAt: seedCreatedAt,
@@ -208,7 +208,7 @@ export const seedReviewContext: SeedReviewContext = {
       id: decisionsCheckpointId,
       documentId: decisionsDocumentId,
       revisionId: decisionsRevisionId,
-      authorMembershipId: benMembershipId,
+      authorMembershipId: bobMembershipId,
       message: "Capture initial decision log",
       createdAt: seedCreatedAt,
       snapshotArtifactRef: decisionLogArtifact.key,
