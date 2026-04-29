@@ -5,3 +5,5 @@ export type DocumentId = string & { readonly __brand: "DocumentId" };
 export type UserId = string & { readonly __brand: "UserId" };
 export type WorkspaceMembershipId = string & { readonly __brand: "WorkspaceMembershipId" };
 export type CheckpointId = string & { readonly __brand: "CheckpointId" };
+export type RevisionId = string & { readonly __brand: "RevisionId" };
+export type PublicationId = string & { readonly __brand: "PublicationId" };

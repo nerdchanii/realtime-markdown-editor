@@ -1,1 +1,27 @@
-export const ce02PresenceScenario = "pending";
+import { expect, test } from "@playwright/test";
+
+import { openReviewerSession, seededReviewDocumentId } from "./support/reviewer-session.js";
+
+test("CE-02: remote cursor and selection show workspace member identity", async ({ browser }) => {
+  const alice = await browser.newContext();
+  const bob = await browser.newContext();
+  const alicePage = await alice.newPage();
+  const bobPage = await bob.newPage();
+
+  await openReviewerSession(alicePage, { member: "alice", documentId: seededReviewDocumentId });
+  await openReviewerSession(bobPage, { member: "bob", documentId: seededReviewDocumentId });
+
+  const bobEditor = bobPage.getByTestId("collaborative-markdown-editor");
+  await expect(bobEditor).toBeVisible();
+  await bobEditor.click();
+  await bobPage.keyboard.down("Shift");
+  await bobPage.keyboard.press("ArrowRight");
+  await bobPage.keyboard.up("Shift");
+
+  await expect(alicePage.getByTestId("presence-cursor-bob")).toBeVisible();
+  await expect(alicePage.getByTestId("presence-selection-bob")).toBeVisible();
+  await expect(alicePage.getByTestId("presence-cursor-bob")).toContainText("Bob");
+
+  await alice.close();
+  await bob.close();
+});

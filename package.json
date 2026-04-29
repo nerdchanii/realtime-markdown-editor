@@ -20,12 +20,14 @@
     "arch:report": "depcruise --config .dependency-cruiser.cjs --output-type err-long apps/**/*.ts apps/**/*.tsx packages/**/*.ts packages/**/*.tsx",
     "test": "pnpm -r --if-present test",
     "check": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm arch:check && pnpm test",
-    "prepare": "husky"
+    "prepare": "husky",
+    "test:e2e": "playwright test"
   },
   "devDependencies": {
     "@commitlint/cli": "^20.5.2",
     "@commitlint/config-conventional": "^20.5.0",
     "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.59.1",
     "@types/node": "^24.12.2",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
