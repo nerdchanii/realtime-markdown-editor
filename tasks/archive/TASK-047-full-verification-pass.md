@@ -1,10 +1,10 @@
 ---
 title: TASK-047-full-verification-pass
-status: todo
+status: archived
 phase: P8
 task_type: verification
 task_mode: verification
-owner: unassigned
+owner: codex
 depends_on:
   - TASK-045
 write_set:
@@ -80,6 +80,13 @@ Run and record final verification.
 - 실행 명령: `pnpm test:e2e`
 - 기대 결과: all commands pass on Node `v24.15.0`.
 
+## 검증 결과
+
+- Runtime: `node -v` -> `v24.15.0`; `pnpm -v` -> `10.28.2`.
+- `pnpm check` -> passed.
+- `pnpm test:e2e` -> passed, 6 tests.
+- Manual verification: no residual manual-only steps were required for this task.
+
 ## Review
 
 - Spec compliance review 필요 여부: 필요.
@@ -89,12 +96,14 @@ Run and record final verification.
 
 ## Archive Checklist
 
-- [ ] `status`를 `archived`로 변경했다.
-- [ ] 파일을 `tasks/archive/`로 이동했다.
-- [ ] 검증 결과를 이 문서에 기록했다.
-- [ ] 필요한 공식 문서 업데이트를 완료했다.
-- [ ] follow-up 또는 blocker를 기록했다.
+- [x] `status`를 `archived`로 변경했다.
+- [x] 파일을 `tasks/archive/`로 이동했다.
+- [x] 검증 결과를 이 문서에 기록했다.
+- [x] 필요한 공식 문서 업데이트를 완료했다.
+- [x] follow-up 또는 blocker를 기록했다.
 
 ## 메모
 
 - Unblocks `TASK-048` with `TASK-046`.
+- Full check and full e2e verification passed after `TASK-045` and `TASK-046`.
+- No blocker.
