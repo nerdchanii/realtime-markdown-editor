@@ -1,6 +1,6 @@
 ---
 title: TASK-01-domain-model-foundation
-status: todo
+status: archived
 scope: domain
 ---
 

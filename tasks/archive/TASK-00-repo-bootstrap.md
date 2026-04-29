@@ -1,6 +1,6 @@
 ---
 title: TASK-00-repo-bootstrap
-status: todo
+status: archived
 scope: repo
 ---
 
