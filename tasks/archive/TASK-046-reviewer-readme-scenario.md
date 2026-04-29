@@ -1,10 +1,10 @@
 ---
 title: TASK-046-reviewer-readme-scenario
-status: todo
+status: archived
 phase: P8
 task_type: docs
 task_mode: docs
-owner: unassigned
+owner: codex
 depends_on:
   - TASK-045
 write_set:
@@ -79,6 +79,11 @@ Expand root README for final local review.
 - 실행 명령: `pnpm format:check`
 - 기대 결과: formatting check passes on Node `v24.15.0`.
 
+## 검증 결과
+
+- Runtime: `node -v` -> `v24.15.0`; `pnpm -v` -> `10.28.2`.
+- `pnpm format:check` -> passed.
+
 ## Review
 
 - Spec compliance review 필요 여부: 필요.
@@ -88,12 +93,16 @@ Expand root README for final local review.
 
 ## Archive Checklist
 
-- [ ] `status`를 `archived`로 변경했다.
-- [ ] 파일을 `tasks/archive/`로 이동했다.
-- [ ] 검증 결과를 이 문서에 기록했다.
-- [ ] 필요한 공식 문서 업데이트를 완료했다.
-- [ ] follow-up 또는 blocker를 기록했다.
+- [x] `status`를 `archived`로 변경했다.
+- [x] 파일을 `tasks/archive/`로 이동했다.
+- [x] 검증 결과를 이 문서에 기록했다.
+- [x] 필요한 공식 문서 업데이트를 완료했다.
+- [x] follow-up 또는 blocker를 기록했다.
 
 ## 메모
 
 - Unblocks `TASK-048` with `TASK-047`.
+- README now includes install/run, seeded identities, reviewer URL, CE scenario order,
+  included product surface, and intentionally deferred scope.
+- Subject matrix evidence now references implemented e2e specs and the integrated reviewer flow.
+- No blocker.
