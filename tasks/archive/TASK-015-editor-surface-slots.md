@@ -1,10 +1,10 @@
 ---
 title: Editor Surface Slots
-status: todo
+status: archived
 phase: P1
 task_type: parallel-ui
 task_mode: parallel
-owner: unassigned
+owner: worker
 depends_on:
   - TASK-012
 write_set:
@@ -93,7 +93,7 @@ Mock provider 기반으로 central editor, document header, properties, backlink
 - 기대 결과: web package typecheck가 통과한다.
 - 실행 명령: `pnpm lint`
 - 기대 결과: lint가 통과한다.
-- 실행 명령: `pnpm test:e2e -- --list`
+- 실행 명령: `pnpm test:e2e --list`
 - 기대 결과: e2e specs listing이 성공한다.
 - 실행 명령: `pnpm format:check`
 - 기대 결과: formatting check가 통과한다.
@@ -107,11 +107,11 @@ Mock provider 기반으로 central editor, document header, properties, backlink
 
 ## Archive Checklist
 
-- [ ] `status`를 `archived`로 변경했다.
-- [ ] 파일을 `tasks/archive/`로 이동했다.
-- [ ] 검증 결과를 이 문서에 기록했다.
-- [ ] 필요한 공식 문서 업데이트를 완료했다.
-- [ ] follow-up 또는 blocker를 기록했다.
+- [x] `status`를 `archived`로 변경했다.
+- [x] 파일을 `tasks/archive/`로 이동했다.
+- [x] 검증 결과를 이 문서에 기록했다.
+- [x] 필요한 공식 문서 업데이트를 완료했다.
+- [x] follow-up 또는 blocker를 기록했다.
 
 ## 메모
 
@@ -119,3 +119,43 @@ Mock provider 기반으로 central editor, document header, properties, backlink
 - Plan 01 graph role is represented as `task_type: parallel-ui` plus `task_mode: parallel` per `tasks/README.md` metadata rules.
 - Shared/global styles are owned by `TASK-012` or `TASK-016` so this parallel write set stays disjoint from `TASK-014`.
 - Plan 01's table also lists `TASK-011` as unlocking this task, but the materialized dependency follows the graph's explicit `Depends on` column.
+- Worker completion summary:
+  - Added mock-backed document header, properties outside Markdown body, and backlinks surface.
+  - Added editor workspace slots for source, preview, sync status, mode controls, and presence.
+  - Added history slot with checkpoint list and read-only snapshot surface.
+  - Added stable CE `data-testid` hooks for later e2e integration.
+- Verification results recorded on 2026-04-30:
+  - `node -v`: passed, output `v24.15.0`.
+  - `pnpm -v`: passed, output `10.28.2`.
+  - `pnpm --filter @rme/web typecheck`: passed.
+  - `pnpm lint`: passed after `TASK-013` fixture split.
+  - `pnpm test:e2e --list`: passed and listed 5 CE specs.
+  - `pnpm format:check`: passed.
+  - Note: `pnpm test:e2e -- --list` is interpreted by Playwright as a test filter in this repo and reports no tests; `pnpm test:e2e --list` is the working list command.
+- Main-session review fixes:
+  - Restored existing CE selector contracts:
+    `collaborative-markdown-editor`, `markdown-rich-preview`,
+    `presence-cursor-*`, `presence-selection-*`, and `revision-snapshot-viewer`.
+  - Rendered editor mode buttons with title-case accessible names.
+  - Added stable presence member IDs for test hooks instead of deriving hooks from names.
+  - Made preview row keys stable for repeated Markdown lines without using array indexes.
+  - Split editor-local styles into `apps/web/src/features/editor/styles.ts` to keep lint
+    line-count limits green.
+  - Made the mock editor controlled so split preview reflects current Markdown edits.
+  - Added minimal Markdown preview rendering for headings, list items, inline code, and
+    standard Markdown links.
+  - Expanded the preview renderer to handle fenced code blocks and Markdown tables so
+    the fallback CE evidence content is not emitted as raw syntax.
+  - Added mock history publish controls and selectable checkpoint snapshots for the
+    current reviewer path.
+  - Rendered backlink sources as links instead of plain text.
+- Verification refresh after review fixes:
+  - `pnpm --filter @rme/web typecheck`: passed.
+  - `pnpm lint`: passed.
+  - `pnpm format:check`: passed.
+  - `pnpm test:e2e e2e/ce-05-rich-preview.spec.ts`: passed after sandbox escalation for the Playwright dev server.
+  - `pnpm test:e2e e2e/ce-05-rich-preview.spec.ts`: passed again after fenced code/table preview rendering.
+  - `pnpm test:e2e e2e/ce-04-history.spec.ts e2e/ce-05-rich-preview.spec.ts`: CE-04 passed, CE-05 initially failed on link rendering, then passed after parser fix.
+  - `pnpm test:e2e e2e/ce-01-concurrent-editing.spec.ts e2e/ce-02-presence.spec.ts e2e/ce-04-history.spec.ts`: CE-02 and CE-04 passed; CE-01 failed because Playwright browser contexts do not share the TASK-015 in-browser mock channel. This is recorded as a TASK-016/Plan 02 integration blocker for real provider-backed convergence, not a TASK-015 surface acceptance failure.
+- Worker commit opinion: safe after main-session review/archive; changed files are within declared write set.
+- Final re-review: passed with a minor note that the mock rich-preview parser is intentionally narrow and not a complete Markdown parser.
