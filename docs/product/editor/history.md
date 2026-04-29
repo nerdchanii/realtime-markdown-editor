@@ -24,12 +24,15 @@ History는 ordinary autosave/sync와 intentional checkpoint를 구분하면서 r
 - 모든 autosave를 user-facing revision처럼 취급하지 않는다.
 - CE-04의 minimum path는 checkpoint 생성, 목록, metadata, read-only snapshot inspection이다.
 - Read-only snapshot inspection은 checkpoint metadata에서 artifact reference를 찾고, artifact boundary에서 Markdown snapshot을 읽어 보여준다.
+- Checkpoint 생성은 author membership, timestamp, reviewer message, snapshot artifact reference를 metadata로 저장한다.
+- First skeleton의 local-compatible artifact adapter는 inspectable Markdown snapshot을 저장하며, autosave/sync event를 user-authored checkpoint로 승격하지 않는다.
 
 ## 보류
 
 - Restore와 branching은 first skeleton 범위가 아니며 `HistoryModule` 승격 trigger다.
 - CRDT update replay, rendered HTML snapshot 저장, combined artifact format은 first skeleton 범위가 아니다. ADR-0003 V1은 CE-04 checkpoint artifact를 inspectable Markdown snapshot과 artifact metadata로 둔다.
 - Live Yjs binary persistence는 history UI에 user-authored checkpoint처럼 노출하지 않는다.
+- Restore와 branching endpoint/UI는 구현하지 않는다.
 
 ## 검증
 

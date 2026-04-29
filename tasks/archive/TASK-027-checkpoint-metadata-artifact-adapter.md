@@ -1,10 +1,10 @@
 ---
 title: TASK-027-checkpoint-metadata-artifact-adapter
-status: todo
+status: archived
 phase: P3
 task_type: persistence
 task_mode: parallel-backend
-owner: unassigned
+owner: main-session
 depends_on:
   - TASK-011
   - TASK-024
@@ -92,12 +92,25 @@ Implement explicit checkpoint creation and snapshot storage.
 
 ## Archive Checklist
 
-- [ ] `status`를 `archived`로 변경했다.
-- [ ] 파일을 `tasks/archive/`로 이동했다.
-- [ ] 검증 결과를 이 문서에 기록했다.
-- [ ] 필요한 공식 문서 업데이트를 완료했다.
-- [ ] follow-up 또는 blocker를 기록했다.
+- [x] `status`를 `archived`로 변경했다.
+- [x] 파일을 `tasks/archive/`로 이동했다.
+- [x] 검증 결과를 이 문서에 기록했다.
+- [x] 필요한 공식 문서 업데이트를 완료했다.
+- [x] follow-up 또는 blocker를 기록했다.
 
 ## 메모
 
 - ADR-0003 V1 read-only inspect path returns Markdown snapshot from artifact boundary.
+- Verification:
+  - `node -v` -> `v24.15.0`
+  - `pnpm -v` -> `10.28.2`
+  - `pnpm --filter @rme/api typecheck` -> pass.
+  - `pnpm --filter @rme/contracts typecheck` -> pass.
+  - `pnpm arch:check` -> pass.
+  - `pnpm format:check` -> pass.
+  - `pnpm lint` -> pass.
+- Implementation notes:
+  - local-compatible checkpoint repository stores checkpoint metadata and Markdown snapshot artifacts.
+  - inspect API returns Markdown snapshot content from the artifact boundary.
+  - restore/branching was not implemented.
+  - autosave/sync events are not converted into user-authored checkpoints.
