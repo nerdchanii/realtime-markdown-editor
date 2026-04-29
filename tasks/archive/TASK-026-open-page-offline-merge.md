@@ -1,10 +1,10 @@
 ---
 title: TASK-026-open-page-offline-merge
-status: todo
+status: archived
 phase: P3
 task_type: feature
 task_mode: parallel-ui
-owner: unassigned
+owner: worker-019ddb0e-4333-79b3-880c-0a9f3292df9c
 depends_on:
   - TASK-024
 write_set:
@@ -90,12 +90,21 @@ Implement CE-03 open-page offline editing and reconnect merge behavior.
 
 ## Archive Checklist
 
-- [ ] `status`를 `archived`로 변경했다.
-- [ ] 파일을 `tasks/archive/`로 이동했다.
-- [ ] 검증 결과를 이 문서에 기록했다.
-- [ ] 필요한 공식 문서 업데이트를 완료했다.
-- [ ] follow-up 또는 blocker를 기록했다.
+- [x] `status`를 `archived`로 변경했다.
+- [x] 파일을 `tasks/archive/`로 이동했다.
+- [x] 검증 결과를 이 문서에 기록했다.
+- [x] 필요한 공식 문서 업데이트를 완료했다.
+- [x] follow-up 또는 blocker를 기록했다.
 
 ## 메모
 
 - CE-03 failure at Plan 01 exit is expected until this task and integration are complete.
+- Verification:
+  - `node -v` -> `v24.15.0`
+  - `pnpm -v` -> `10.28.2`
+  - `pnpm --filter @rme/web typecheck` -> pass.
+  - `pnpm lint` -> pass.
+  - `pnpm test:e2e e2e/ce-03-offline-merge.spec.ts` -> pass.
+- Worker reported CE-03 needed sandbox escalation because `tsx` could not create its IPC pipe in
+  the sandbox.
+- Worker reported acceptance met and no unresolved TASK-026 blocker.

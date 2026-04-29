@@ -15,6 +15,11 @@ import type {
   CollaborationDocumentOptions,
   CollaborationDocumentState,
 } from "../ports/collaboration-adapter";
+import {
+  createRealtimeSyncStatus,
+  type RuntimeSyncSnapshot,
+  useRuntimeSyncSnapshot,
+} from "./tiptap-yjs-sync-status";
 
 export const tiptapYjsCollaborationProviderName = "features.editor.collaboration.tiptap-yjs";
 
@@ -40,12 +45,13 @@ function useTiptapYjsDocument(options: CollaborationDocumentOptions): Collaborat
   useCollaborationSession(options, setSession);
   useTiptapYjsRuntime(session, setRuntime);
   useYTextState(runtime, options.initialMarkdown, setMarkdown);
+  const syncSnapshot = useRuntimeSyncSnapshot(runtime);
   const updateMarkdown = useYTextUpdate(runtime, setMarkdown);
 
   return {
     markdown,
     updateMarkdown,
-    syncStatus: createSyncStatus(options, session, runtime),
+    syncStatus: createSyncStatus(options, session, runtime, syncSnapshot),
     presence: options.initialPresence,
     providerName: tiptapYjsCollaborationProviderName,
   };
@@ -185,16 +191,13 @@ function createSyncStatus(
   options: CollaborationDocumentOptions,
   session: CollaborationSessionDto | null,
   runtime: TiptapYjsRuntime | null,
+  syncSnapshot: RuntimeSyncSnapshot,
 ) {
   if (!session) {
     return options.initialSyncStatus;
   }
 
-  return {
-    label: runtime ? "Realtime" : options.initialSyncStatus.label,
-    detail: runtime ? `Realtime document ${session.documentKey}` : "Waiting for session",
-    pendingEdits: runtime?.provider.unsyncedChanges ?? options.initialSyncStatus.pendingEdits,
-  };
+  return createRealtimeSyncStatus(session.documentKey, runtime, syncSnapshot);
 }
 
 function replaceYText(markdown: Y.Text, nextMarkdown: string) {
