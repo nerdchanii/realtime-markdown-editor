@@ -5,6 +5,8 @@ import type {
   CheckpointSnapshotInspectDto,
   CreateCheckpointRequestDto,
   CreateCheckpointResponseDto,
+  CreateMarkdownExportRequestDto,
+  MarkdownExportResponseDto,
   SeedReviewContextDto,
   WorkspaceMembershipId,
 } from "@rme/contracts";
@@ -95,6 +97,31 @@ export async function inspectCheckpointSnapshot(
   }
 
   return (await response.json()) as CheckpointSnapshotInspectDto;
+}
+
+export async function createMarkdownExport(
+  client: ApiClient,
+  documentId: string,
+  request: CreateMarkdownExportRequestDto,
+): Promise<MarkdownExportResponseDto> {
+  const response = await fetch(
+    `${client.baseUrl}/documents/${encodeURIComponent(documentId)}/export`,
+    {
+      method: "POST",
+      body: new URLSearchParams({
+        documentId: request.documentId,
+        filename: request.filename,
+        properties: JSON.stringify(request.properties),
+        markdownBody: request.markdownBody,
+      }),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(`Markdown export request failed with ${response.status}`);
+  }
+
+  return (await response.json()) as MarkdownExportResponseDto;
 }
 
 function mapCollaborationSessionResponse(

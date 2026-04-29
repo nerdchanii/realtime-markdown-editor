@@ -131,6 +131,13 @@ export type MarkdownExportDto = Readonly<{
   fileContents: string;
 }>;
 
+export type CreateMarkdownExportRequestDto = Readonly<{
+  documentId: DocumentId;
+  filename: string;
+  properties: readonly DocumentPropertyDto[];
+  markdownBody: string;
+}>;
+
 export type MarkdownExportResponseDto = MarkdownExportDto;
 
 export type RevisionSourceDto = "checkpoint" | "publication";

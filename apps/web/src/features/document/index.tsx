@@ -1,5 +1,6 @@
 import { useState } from "react";
 
+import { MarkdownExportSurface } from "./MarkdownExportSurface";
 import { PropertiesSurface } from "./PropertiesSurface";
 import type { DocumentBacklink, DocumentContextViewModel, DocumentProperty } from "./types";
 
@@ -39,16 +40,7 @@ const fallbackBacklinks: readonly DocumentBacklink[] = [
 export function DocumentContextSlot({ viewModel }: DocumentContextSlotProps) {
   const title = viewModel.title ?? "Collaborative editor review plan";
   const path = viewModel.path ?? "Acme Workspace / Editor / Review plan";
-  const [properties, setProperties] = useState(() => [
-    ...(viewModel.properties ?? fallbackProperties),
-  ]);
-  const updateProperty = (key: string, value: string) => {
-    setProperties((current) =>
-      current.map((property) =>
-        (property.key ?? property.label) === key ? { ...property, value } : property,
-      ),
-    );
-  };
+  const { properties, updateProperty } = useDocumentProperties(viewModel.properties);
 
   return (
     <header
@@ -62,10 +54,30 @@ export function DocumentContextSlot({ viewModel }: DocumentContextSlotProps) {
       </h2>
       <p style={metadataStyle}>{path}</p>
       <PropertiesSurface properties={properties} onPropertyChange={updateProperty} />
+      <MarkdownExportSurface
+        documentId={viewModel.documentId}
+        title={title}
+        properties={properties}
+      />
       <BacklinksSurface backlinks={viewModel.backlinks ?? fallbackBacklinks} />
       <div className="replacement-point">{viewModel.replacementPoint}</div>
     </header>
   );
+}
+
+function useDocumentProperties(initialProperties: readonly DocumentProperty[] | undefined) {
+  const [properties, setProperties] = useState(() => [
+    ...(initialProperties ?? fallbackProperties),
+  ]);
+  const updateProperty = (key: string, value: string) => {
+    setProperties((current) =>
+      current.map((property) =>
+        (property.key ?? property.label) === key ? { ...property, value } : property,
+      ),
+    );
+  };
+
+  return { properties, updateProperty };
 }
 
 function BacklinksSurface({ backlinks }: { backlinks: readonly DocumentBacklink[] }) {

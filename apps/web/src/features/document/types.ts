@@ -17,6 +17,7 @@ export type DocumentBacklink = Readonly<{
 export type DocumentContextViewModel = Readonly<{
   replacementPoint: string;
   label: string;
+  documentId?: string;
   title?: string;
   path?: string;
   properties?: readonly DocumentProperty[];

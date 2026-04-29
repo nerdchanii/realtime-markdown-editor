@@ -23,6 +23,7 @@ Markdown export는 document content를 portable하게 유지하면서 structured
 ## Contract
 
 - `MarkdownExportDto` is the API representation for an exported Markdown file.
+- `POST /documents/:documentId/export` accepts `CreateMarkdownExportRequestDto` and returns `MarkdownExportResponseDto`.
 - `MarkdownExportDto.frontmatter` contains scalar property values keyed by property key.
 - `MarkdownExportDto.markdownBody` contains the standard Markdown body without internal property storage.
 - `MarkdownExportDto.fileContents` is the inspectable single-file boundary: YAML frontmatter, a blank line, then the Markdown body.

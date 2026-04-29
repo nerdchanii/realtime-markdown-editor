@@ -2,6 +2,7 @@ import { Module } from "@nestjs/common";
 
 import { LocalCheckpointRepository } from "@/modules/documents/adapters/local-checkpoint-repository.js";
 import { CheckpointsController } from "@/modules/documents/interfaces/checkpoints.controller.js";
+import { MarkdownExportController } from "@/modules/documents/interfaces/markdown-export.controller.js";
 import {
   CHECKPOINT_REPOSITORY,
   type CheckpointRepository,
@@ -14,9 +15,10 @@ import {
 } from "@/modules/documents/ports/document-repository.js";
 import { CreateCheckpointUseCase } from "@/modules/documents/use-cases/create-checkpoint-use-case.js";
 import { InspectCheckpointSnapshotUseCase } from "@/modules/documents/use-cases/inspect-checkpoint-snapshot-use-case.js";
+import { ExportMarkdownUseCase } from "@/modules/documents/use-cases/export-markdown-use-case.js";
 
 @Module({
-  controllers: [CheckpointsController],
+  controllers: [CheckpointsController, MarkdownExportController],
   providers: [
     {
       provide: CHECKPOINT_REPOSITORY,
@@ -42,7 +44,13 @@ import { InspectCheckpointSnapshotUseCase } from "@/modules/documents/use-cases/
         new InspectCheckpointSnapshotUseCase(repository),
       inject: [CHECKPOINT_REPOSITORY],
     },
+    ExportMarkdownUseCase,
   ],
-  exports: [CreateDocumentUseCase, CreateCheckpointUseCase, InspectCheckpointSnapshotUseCase],
+  exports: [
+    CreateDocumentUseCase,
+    CreateCheckpointUseCase,
+    InspectCheckpointSnapshotUseCase,
+    ExportMarkdownUseCase,
+  ],
 })
 export class DocumentsModule {}
