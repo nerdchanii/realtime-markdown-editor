@@ -1,12 +1,16 @@
 export const documentFeatureId = "document";
 
 export type DocumentProperty = Readonly<{
+  key?: string;
   label: string;
   value: string;
+  valueType?: "text" | "status" | "date" | "member" | "checkbox";
   tone?: "neutral" | "success" | "warning";
 }>;
 
 export type DocumentBacklink = Readonly<{
+  sourceDocumentId?: string;
+  targetDocumentId?: string;
   title: string;
   source: string;
   excerpt: string;
@@ -26,10 +30,15 @@ export type DocumentContextSlotProps = Readonly<{
 }>;
 
 const fallbackProperties: readonly DocumentProperty[] = [
-  { label: "State", value: "Review", tone: "warning" },
-  { label: "Owner", value: "Mina Park" },
-  { label: "Project", value: "Realtime editor walking skeleton" },
-  { label: "Updated", value: "Today 10:24" },
+  { key: "State", label: "State", value: "Review", valueType: "status", tone: "warning" },
+  { key: "Owner", label: "Owner", value: "Mina Park", valueType: "member" },
+  {
+    key: "Project",
+    label: "Project",
+    value: "Realtime editor walking skeleton",
+    valueType: "text",
+  },
+  { key: "Updated", label: "Updated", value: "Today 10:24", valueType: "date" },
 ];
 
 const fallbackBacklinks: readonly DocumentBacklink[] = [

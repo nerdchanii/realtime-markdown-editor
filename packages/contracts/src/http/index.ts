@@ -70,6 +70,14 @@ export type DocumentPropertyDto = Readonly<{
   value: DocumentPropertyValueDto;
 }>;
 
+export type DocumentLinkDto = Readonly<{
+  sourceDocumentId: DocumentId;
+  targetDocumentId: DocumentId;
+  markdownHref: string;
+  targetTitle: string;
+  preview: string;
+}>;
+
 export type BacklinkDto = Readonly<{
   sourceDocumentId: DocumentId;
   targetDocumentId: DocumentId;
@@ -99,6 +107,31 @@ export type DocumentDetailDto = DocumentSummaryDto &
     markdownBody: string;
     properties: readonly DocumentPropertyDto[];
   }>;
+
+export type DocumentConnectionsDto = Readonly<{
+  documentId: DocumentId;
+  links: readonly DocumentLinkDto[];
+  backlinks: readonly BacklinkDto[];
+}>;
+
+export type DocumentConnectionsResponseDto = DocumentConnectionsDto;
+
+export type MarkdownExportFrontmatterValueDto = string | number | boolean | null;
+
+export type MarkdownExportFrontmatterDto = Readonly<
+  Record<string, MarkdownExportFrontmatterValueDto>
+>;
+
+export type MarkdownExportDto = Readonly<{
+  documentId: DocumentId;
+  filename: string;
+  contentType: "text/markdown; charset=utf-8";
+  frontmatter: MarkdownExportFrontmatterDto;
+  markdownBody: string;
+  fileContents: string;
+}>;
+
+export type MarkdownExportResponseDto = MarkdownExportDto;
 
 export type RevisionSourceDto = "checkpoint" | "publication";
 

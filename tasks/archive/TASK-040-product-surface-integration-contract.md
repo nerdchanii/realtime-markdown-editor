@@ -1,10 +1,10 @@
 ---
 title: TASK-040-product-surface-integration-contract
-status: todo
+status: archived
 phase: P6
 task_type: contract
 task_mode: blocking
-owner: unassigned
+owner: codex
 depends_on:
   - TASK-031
 write_set:
@@ -90,6 +90,14 @@ Lock the surface contract before parallel UI/backend polish.
 - 실행 명령: `pnpm format:check`
 - 기대 결과: all commands pass on Node `v24.15.0`.
 
+## 검증 결과
+
+- Runtime: `node -v` -> `v24.15.0`; `pnpm -v` -> `10.28.2`.
+- `pnpm --filter @rme/contracts typecheck` -> passed.
+- `pnpm typecheck` -> passed.
+- `pnpm arch:check` -> passed.
+- `pnpm format:check` -> passed.
+
 ## Review
 
 - Spec compliance review 필요 여부: 필요.
@@ -99,12 +107,15 @@ Lock the surface contract before parallel UI/backend polish.
 
 ## Archive Checklist
 
-- [ ] `status`를 `archived`로 변경했다.
-- [ ] 파일을 `tasks/archive/`로 이동했다.
-- [ ] 검증 결과를 이 문서에 기록했다.
-- [ ] 필요한 공식 문서 업데이트를 완료했다.
-- [ ] follow-up 또는 blocker를 기록했다.
+- [x] `status`를 `archived`로 변경했다.
+- [x] 파일을 `tasks/archive/`로 이동했다.
+- [x] 검증 결과를 이 문서에 기록했다.
+- [x] 필요한 공식 문서 업데이트를 완료했다.
+- [x] follow-up 또는 blocker를 기록했다.
 
 ## 메모
 
 - Plan 03 blocking task.
+- Contract review: properties remain on `DocumentDetailDto.properties`; links/backlinks use explicit `DocumentConnectionsDto`; Markdown export uses `MarkdownExportDto` with YAML frontmatter plus standard Markdown body.
+- Reviewer subagent timed out and was closed; local review found no blocking write-set or acceptance issue.
+- No blocker.

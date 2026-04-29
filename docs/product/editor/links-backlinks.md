@@ -20,6 +20,13 @@ Document connection은 product-specific link syntax를 도입하기 전에 stand
 - Incoming backlink 또는 document connection을 표시한다.
 - Link behavior가 source view와 export와 호환되게 한다.
 
+## Contract
+
+- `DocumentConnectionsDto` is the explicit projection contract for document links and backlinks.
+- `DocumentConnectionsDto.links` contains outgoing standard Markdown links from the current document to internal documents.
+- `DocumentConnectionsDto.backlinks` contains incoming standard Markdown connections to the current document.
+- The projection is separate from Markdown body storage: source mode keeps the original standard Markdown link text.
+
 ## 보류
 
 - Wikilink는 보류한다.

@@ -20,6 +20,13 @@ Markdown export는 document content를 portable하게 유지하면서 structured
 - Standard Markdown links가 external tool에서도 읽히게 유지한다.
 - Export 시 document properties를 YAML frontmatter로 포함한다.
 
+## Contract
+
+- `MarkdownExportDto` is the API representation for an exported Markdown file.
+- `MarkdownExportDto.frontmatter` contains scalar property values keyed by property key.
+- `MarkdownExportDto.markdownBody` contains the standard Markdown body without internal property storage.
+- `MarkdownExportDto.fileContents` is the inspectable single-file boundary: YAML frontmatter, a blank line, then the Markdown body.
+
 ## 경계
 
 Frontmatter export는 properties가 internal Markdown body 안에 저장된다는 뜻이 아니다. Internal product model은 body와 properties를 분리한다.

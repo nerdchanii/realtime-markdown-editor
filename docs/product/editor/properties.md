@@ -21,6 +21,12 @@ Document properties는 Markdown body storage를 오염시키지 않고 structure
 - 구현 범위가 허용하면 text, status/select, date, member, checkbox 같은 기본 type을 지원한다.
 - Member property는 workspace membership을 참조한다.
 
+## Contract
+
+- `DocumentDetailDto.properties` is the canonical API field for document properties.
+- Each property uses `{ key, value }`, where `value.type` is one of `text`, `status`, `date`, `member`, or `checkbox`.
+- Web document surface view models may format property values for display, but must preserve the DTO key/type distinction when adding editing behavior.
+
 ## 내보내기 정책
 
 Internal storage는 properties를 body 밖에 둔다. Markdown export는 YAML frontmatter로 properties를 포함할 수 있다. Frontmatter는 export representation이지 internal body storage가 아니다.
