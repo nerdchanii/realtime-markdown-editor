@@ -72,6 +72,28 @@ Do not start a later document until the prior document exit criteria pass, excep
 - Boundary-adjacent tasks include `pnpm arch:check`.
 - CE implementation tasks include the relevant `pnpm test:e2e e2e/ce-xx-*.spec.ts` command, even while expected failures are being driven down.
 
+## Node Runtime Rule
+
+This repository requires Node `>=24 <25`; use Node `v24.15.0`.
+
+Before running install, build, test, or dev commands, check:
+
+- `node -v`
+- `pnpm -v`
+
+If `node -v` is not `v24.x`, or if `fnm use` / shell integration fails inside Codex, run Node and pnpm commands through:
+
+- `fnm exec --using 24.15.0 -- node -v`
+- `fnm exec --using 24.15.0 -- pnpm -v`
+- `fnm exec --using 24.15.0 -- pnpm install`
+- `fnm exec --using 24.15.0 -- pnpm typecheck`
+- `fnm exec --using 24.15.0 -- pnpm lint`
+- `fnm exec --using 24.15.0 -- pnpm arch:check`
+- `fnm exec --using 24.15.0 -- pnpm check`
+- `fnm exec --using 24.15.0 -- pnpm test:e2e`
+
+Do not change the project engine range to fit the current shell. The project stays pinned to Node 24.
+
 ## Completion Gates
 
 The long-run is complete when:

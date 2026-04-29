@@ -59,13 +59,15 @@ Acceptance:
 
 - Each task uses `tasks/_templates/TASK-TEMPLATE.md`.
 - Each task has `task_mode`, `write_set`, `forbidden_paths`, acceptance, verification, and review fields.
-- `node -v` reports Node 24.
-- `pnpm -v` reports `10.28.2`.
+- `node -v` reports Node 24, or all Node/pnpm commands are run through `fnm exec --using 24.15.0 --`.
+- `pnpm -v` reports `10.28.2`, or `fnm exec --using 24.15.0 -- pnpm -v` reports `10.28.2`.
 
 Verification:
 
 - `node -v`
+- `fnm exec --using 24.15.0 -- node -v`
 - `pnpm -v`
+- `fnm exec --using 24.15.0 -- pnpm -v`
 - `pnpm format:check`
 
 ### TASK-011: ADR-0003 Storage Alignment
