@@ -15,7 +15,7 @@ related_adrs:
 
 ## 결론
 
-현재 POC evidence 기준으로는 **Tiptap + Yjs + Hocuspocus**를 다음 구현 pass의 primary candidate로 둔다.
+현재 POC evidence와 ADR-0002 결정 기준으로 **Tiptap + Yjs + Hocuspocus**를 다음 구현 pass의 협업 엔진으로 선택한다.
 
 이 결론은 “Yjs가 모든 계층에서 Yorkie보다 빠르다”는 뜻이 아니다. 이번 POC는 실제 제품 후보 stack 비교이며, Tiptap 후보는 Tiptap editor integration, Yorkie 후보는 raw ProseMirror integration을 사용한다. Headless CRDT-only 결과는 별도 참고 자료로만 본다.
 
@@ -23,7 +23,7 @@ related_adrs:
 
 | 후보 | 에디터 | CRDT / 동기화 | 서버 | 상태 |
 | --- | --- | --- | --- | --- |
-| Tiptap + Yjs + Hocuspocus | Tiptap | Yjs | local Hocuspocus | primary candidate |
+| Tiptap + Yjs + Hocuspocus | Tiptap | Yjs | local Hocuspocus | selected |
 | Yorkie + ProseMirror | raw ProseMirror | Yorkie | local Yorkie server | 비교 유지 후보 |
 
 두 후보 모두 같은 seeded Markdown, 같은 Alice/Bob identity, 같은 offline/online token, 같은 Playwright flow로 검증했다.
@@ -32,24 +32,22 @@ related_adrs:
 
 최종 browser/editor stack benchmark는 **3회 반복 median**이다. 기존 manual-review server를 재사용하지 않고 `POC_PERF_PORT_BASE=19000` 기반 격리 포트에서 app/sync server를 fresh process로 띄웠다.
 
-| 항목 | Tiptap/Yjs | Yorkie | 우세 |
+| 항목 | Tiptap/Yjs | Yorkie | 관찰 |
 | --- | ---: | ---: | --- |
-| 에디터 최초 표시 | 192.2 ms | 255 ms | Tiptap |
-| 공통 ready gate 통과 | 230.8 ms | 259.1 ms | Tiptap |
-| 원격 편집 반영 | 11.2 ms | 115.2 ms | Tiptap |
-| 재연결 수렴 | 11 ms | 215.5 ms | Tiptap |
-| 큰 source commit | 476.6 ms | 455.1 ms | Yorkie |
-| 큰 문서 local edit | 14.9 ms | 63.3 ms | Tiptap |
-| 큰 문서 이후 heap | 21.19 MB | 10.83 MB | Yorkie |
-| 측정 network payload | 12.01 MB | 8.01 MB | Yorkie |
-| sync server peak RSS | 110.98 MB | 41.73 MB | Yorkie |
+| 원격 편집 반영 | 11.2 ms | 115.2 ms | Tiptap/Yjs 쪽 수치가 낮음 |
+| 재연결 수렴 | 11 ms | 215.5 ms | Tiptap/Yjs 쪽 수치가 낮음 |
+| 큰 source commit | 476.6 ms | 455.1 ms | 거의 유사, Yorkie 쪽 수치가 약간 낮음 |
+| 큰 문서 local edit | 14.9 ms | 63.3 ms | Tiptap/Yjs 쪽 수치가 낮음 |
+| 큰 문서 이후 heap | 21.19 MB | 10.83 MB | Yorkie 쪽 수치가 낮음 |
+| 측정 network payload | 12.01 MB | 8.01 MB | Yorkie 쪽 수치가 낮음 |
+| sync server peak RSS | 110.98 MB | 41.73 MB | Yorkie 쪽 수치가 낮음 |
 
 해석:
 
-- Tiptap/Yjs는 실시간 편집 반영, 재연결 수렴, 큰 문서 local editing에서 더 좋았다.
-- Yorkie는 메모리, 측정 payload, sync-server RSS에서 더 좋았다.
-- 제품 UX와 CE-03 offline reconnect를 우선하면 Tiptap/Yjs가 앞선다.
-- 운영 리소스와 payload를 우선하면 Yorkie를 계속 비교 후보로 남겨야 한다.
+- Tiptap/Yjs는 실시간 편집 반영, 재연결 수렴, 큰 문서 local editing에서 이번 walking skeleton에 필요한 여유를 보였다.
+- Yorkie는 메모리, 측정 payload, sync-server RSS에서 뚜렷한 장점이 있었다.
+- B2B 고객의 팀 문서 작성 흐름과 CE-03 offline reconnect 안정성을 우선해 ADR-0002는 Tiptap/Yjs/Hocuspocus를 먼저 선택한다.
+- 운영 리소스와 payload가 최우선 제약이 되는 시점에는 Yorkie를 다시 비교한다.
 
 ## 오탐으로 제외한 결과
 

@@ -19,15 +19,15 @@ schema_version: 0.1.0
 | `statement` | 검증 가능한 요구사항 문장 |
 | `acceptance` | 충족 여부를 확인하는 기준 |
 | `related_product_docs` | 맥락을 설명하는 product/domain/compliance 문서 |
-| `related_adrs` | ADR ID 또는 `final sync ADR` placeholder |
+| `related_adrs` | 관련 ADR ID |
 
 ## 과제 요구사항
 
 | id | origin | type | decision_status | delivery_phase | derived_from | statement | acceptance | related_product_docs | related_adrs |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `CE-01-CONCURRENT-EDITING` | subject | functional | confirmed | walking-skeleton | `subject.md` | 2명 이상이 동일한 Markdown 문서를 동시에 편집할 수 있어야 한다. | 두 client가 하나의 workspace document를 편집하고 manual refresh 없이 같은 내용으로 수렴한다. | `docs/product/editor/concurrent-editing.md`, `docs/compliance/subject-matrix.md` | ADR-0001, ADR-0002, final sync ADR |
+| `CE-01-CONCURRENT-EDITING` | subject | functional | confirmed | walking-skeleton | `subject.md` | 2명 이상이 동일한 Markdown 문서를 동시에 편집할 수 있어야 한다. | 두 client가 하나의 workspace document를 편집하고 manual refresh 없이 같은 내용으로 수렴한다. | `docs/product/editor/concurrent-editing.md`, `docs/compliance/subject-matrix.md` | ADR-0001, ADR-0002 |
 | `CE-02-PRESENCE` | subject | functional | confirmed | walking-skeleton | `subject.md` | 타 사용자의 cursor 위치와 selection range가 realtime으로 표시되어야 한다. | remote cursor/selection 변경이 member identity와 함께 표시된다. | `docs/product/editor/presence.md` | ADR-0001, ADR-0005 |
-| `CE-03-OFFLINE-MERGE` | subject | functional | confirmed | walking-skeleton | `subject.md` | network 단절 후 reconnect 시 local edits와 server state가 자동 병합되어야 한다. | 이미 열린 editor가 offline edit를 받고 reconnect 후 고유 텍스트 손실 없이 병합된다. | `docs/product/editor/offline-merge.md` | ADR-0002, ADR-0003, final sync ADR |
+| `CE-03-OFFLINE-MERGE` | subject | functional | confirmed | walking-skeleton | `subject.md` | network 단절 후 reconnect 시 local edits와 server state가 자동 병합되어야 한다. | 이미 열린 editor가 offline edit를 받고 reconnect 후 고유 텍스트 손실 없이 병합된다. | `docs/product/editor/offline-merge.md` | ADR-0002, ADR-0003 |
 | `CE-04-REVISION-HISTORY` | subject | functional | confirmed | walking-skeleton | `subject.md` | 사용자는 document revision history를 조회할 수 있어야 한다. | reviewer가 history/checkpoint 목록을 열고 이전 document state를 확인한다. | `docs/product/editor/history.md` | ADR-0003, ADR-0004 |
 | `CE-05-RICH-PREVIEW` | subject | functional | confirmed | walking-skeleton | `subject.md` | editor는 Markdown rich preview를 제공해야 한다. | 현재 Markdown content가 rich preview 또는 split view에서 content loss 없이 rendering된다. | `docs/product/editor/rich-preview.md` | ADR-0002, ADR-0005 |
 
@@ -40,7 +40,7 @@ schema_version: 0.1.0
 | `REQ-PRESENCE-MEMBER-AWARENESS` | subject-derived | ux | confirmed | walking-skeleton | `CE-02-PRESENCE` | Presence는 workspace membership display name과 color로 remote user를 식별해야 한다. | remote cursor와 selection이 stable member label/color로 표시된다. | `docs/product/editor/presence.md`, `docs/domain/relations/user-workspace.md` | ADR-0001, ADR-0005 |
 | `REQ-IDENTITY-MEMBERSHIP` | subject-derived | architecture | confirmed | walking-skeleton | `CE-02-PRESENCE`, `CE-04-REVISION-HISTORY` | `User`와 `WorkspaceMembership`은 분리된 domain concept이어야 한다. | presence와 checkpoint authorship이 temporary local label이 아니라 workspace member를 참조할 수 있다. | `docs/product/workspace/user-membership.md`, `docs/domain/models/user.md` | ADR-0001 |
 | `REQ-OFFLINE-LOCAL-PERSISTENCE` | subject-derived | architecture | confirmed | walking-skeleton | `CE-03-OFFLINE-MERGE` | Open-page offline editing은 reconnect 전까지 local document state를 보존해야 한다. | 이미 열린 editor가 disconnected 상태가 되어도 local edits가 사라지지 않는다. | `docs/product/editor/offline-merge.md` | ADR-0002, ADR-0003 |
-| `REQ-OFFLINE-RECONNECT-MERGE` | subject-derived | functional | research-needed | walking-skeleton | `CE-03-OFFLINE-MERGE`, `REQ-COLLAB-ENGINE-ADAPTER` | Reconnect 시 선택된 collaboration engine을 통해 local/remote edits가 병합되어야 한다. | POC와 구현이 reconnect 후 local/remote 고유 텍스트 보존을 증명한다. | `docs/product/editor/offline-merge.md`, `docs/research/poc-001-collaboration-engine/README.md` | ADR-0002, final sync ADR |
+| `REQ-OFFLINE-RECONNECT-MERGE` | subject-derived | functional | confirmed | walking-skeleton | `CE-03-OFFLINE-MERGE`, `REQ-COLLAB-ENGINE-ADAPTER` | Reconnect 시 Tiptap + Yjs + Hocuspocus adapter를 통해 local/remote edits가 병합되어야 한다. | POC와 구현이 reconnect 후 local/remote 고유 텍스트 보존을 증명한다. | `docs/product/editor/offline-merge.md`, `docs/research/poc-001-collaboration-engine/README.md` | ADR-0002 |
 | `REQ-HISTORY-CHECKPOINTS` | subject-derived | functional | confirmed | walking-skeleton | `CE-04-REVISION-HISTORY` | User-visible history는 explicit checkpoint로 표현한다. | History entry가 author, time, message, inspectable content state를 보여준다. | `docs/product/editor/history.md` | ADR-0003, ADR-0004 |
 | `REQ-HISTORY-AUTOSAVE-SEPARATION` | subject-derived | ux | confirmed | walking-skeleton | `CE-04-REVISION-HISTORY` | Autosave/sync state와 intentional checkpoint history는 별도 개념이어야 한다. | ordinary sync가 명시적 생성 없이 user-authored checkpoint처럼 보이지 않는다. | `docs/product/editor/history.md`, `docs/domain/rules/document-lifecycle.md` | ADR-0004 |
 | `REQ-EDITOR-RICH-SOURCE-SPLIT` | subject-derived | functional | confirmed | walking-skeleton | `CE-05-RICH-PREVIEW` | editor는 Rich, Markdown source, Split mode를 지원해야 한다. | mode 전환 중 content가 보존되고 split mode가 현재 document를 rendering한다. | `docs/product/editor/rich-preview.md` | ADR-0002, ADR-0005 |
@@ -61,7 +61,7 @@ schema_version: 0.1.0
 
 | id | origin | type | decision_status | delivery_phase | derived_from | statement | acceptance | related_product_docs | related_adrs |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `REQ-RESEARCH-COLLAB-ENGINE-POC` | research | architecture | research-needed | poc | `CE-01-CONCURRENT-EDITING`, `CE-02-PRESENCE`, `CE-03-OFFLINE-MERGE`, `CE-05-RICH-PREVIEW` | final sync choice 전에 Tiptap+Yjs/Hocuspocus와 Yorkie+ProseMirror를 비교해야 한다. | POC result가 concurrent editing, presence, offline merge, persistence, Markdown mode 적합성을 기록한다. | `docs/research/poc-001-collaboration-engine/README.md` | ADR-0002 |
+| `REQ-RESEARCH-COLLAB-ENGINE-POC` | research | architecture | confirmed | poc | `CE-01-CONCURRENT-EDITING`, `CE-02-PRESENCE`, `CE-03-OFFLINE-MERGE`, `CE-05-RICH-PREVIEW` | sync engine choice 전에 Tiptap+Yjs/Hocuspocus와 Yorkie+ProseMirror를 비교해야 한다. | POC result가 concurrent editing, presence, offline merge, persistence, Markdown mode 적합성을 기록하고 ADR-0002가 선택을 확정한다. | `docs/research/poc-001-collaboration-engine/README.md` | ADR-0002 |
 | `REQ-RESEARCH-REDIS-SUPPORT` | research | architecture | research-needed | future | `REQ-OFFLINE-RECONNECT-MERGE` | Redis는 durable document storage가 아니라 support infrastructure로만 평가한다. | Redis 사용은 presence, pub/sub, cache, queue 역할 중 하나로 정당화된다. | `ARCHITECTURE.md` | ADR-0003 |
 
 ## 보류 요구사항

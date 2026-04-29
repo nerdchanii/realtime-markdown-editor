@@ -9,7 +9,7 @@ status: measured-with-open-manual-items
 
 ## 증거 기록
 
-2026-04-29 KST에 실행 가능한 POC workspace와 두 후보 prototype을 만들고 build/typecheck/test/screenshot smoke를 실행했다. 아직 두 브라우저를 사용한 full CE-01~CE-03 manual acceptance는 완료하지 않았으므로 final synchronization ADR은 작성하지 않는다.
+2026-04-29 KST에 실행 가능한 POC workspace와 두 후보 prototype을 만들고 build/typecheck/test/screenshot smoke를 실행했다. ADR-0002는 이 evidence를 반영해 Tiptap + Yjs + Hocuspocus를 다음 구현 pass의 협업 엔진으로 선택한다. 두 브라우저를 사용한 full CE-01/CE-02 product acceptance는 walking skeleton 구현에서 별도로 기록한다.
 
 ## 공통 조건
 
@@ -121,4 +121,4 @@ status: measured-with-open-manual-items
 - benchmark summary
 - failure mode
 - local setup note
-- final sync ADR link
+- ADR-0002 decision link

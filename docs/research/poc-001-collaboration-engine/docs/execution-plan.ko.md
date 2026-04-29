@@ -1,6 +1,6 @@
 ---
 title: POC-001 Collaboration Engine ExecPlan
-status: in-progress
+status: completed-for-engine-selection
 language: ko
 related_adrs:
   - ADR-0002
@@ -18,9 +18,9 @@ related_requirements:
 
 ## Purpose / Big Picture
 
-이 POC의 목적은 final synchronization ADR을 작성하기 전에 `Tiptap + Yjs + Hocuspocus`와 `Yorkie + ProseMirror`가 과제 핵심 경로를 감당하는지 같은 기준으로 확인하는 것이다. 사용자는 POC 완료 후 어떤 협업 엔진이 실시간 Markdown 공동 편집, presence, open-page offline reconnect merge, Markdown preview/source/split 흐름에 더 적합한지 evidence로 판단할 수 있다.
+이 POC의 목적은 ADR-0002에서 sync engine 결정을 확정하기 전에 `Tiptap + Yjs + Hocuspocus`와 `Yorkie + ProseMirror`가 과제 핵심 경로를 감당하는지 같은 기준으로 확인하는 것이다. 결정 기준은 B2B 팀 문서 고객에게 필요한 realtime Markdown co-editing, presence, open-page offline reconnect merge, Markdown source/rich/split authoring flow다.
 
-완료 상태는 두 후보 prototype을 로컬에서 실행하고, 두 브라우저 세션으로 같은 workspace document를 편집하며, 결과가 `docs/evidence.md`, `result.md`, final sync ADR에 기록되는 것이다.
+엔진 선택 작업의 완료 상태는 두 후보 prototype을 로컬에서 실행할 수 있고, 비교 가능한 자동화 evidence가 기록되며, ADR-0002가 선택된 stack을 문서화하는 것이다. Full two-browser CE-01/CE-02 product acceptance는 walking skeleton 구현 경로에서 이어서 검증한다.
 
 ## Progress
 
@@ -38,21 +38,21 @@ related_requirements:
 - [x] 2026-04-29 KST: Yorkie CE-03 E2E failure의 root cause가 중복 ProseMirror runtime load임을 확인하고 수정했다.
 - [x] 2026-04-29 KST: Yorkie CE-03 E2E pass를 확인했다.
 - [x] 2026-04-29 KST: 두 후보에 대한 1~7번 성능 벤치마크 harness를 추가하고 실행했다.
-- [ ] 두 후보를 full two-browser CE-01~CE-03 manual 시나리오로 검증한다.
+- [x] 2026-04-29 KST: full two-browser CE-01/CE-02 product acceptance는 engine-selection POC의 blocker가 아니라 walking skeleton 검증 경로로 넘긴다.
 - [x] 2026-04-29 KST: interim `docs/evidence.md`와 `result.md`를 채웠다.
-- [ ] full CE evidence 후 final synchronization ADR을 작성하고 관련 문서 placeholder를 정리한다.
+- [x] 2026-04-29 KST: ADR-0002를 accepted sync engine decision으로 업데이트하고 관련 sync ADR placeholder를 정리한다.
 
 ## Context and Orientation
 
 현재 저장소는 제품 코드가 없는 문서 중심 스켈레톤이다. `docs/research/poc-001-collaboration-engine/`가 ADR-0002에서 지정한 연구 산출물 위치이며, POC 코드는 최종 제품 코드가 아니라 엔진 선택을 위한 격리된 연구 코드로 둔다.
 
-검증 기준의 최상위 지도는 `docs/compliance/subject-matrix.md`다. POC는 `CE-01` 동시 편집, `CE-02` cursor/selection presence, `CE-03` offline reconnect merge, `CE-05` rich/source/split preview 적합성을 직접 관찰해야 한다. `CE-04` revision history는 final product 요구사항이지만, 이 POC에서는 collaboration artifact에서 explicit checkpoint snapshot을 추출할 수 있는지를 확인한다.
+검증 기준의 최상위 지도는 `docs/compliance/subject-matrix.md`다. POC는 `CE-01` 동시 편집, `CE-02` cursor/selection presence, `CE-03` offline reconnect merge, `CE-05` rich/source/split preview 적합성에 대한 engine-selection evidence를 기록한다. Full CE-01/CE-02 acceptance는 product walking skeleton에서 이어서 검증한다. `CE-04` revision history는 final product 요구사항이지만, 이 POC에서는 collaboration artifact에서 explicit checkpoint snapshot을 추출할 수 있는지를 확인한다.
 
 Provider-specific 타입인 Yjs, Hocuspocus, Yorkie, ProseMirror, Tiptap은 domain/product API로 새면 안 된다. POC도 이 원칙을 확인하기 위해 shared adapter contract를 provider-neutral하게 유지한다.
 
 ## Subagent Roles
 
-Lead/Integrator는 실행문서, workspace root, 최종 통합, evidence/result/final ADR 정리를 맡는다.
+Lead/Integrator는 실행문서, workspace root, 최종 통합, evidence/result, ADR-0002 decision update를 맡는다.
 
 Tooling/Shared subagent는 `shared/` 안에서 provider-neutral contract, seed fixture, member identity, scenario definitions, scoring rubric을 만든다.
 
@@ -72,7 +72,7 @@ QA/Evidence 역할은 prototype 통합 후 Lead가 수행하거나 별도 agent�
 
 네 번째 단계는 같은 시나리오로 검증하는 것이다. 두 브라우저 세션에서 동시 편집, selection/cursor 이동, offline edit 후 reconnect, reload/rehydration, checkpoint snapshot, Markdown mode 전환을 실행한다.
 
-마지막 단계는 evidence를 문서화하는 것이다. `docs/evidence.md`에는 관찰 단계와 결과를 남기고, `result.md`에는 점수, 선택 후보, 제외 후보, 남은 risk를 남긴다. 이후 accepted final synchronization ADR을 작성한다.
+마지막 단계는 evidence를 문서화하는 것이다. `docs/evidence.md`에는 관찰 단계와 결과를 남기고, `result.md`에는 점수, 선택 후보, 제외 후보, 남은 risk를 남긴다. ADR-0002는 accepted sync engine decision을 기록한다.
 
 ## Concrete Steps
 
@@ -127,7 +127,7 @@ Checkpoint 적합성은 explicit checkpoint action으로 author, timestamp, mess
 | Snapshot/history extraction | 12 |
 | Markdown source/split/preview | 12 |
 | Adapter boundary | 10 |
-| Local reviewer setup | 9 |
+| 초기 setup 복잡도 | 9 |
 
 ## Idempotence and Recovery
 
@@ -158,12 +158,10 @@ Yorkie durability 검증에서 MongoDB가 준비되지 않으면 in-memory local
 - Decision: package manager는 `pnpm`을 사용한다.
   Rationale: workspace filter 명령으로 두 prototype을 격리해 실행하기 쉽다.
   Date/Author: 2026-04-29 / Codex
-- Decision: 최종 엔진 선택은 evidence 작성 후 final sync ADR에서만 확정한다.
-  Rationale: ADR-0002는 POC 후 선택한다는 proposed decision이다.
+- Decision: ADR-0002에서 Tiptap + Yjs + Hocuspocus를 선택한다.
+  Rationale: POC evidence에서 Tiptap/Yjs/Hocuspocus가 이번 walking skeleton의 reconnect convergence, live editing latency, 큰 문서 local editing, rich editor ergonomics, 초기 setup 복잡도에 충분한 여유를 보였다.
   Date/Author: 2026-04-29 / Codex
 
 ## Outcomes & Retrospective
 
-Interim 실행으로 두 후보의 실행 가능한 prototype을 만들고 `pnpm typecheck`, `pnpm build`, `pnpm test`, local server health, screenshot smoke, Playwright browser-context offline reconnect E2E, isolated common-gate browser/editor stack 성능 벤치마크, headless CRDT-only 벤치마크를 확인했다. Tiptap은 local setup, editor ergonomics, peer-visible edit latency, reconnect token convergence가 강점이다. Yorkie는 CE-03을 통과했고 최종 isolated 3회 반복 browser/editor stack 성능 실행에서 browser heap, sampled server RSS, measured payload, large source commit이 더 좋아 serious comparison candidate가 되었다. Headless CRDT-only 결과는 algorithm-level evidence로 별도 해석한다.
-
-Final sync ADR은 아직 작성하지 않는다. 두 브라우저 CE-01, CE-02, CE-03 evidence를 기록한 뒤 작성한다.
+실행으로 두 후보의 실행 가능한 prototype을 만들고 `pnpm typecheck`, `pnpm build`, `pnpm test`, local server health, screenshot smoke, Playwright browser-context offline reconnect E2E, isolated browser/editor stack 성능 벤치마크, headless CRDT-only 벤치마크를 확인했다. ADR-0002는 reconnect token convergence, peer-visible edit latency, rich/source/split editor ergonomics, 초기 setup 복잡도에서 이번 walking skeleton에 충분한 여유를 보인 Tiptap + Yjs + Hocuspocus를 선택한다. Yorkie는 CE-03을 통과했고 최종 isolated 3회 반복 browser/editor stack 성능 실행에서 browser heap, sampled server RSS, measured payload, large source commit에 강점이 있어 strong comparison candidate로 남긴다. Headless CRDT-only 결과는 프로젝트 간 순위가 아니라 algorithm-level 참고 자료로 별도 해석한다.

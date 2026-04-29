@@ -23,7 +23,7 @@ CE walking skeleton에 필요한 domain model과 Clean Architecture boundary를 
 - RBAC enforcement.
 - comments, suggestions, mentions, notifications.
 - workflow hooks와 workflow builder.
-- collaboration provider 선택과 final sync ADR.
+- collaboration provider 선택은 ADR-0002에서 완료되었고, provider-specific 구현은 adapter 경계 뒤에 둔다.
 
 ## 검증
 

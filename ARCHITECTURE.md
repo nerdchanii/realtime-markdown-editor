@@ -1,12 +1,13 @@
 ---
 title: ARCHITECTURE.md
 status: living
-last_updated: 2026-04-28
+last_updated: 2026-04-29
 related_documents:
   - subject.md
   - docs/compliance/subject-matrix.md
   - docs/domain/README.md
   - docs/adr/0001-domain-first-collaboration-engine-isolation.md
+  - docs/adr/0002-collaboration-engine-poc-bench.md
 ---
 
 # ARCHITECTURE.md
@@ -26,7 +27,7 @@ The architecture must prove the collaboration requirements in `subject.md` while
 The system is a browser-based collaborative Markdown editor backed by a server-side collaboration and persistence layer.
 
 - Browser UI: editor, preview, presence display, history, and workspace shell.
-- Collaboration engine: selected after POC and hidden behind an adapter.
+- Collaboration engine: Tiptap + Yjs + Hocuspocus, hidden behind an adapter.
 - Backend application: handles workspace, document, membership, history, and artifact use cases.
 - Durable data: relational metadata and S3-compatible object artifact storage.
 - Local persistence: browser-local document persistence for open-page offline/reconnect flows.
@@ -81,7 +82,7 @@ packages/contracts/src/{http,realtime}
 
 ## Risks And Open Decisions
 
-- The final collaboration engine is not selected until the POC result exists.
-- An accepted final synchronization ADR is required after the POC.
+- ADR-0002 selects Tiptap + Yjs + Hocuspocus as the collaboration engine.
 - Open-page offline editing is in MVP scope. Installable PWA and desktop packaging are portability guardrails, not current implementation scope.
+- Durable Hocuspocus/Yjs artifact persistence and server restart rehydration still need implementation-level validation.
 - Workflow hooks are deferred, but `DocumentState` stays separate so hooks can attach later.

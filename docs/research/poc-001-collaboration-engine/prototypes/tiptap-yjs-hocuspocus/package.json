@@ -15,9 +15,10 @@
     "preview": "vite preview --host 127.0.0.1 --port 4173"
   },
   "dependencies": {
-    "@poc/shared": "workspace:*",
     "@hocuspocus/provider": "^3.2.3",
     "@hocuspocus/server": "^3.2.3",
+    "@poc/shared": "workspace:*",
+    "@tiptap/core": "^3.4.1",
     "@tiptap/extension-collaboration": "^3.4.1",
     "@tiptap/extension-collaboration-caret": "^3.4.1",
     "@tiptap/extension-link": "^3.4.1",

@@ -1,6 +1,6 @@
 ---
 title: POC-001 Collaboration Engine ExecPlan
-status: in-progress
+status: completed-for-engine-selection
 language: en
 related_adrs:
   - ADR-0002
@@ -18,9 +18,9 @@ This ExecPlan is a living document. Keep `Progress`, `Surprises & Discoveries`, 
 
 ## Purpose / Big Picture
 
-This POC compares `Tiptap + Yjs + Hocuspocus` and `Yorkie + ProseMirror` under the same scenarios before writing the final synchronization ADR. After this work, a reviewer can judge from evidence which collaboration engine better supports realtime Markdown co-editing, presence, open-page offline reconnect merge, and Markdown source/rich/split preview flows.
+This POC compares `Tiptap + Yjs + Hocuspocus` and `Yorkie + ProseMirror` under the same scenarios before finalizing the sync engine decision in ADR-0002. The decision is optimized for B2B team-document customers: realtime Markdown co-editing, presence, open-page offline reconnect merge, and Markdown source/rich/split authoring flows for the next implementation pass.
 
-The work is complete when both candidates can be run locally, tested with two browser sessions against the same workspace document, and documented in `docs/evidence.md`, `result.md`, and the final sync ADR.
+The engine-selection work is complete when both candidates can be run locally, comparable automated evidence is recorded, and ADR-0002 documents the selected stack. Full two-browser CE-01/CE-02 product acceptance remains part of the walking skeleton implementation path.
 
 ## Progress
 
@@ -38,21 +38,21 @@ The work is complete when both candidates can be run locally, tested with two br
 - [x] 2026-04-29 KST: Root-cause and fix the Yorkie CE-03 E2E failure caused by duplicate ProseMirror runtime loading.
 - [x] 2026-04-29 KST: Verify Yorkie CE-03 E2E passes.
 - [x] 2026-04-29 KST: Add and run the 1-7 performance benchmark harness for both candidates.
-- [ ] Run both candidates through the full two-browser CE-01~CE-03 manual scenarios.
+- [x] 2026-04-29 KST: Move full two-browser CE-01/CE-02 product acceptance to the walking skeleton validation path instead of blocking the engine-selection POC.
 - [x] 2026-04-29 KST: Fill interim `docs/evidence.md` and `result.md`.
-- [ ] Write the final synchronization ADR and update related placeholders after full CE evidence.
+- [x] 2026-04-29 KST: Update ADR-0002 as the accepted sync engine decision and remove related sync ADR placeholders.
 
 ## Context and Orientation
 
 The repository currently contains documentation, not product application code. `docs/research/poc-001-collaboration-engine/` is the research artifact location named by ADR-0002, so POC code lives there as isolated research code rather than final product code.
 
-The top-level validation map is `docs/compliance/subject-matrix.md`. The POC must directly observe `CE-01` concurrent editing, `CE-02` cursor/selection presence, `CE-03` offline reconnect merge, and `CE-05` rich/source/split preview suitability. `CE-04` revision history is a final product requirement; in this POC it is represented by explicit checkpoint snapshot extraction from each collaboration artifact.
+The top-level validation map is `docs/compliance/subject-matrix.md`. The POC gathers engine-selection evidence for `CE-01` concurrent editing, `CE-02` cursor/selection presence, `CE-03` offline reconnect merge, and `CE-05` rich/source/split preview suitability. Full CE-01/CE-02 acceptance remains part of the product walking skeleton. `CE-04` revision history is a final product requirement; in this POC it is represented by explicit checkpoint snapshot extraction from each collaboration artifact.
 
 Provider-specific types such as Yjs, Hocuspocus, Yorkie, ProseMirror, and Tiptap must not leak into domain/product APIs. The POC checks this by keeping the shared adapter contract provider-neutral.
 
 ## Subagent Roles
 
-The Lead/Integrator owns execution documents, workspace root, final integration, evidence/result updates, and the final ADR.
+The Lead/Integrator owns execution documents, workspace root, final integration, evidence/result updates, and the ADR-0002 decision update.
 
 The Tooling/Shared subagent owns `shared/`: provider-neutral contract, seed fixture, member identities, scenario definitions, and scoring rubric.
 
@@ -72,7 +72,7 @@ Third, build both prototypes with the same UI contract. The first screen is an e
 
 Fourth, validate both candidates with the same scenario order: two-session concurrent editing, cursor/selection movement, offline edit and reconnect, reload/rehydration, checkpoint snapshot, and Markdown mode switching.
 
-Finally, document the evidence. `docs/evidence.md` records steps and observations. `result.md` records scores, recommendation, excluded candidate rationale, and remaining risks. Then write the accepted final synchronization ADR.
+Finally, document the evidence. `docs/evidence.md` records steps and observations. `result.md` records scores, recommendation, excluded candidate rationale, and remaining risks. ADR-0002 records the accepted sync engine decision.
 
 ## Concrete Steps
 
@@ -127,7 +127,7 @@ Total score is 100. If `CE-01`, `CE-02`, or `CE-03` cannot be reproduced, the ca
 | Snapshot/history extraction | 12 |
 | Markdown source/split/preview | 12 |
 | Adapter boundary | 10 |
-| Local reviewer setup | 9 |
+| Initial setup complexity | 9 |
 
 ## Idempotence and Recovery
 
@@ -158,12 +158,10 @@ If MongoDB is not available for Yorkie durability testing, validate behavior wit
 - Decision: Use `pnpm` as the POC package manager.
   Rationale: Workspace filters make it straightforward to run and compare both prototypes independently.
   Date/Author: 2026-04-29 / Codex
-- Decision: Confirm the final engine only after evidence, in a final sync ADR.
-  Rationale: ADR-0002 is a proposed decision to evaluate candidates before choosing.
+- Decision: Select Tiptap + Yjs + Hocuspocus in ADR-0002.
+  Rationale: The POC evidence shows Tiptap/Yjs/Hocuspocus gives this walking skeleton enough room on reconnect convergence, live editing latency, large-document local editing, rich editor ergonomics, and initial setup complexity.
   Date/Author: 2026-04-29 / Codex
 
 ## Outcomes & Retrospective
 
-Interim execution produced runnable prototypes for both candidates and verified `pnpm typecheck`, `pnpm build`, `pnpm test`, local server health, screenshot smoke, Playwright browser-context offline reconnect E2E, an isolated common-gate browser/editor stack performance benchmark, and a headless CRDT-only benchmark. Tiptap remains attractive because it has the simpler local setup, strong editor ergonomics, lower peer-visible edit latency, and faster reconnect token convergence. Yorkie remains a serious comparison candidate because it passes CE-03 and the final isolated 3-run browser/editor stack performance run is better for browser heap, sampled server RSS, measured payload, and large source commit. Headless CRDT-only results are interpreted separately as algorithm-level evidence.
-
-The final sync ADR remains intentionally unwritten until full two-browser CE-01, CE-02, and CE-03 evidence is recorded.
+Execution produced runnable prototypes for both candidates and verified `pnpm typecheck`, `pnpm build`, `pnpm test`, local server health, screenshot smoke, Playwright browser-context offline reconnect E2E, an isolated browser/editor stack performance benchmark, and a headless CRDT-only benchmark. ADR-0002 now selects Tiptap + Yjs + Hocuspocus because it gives this walking skeleton enough room on reconnect convergence, peer-visible edit latency, rich/source/split editor ergonomics, and initial setup complexity. Yorkie remains a strong comparison candidate if browser heap, sampled server RSS, measured payload, or large source commit become the dominant constraint. Headless CRDT-only results are treated as algorithm-level reference data, not as a ranking of the projects.

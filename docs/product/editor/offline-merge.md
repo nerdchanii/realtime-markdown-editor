@@ -8,7 +8,6 @@ related_requirements:
 related_adrs:
   - ADR-0002
   - ADR-0003
-  - final sync ADR
 ---
 
 # docs/product/editor/offline-merge.md
@@ -21,7 +20,7 @@ related_adrs:
 
 - 현재 열린 editor가 disconnected 상태가 되어도 local edits를 보존한다.
 - Reconnecting 또는 pending-local-edit state를 표시한다.
-- Reconnect 후 선택된 collaboration engine을 통해 local/remote changes를 병합한다.
+- Reconnect 후 ADR-0002에서 선택한 Tiptap + Yjs + Hocuspocus adapter를 통해 local/remote changes를 병합한다.
 
 ## 보류
 

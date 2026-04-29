@@ -21,9 +21,9 @@ status: active
 
 | capability | surface | 관련 요구사항 | 관련 ADR |
 | --- | --- | --- | --- |
-| 동시 편집 | Editor | `CE-01-CONCURRENT-EDITING`, `REQ-COLLAB-ENGINE-ADAPTER` | ADR-0001, ADR-0002, final sync ADR |
+| 동시 편집 | Editor | `CE-01-CONCURRENT-EDITING`, `REQ-COLLAB-ENGINE-ADAPTER` | ADR-0001, ADR-0002 |
 | Presence | Editor | `CE-02-PRESENCE`, `REQ-PRESENCE-MEMBER-AWARENESS` | ADR-0001, ADR-0005 |
-| Offline merge | Editor | `CE-03-OFFLINE-MERGE`, `REQ-OFFLINE-LOCAL-PERSISTENCE` | ADR-0002, ADR-0003, final sync ADR |
+| Offline merge | Editor | `CE-03-OFFLINE-MERGE`, `REQ-OFFLINE-LOCAL-PERSISTENCE` | ADR-0002, ADR-0003 |
 | History | Editor | `CE-04-REVISION-HISTORY`, `REQ-HISTORY-CHECKPOINTS` | ADR-0003, ADR-0004 |
 | Rich preview | Editor | `CE-05-RICH-PREVIEW`, `REQ-EDITOR-RICH-SOURCE-SPLIT` | ADR-0002, ADR-0005 |
 | Properties | Editor | `REQ-PROPERTIES-OUTSIDE-BODY` | ADR-0005 |

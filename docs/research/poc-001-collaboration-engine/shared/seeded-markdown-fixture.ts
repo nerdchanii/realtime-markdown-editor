@@ -80,7 +80,7 @@ ${POC_MARKDOWN_ANCHORS.offlineRemote}
 | --- | --- |
 | CE-05 | Heading, list, table, link, and code block render from Markdown source. |
 
-See the [decision log](./decision-log.md) for the final synchronization ADR.
+See ADR-0002 for the selected collaboration engine.
 
 \`\`\`ts
 export const previewSmokeCheck = "Markdown code blocks render in rich preview";
@@ -109,4 +109,3 @@ export const SEEDED_MARKDOWN_FIXTURE = {
     ],
   },
 } as const;
-

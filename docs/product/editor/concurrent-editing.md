@@ -8,7 +8,6 @@ related_requirements:
 related_adrs:
   - ADR-0001
   - ADR-0002
-  - final sync ADR
 ---
 
 # docs/product/editor/concurrent-editing.md

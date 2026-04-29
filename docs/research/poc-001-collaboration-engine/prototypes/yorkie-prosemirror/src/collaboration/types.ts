@@ -7,7 +7,7 @@ export type PresenceState = {
   color: string;
   role: string;
   mode: ViewMode;
-  selection?: any;
+  selection?: unknown;
 };
 
 export type PresencePeer = {
@@ -17,5 +17,5 @@ export type PresencePeer = {
 
 export type YorkieRoot = {
   checkpoints?: Checkpoint[];
-  tree?: any;
+  tree?: unknown;
 };

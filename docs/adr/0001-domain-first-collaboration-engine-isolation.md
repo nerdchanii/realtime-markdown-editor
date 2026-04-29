@@ -34,7 +34,7 @@ superseded_by: null
 
 필수 요구사항은 실시간 공동 편집, presence, offline merge, revision history, rich preview를 요구한다. 이 기능들은 협업 엔진의 도움을 받지만, 제품 언어는 엔진이 아니라 `Workspace`, `Document`, `WorkspaceMembership`, `Checkpoint`, `DocumentState` 같은 도메인 개념을 기준으로 유지되어야 한다.
 
-협업 엔진은 아직 POC 전이며, 최종 선택이 바뀔 수 있다. 엔진 API가 UI와 도메인 전반에 퍼지면 POC 결과 반영과 향후 platform portability가 어려워진다.
+협업 엔진은 ADR-0002에서 Tiptap + Yjs + Hocuspocus로 선택했다. 엔진 API가 UI와 도메인 전반에 퍼지면 provider 교체, persistence 전략 조정, 향후 platform portability가 어려워진다.
 
 다만 domain-first는 `packages` 아래에 공유 domain package를 먼저 만든다는 뜻이 아니다. First skeleton에서는 domain model을 `apps/api` 내부의 plain TypeScript로 유지하고, frontend와 외부 interface는 `packages/contracts`의 provider-neutral DTO와 wire contract만 공유한다.
 
@@ -107,7 +107,7 @@ First skeleton의 domain 분류는 다음처럼 둔다.
 
 ### 후속 작업
 
-- POC 결과 후 final sync ADR을 작성한다.
+- ADR-0002에서 선택한 Tiptap + Yjs + Hocuspocus 구현도 adapter 경계 뒤에 둔다.
 - domain docs와 adapter interface가 충돌하지 않는지 점검한다.
 - dependency-cruiser로 domain/use-case/adapter dependency direction을 검증한다.
 
