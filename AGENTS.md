@@ -25,6 +25,7 @@ purpose: AI agent용 저장소 안내
 - storage, sync, auth, domain 경계를 새로 만들거나 바꾸기 전에는 ADR과 domain 문서를 확인한다.
 - UI 작업은 editor-first 경험을 유지해야 한다.
 - domain model 변경은 plan과 관련 domain 문서 업데이트를 동반해야 한다.
+- `tasks/todo/` 문서를 기준으로 작업했다면 완료 시 해당 문서의 `status`를 `archived`로 변경하고 `tasks/archive/`로 이동한다.
 
 ## 문서 역할
 

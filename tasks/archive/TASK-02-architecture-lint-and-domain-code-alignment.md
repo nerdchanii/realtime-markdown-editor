@@ -1,6 +1,6 @@
 ---
 title: TASK-02-architecture-lint-and-domain-code-alignment
-status: todo
+status: archived
 scope: architecture
 ---
 
