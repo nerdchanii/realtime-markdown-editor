@@ -1,10 +1,10 @@
 ---
 title: TASK-042-properties-surface
-status: todo
+status: archived
 phase: P6
 task_type: feature
 task_mode: parallel-ui
-owner: unassigned
+owner: codex
 depends_on:
   - TASK-040
 write_set:
@@ -80,6 +80,13 @@ Implement document properties outside Markdown body.
 - 실행 명령: `pnpm arch:check`
 - 기대 결과: all commands pass on Node `v24.15.0`.
 
+## 검증 결과
+
+- Runtime: `node -v` -> `v24.15.0`; `pnpm -v` -> `10.28.2`.
+- `pnpm typecheck` -> passed.
+- `pnpm lint` -> passed.
+- `pnpm arch:check` -> passed.
+
 ## Review
 
 - Spec compliance review 필요 여부: 필요.
@@ -89,12 +96,15 @@ Implement document properties outside Markdown body.
 
 ## Archive Checklist
 
-- [ ] `status`를 `archived`로 변경했다.
-- [ ] 파일을 `tasks/archive/`로 이동했다.
-- [ ] 검증 결과를 이 문서에 기록했다.
-- [ ] 필요한 공식 문서 업데이트를 완료했다.
-- [ ] follow-up 또는 blocker를 기록했다.
+- [x] `status`를 `archived`로 변경했다.
+- [x] 파일을 `tasks/archive/`로 이동했다.
+- [x] 검증 결과를 이 문서에 기록했다.
+- [x] 필요한 공식 문서 업데이트를 완료했다.
+- [x] follow-up 또는 blocker를 기록했다.
 
 ## 메모
 
 - Parallel with `TASK-041`, `TASK-043`, and `TASK-044` after `TASK-040`.
+- Document properties are editable in the document header surface and remain outside the Markdown editor body.
+- Property type metadata is carried by the document feature view model, with display-seed inference for status/date/member/checkbox controls.
+- No blocker.

@@ -1,29 +1,11 @@
+import { useState } from "react";
+
+import { PropertiesSurface } from "./PropertiesSurface";
+import type { DocumentBacklink, DocumentContextViewModel, DocumentProperty } from "./types";
+
 export const documentFeatureId = "document";
 
-export type DocumentProperty = Readonly<{
-  key?: string;
-  label: string;
-  value: string;
-  valueType?: "text" | "status" | "date" | "member" | "checkbox";
-  tone?: "neutral" | "success" | "warning";
-}>;
-
-export type DocumentBacklink = Readonly<{
-  sourceDocumentId?: string;
-  targetDocumentId?: string;
-  title: string;
-  source: string;
-  excerpt: string;
-}>;
-
-export type DocumentContextViewModel = Readonly<{
-  replacementPoint: string;
-  label: string;
-  title?: string;
-  path?: string;
-  properties?: readonly DocumentProperty[];
-  backlinks?: readonly DocumentBacklink[];
-}>;
+export type { DocumentBacklink, DocumentContextViewModel, DocumentProperty } from "./types";
 
 export type DocumentContextSlotProps = Readonly<{
   viewModel: DocumentContextViewModel;
@@ -54,10 +36,19 @@ const fallbackBacklinks: readonly DocumentBacklink[] = [
   },
 ];
 
-// Mock replacement: TASK-016 can replace these local fallbacks with document providers.
 export function DocumentContextSlot({ viewModel }: DocumentContextSlotProps) {
   const title = viewModel.title ?? "Collaborative editor review plan";
   const path = viewModel.path ?? "Acme Workspace / Editor / Review plan";
+  const [properties, setProperties] = useState(() => [
+    ...(viewModel.properties ?? fallbackProperties),
+  ]);
+  const updateProperty = (key: string, value: string) => {
+    setProperties((current) =>
+      current.map((property) =>
+        (property.key ?? property.label) === key ? { ...property, value } : property,
+      ),
+    );
+  };
 
   return (
     <header
@@ -70,28 +61,10 @@ export function DocumentContextSlot({ viewModel }: DocumentContextSlotProps) {
         {title}
       </h2>
       <p style={metadataStyle}>{path}</p>
-      <PropertiesSurface properties={viewModel.properties ?? fallbackProperties} />
+      <PropertiesSurface properties={properties} onPropertyChange={updateProperty} />
       <BacklinksSurface backlinks={viewModel.backlinks ?? fallbackBacklinks} />
       <div className="replacement-point">{viewModel.replacementPoint}</div>
     </header>
-  );
-}
-
-function PropertiesSurface({ properties }: { properties: readonly DocumentProperty[] }) {
-  return (
-    <section aria-label="Document properties" data-testid="document-properties">
-      <div style={sectionTitleStyle}>Properties outside Markdown body</div>
-      <dl style={propertyGridStyle}>
-        {properties.map((property) => (
-          <div key={property.label} style={propertyItemStyle}>
-            <dt style={propertyLabelStyle}>{property.label}</dt>
-            <dd style={propertyValueStyle} data-tone={property.tone ?? "neutral"}>
-              {property.value}
-            </dd>
-          </div>
-        ))}
-      </dl>
-    </section>
   );
 }
 
@@ -124,29 +97,6 @@ const sectionTitleStyle = {
   marginTop: "12px",
   color: "var(--color-text-secondary)",
   fontSize: "12px",
-  fontWeight: 650,
-};
-
-const propertyGridStyle = {
-  display: "grid",
-  gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))",
-  gap: "8px",
-  margin: "8px 0 0",
-};
-
-const propertyItemStyle = {
-  minWidth: 0,
-};
-
-const propertyLabelStyle = {
-  color: "var(--color-text-muted)",
-  fontSize: "12px",
-};
-
-const propertyValueStyle = {
-  margin: "2px 0 0",
-  color: "var(--color-text-primary)",
-  fontSize: "13px",
   fontWeight: 650,
 };
 
