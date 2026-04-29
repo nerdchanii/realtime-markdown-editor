@@ -27,6 +27,13 @@ NestJS module은 DI와 composition을 위한 framework boundary다. `apps/api/sr
 - IndexedDB는 local persistence 뒤의 browser implementation detail이다.
 - MCP protocol shape는 interface adapter concern이다.
 
+## Runtime/package ownership
+
+- `apps/collab` owns Hocuspocus/Yjs server dependencies and websocket runtime execution.
+- `apps/web` owns Tiptap, Hocuspocus provider, and browser Yjs client dependencies for editor integration.
+- `apps/api` issues provider-neutral contracts and must not require Hocuspocus/Yjs/Tiptap runtime packages in domain files.
+- TASK-020 is the dependency owner for initial collaboration runtime topology and lockfile changes.
+
 ## History Artifact 규칙
 
 - User-visible checkpoint/revision history는 collaboration provider state를 직접 노출하지 않는다.

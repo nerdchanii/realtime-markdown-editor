@@ -17,6 +17,7 @@ Backend architecture는 CE-01부터 CE-05까지의 walking skeleton을 먼저 �
 | `IdentityModule` | `User`, `WorkspaceMembership`, membership display identity, role value |
 | `DocumentsModule` | `Document`, body reference, `DocumentProperty`, `DocumentState`, checkpoint metadata use cases, CE-04 history read path |
 | `CollaborationModule` | collaboration provider adapters, sync orchestration ports, artifact extraction/storage ports |
+| `apps/collab` runtime | Hocuspocus/Yjs websocket runtime, live collaboration provider state, realtime adapter execution |
 
 `HistoryModule`, workflow hooks module, and projection-only module are deferred. They must not become required walking-skeleton boundaries just because a file or empty module exists in current code.
 
@@ -35,6 +36,20 @@ The cross-module domain import ban is an enforcement target for dependency-cruis
 The first TypeScript monorepo keeps domain entities and values app-private under `apps/api/src/modules/**/domain`. Do not create `packages/domain`, `packages/application`, `packages/shared`, or shared domain/application utility packages for the walking skeleton.
 
 `packages/contracts` is for provider-neutral HTTP/realtime wire contracts, including API request/response DTOs shared by frontend and backend. It must not expose backend domain internals as frontend view models.
+
+## Collaboration Runtime Topology
+
+`apps/collab` is a separate workspace package and process. It owns Hocuspocus/Yjs server
+dependencies and runtime execution. `apps/api` remains the provider-neutral HTTP/domain process:
+it may issue session contracts, but it must not import Hocuspocus, Yjs, Tiptap, or ProseMirror
+types into domain files.
+
+The root development entrypoint starts API, collab, and web together. Individual scripts keep each
+runtime startable for targeted debugging:
+
+- `pnpm dev:api`
+- `pnpm dev:collab`
+- `pnpm dev:web`
 
 ## Deferred Promotion Triggers
 

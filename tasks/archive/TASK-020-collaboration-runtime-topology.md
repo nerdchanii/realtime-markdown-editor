@@ -1,10 +1,10 @@
 ---
 title: TASK-020-collaboration-runtime-topology
-status: todo
+status: archived
 phase: P2
 task_type: dependency
 task_mode: blocking
-owner: unassigned
+owner: main-session
 depends_on:
   - TASK-017
 write_set:
@@ -106,12 +106,34 @@ or web realtime work begins.
 
 ## Archive Checklist
 
-- [ ] `status`를 `archived`로 변경했다.
-- [ ] 파일을 `tasks/archive/`로 이동했다.
-- [ ] 검증 결과를 이 문서에 기록했다.
-- [ ] 필요한 공식 문서 업데이트를 완료했다.
-- [ ] follow-up 또는 blocker를 기록했다.
+- [x] `status`를 `archived`로 변경했다.
+- [x] 파일을 `tasks/archive/`로 이동했다.
+- [x] 검증 결과를 이 문서에 기록했다.
+- [x] 필요한 공식 문서 업데이트를 완료했다.
+- [x] follow-up 또는 blocker를 기록했다.
 
 ## 메모
 
 - Dependency owner: TASK-020.
+- Hocuspocus/Yjs server dependencies are owned by `apps/collab`.
+- Tiptap, Hocuspocus provider, and browser Yjs client dependencies are reserved in
+  `apps/web/package.json` because TASK-020 owns package/lockfile changes for collaboration
+  dependencies and later web tasks cannot edit package manifests.
+- Verification:
+  - `node -v` -> `v24.15.0`
+  - `pnpm -v` -> `10.28.2`
+  - `pnpm install` -> pass.
+  - `pnpm typecheck` -> pass.
+  - `pnpm arch:check` -> pass.
+  - `pnpm format:check` -> pass.
+  - `pnpm --filter @rme/collab typecheck` -> pass.
+  - `rg -n "apps/api/src|@/modules|@rme/api" apps/collab package.json docs/architecture/backend.md docs/domain/rules/collaboration-boundaries.md`
+    found no `apps/collab` import of API source.
+- Review response: a reviewer flagged root `tsconfig.json` as outside TASK-020 write set. The root
+  reference change was removed; `@rme/collab` remains directly verifiable through its filter command
+  and `arch:check` still cruises `apps/collab/**`.
+- Review response: a reviewer flagged that `RME_COLLAB_HOST` was only logged and not applied to the
+  server bind address. `apps/collab` now passes `address: config.host` into Hocuspocus.
+- Follow-up: current `arch:check` cruises `apps/collab`, but custom architecture script does not
+  yet have a dedicated `apps/collab` -> `apps/api/src/**` failure rule. That script is outside
+  TASK-020 write set, so enforcement strengthening should be handled by a later boundary task.

@@ -8,8 +8,9 @@
     "node": ">=24 <25"
   },
   "scripts": {
-    "dev": "pnpm --parallel --filter @rme/api --filter @rme/web dev",
+    "dev": "pnpm --parallel --filter @rme/api --filter @rme/collab --filter @rme/web dev",
     "dev:api": "pnpm --filter @rme/api dev",
+    "dev:collab": "pnpm --filter @rme/collab dev",
     "dev:web": "pnpm --filter @rme/web dev",
     "build": "pnpm -r --if-present build",
     "typecheck": "tsc -b",
