@@ -7,7 +7,9 @@ status: active
 
 ## 계약
 
-`Document`는 workspace hierarchy 안에 있는 collaborative Markdown-backed content unit이다.
+`Document`는 workspace hierarchy 안에 있는 collaborative Markdown-backed content unit이다. Filesystem-like hierarchy에서 `Document`는 Markdown file에 해당한다.
+
+모든 `Document`는 정확히 하나의 `Folder`에 속하며 `folderId`를 필수로 가진다. Project root나 workspace root에 바로 보이는 document도 domain에서는 `ProjectRootFolder` 또는 `WorkspaceRootFolder` 아래 document다.
 
 ## 책임
 
@@ -16,6 +18,7 @@ status: active
 - User-visible history를 위한 `Checkpoint`와 연결된다.
 - `DocumentState` value를 가진다.
 - Standard Markdown link/backlink projection의 source가 된다.
+- Folder tree 안에서 `folderId`로 location을 가진다.
 
 ## 경계
 
@@ -24,11 +27,13 @@ status: active
 - Export representation이 frontmatter를 포함할 수 있지만 internal body storage를 바꾸지는 않는다.
 - `LinkEdge`는 `Document`에서 직접 mutation하는 entity가 아니라 Markdown body에서 파생되는 read model이다.
 - `SyncStatus`는 application/UI state이며 `DocumentState`가 아니다.
+- `Document`는 `Folder` subtype이 아니고, `Folder`도 `Document` subtype이 아니다.
 
 ## 관계 스케치
 
 ```mermaid
 classDiagram
+  Folder "1" --> "*" Document : contains
   Document "1" --> "1" DocumentState : value
   Document "1" --> "*" DocumentProperty : owns
   Document "1" --> "*" Checkpoint
