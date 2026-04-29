@@ -9,35 +9,39 @@ approved_at: 2026-04-29
 
 ## 목적
 
-이 문서는 walking skeleton 단계의 repo-wide coding convention 설계 기준이다. 컨벤션은 취향
-문서가 아니라 `pre-commit`, `commit-msg`, `pnpm check`로 강제 가능한 규칙을 우선한다.
+이 문서는 이 저장소의 현재 coding convention이다. 컨벤션은 취향보다 자동 강제 가능한 규칙을
+우선하며, `pre-commit`, `commit-msg`, `pnpm check`가 같은 기준을 보게 한다.
 
-최상위 기준은 `subject.md`의 CE-01부터 CE-05까지의 평가 경로와
-`docs/compliance/subject-matrix.md`다. 이 문서는 CE 요구사항을 재정의하지 않고, 기존
-architecture boundary와 reviewer path를 흐리지 않도록 코드 품질과 로컬 검증 책임을 정한다.
+최상위 평가 기준은 여전히 `subject.md`의 CE-01부터 CE-05까지와
+`docs/compliance/subject-matrix.md`다. 이 문서는 CE 요구사항을 재정의하지 않고, reviewer가
+과제 핵심 경로를 확인하는 데 방해되는 코드 품질 저하와 architecture boundary drift를 막는다.
 
-## 적용 단계
+## 적용 범위
 
-Walking skeleton 단계의 baseline은 `A+`다. `A+`는 이 문서 안에서만 쓰는 local convention
-maturity label이며 과제 delivery phase나 품질 등급이 아니다.
+현재 convention은 walking skeleton 단계의 repo-wide baseline이다. 원격 CI와 pre-push 강제는
+아직 baseline에 포함하지 않는다. 로컬에서 다음 기준을 항상 유지한다.
 
-`A+` 기준은 다음과 같다.
+- Commit message는 conventional commit 형식을 따른다.
+- Commit 전에는 format, lint, typecheck, architecture check, test를 통과해야 한다.
+- 작업 완료 전에는 `pnpm check` 또는 해당 CE 범위의 더 좁은 명시적 검증 명령을 실행한다.
+- CSS, spacing, color, typography, layout polish 같은 순수 시각 변경을 제외한 동작 변경은 TDD를
+  따른다.
+- CE-01부터 CE-05까지의 검증 경로를 흐리는 제품 확장은 backlog 또는 별도 task로 분리한다.
 
-- 로컬 전방위 게이트를 둔다.
-- 최소 필수 ESLint plugin을 도입하고 deterministic rule을 강화한다.
-- CSS와 순수 시각 변경을 제외한 동작 변경에는 TDD를 적용한다.
-- 원격 저장소가 없거나 CI가 아직 없는 상태에서는 CI와 pre-push를 필수 강제 지점에서 제외한다.
-- 작업 완료 전 `pnpm check` 또는 해당 CE 범위의 명시적 검증 명령을 실행한다.
+## 로컬 게이트
 
-Walking skeleton이 완성된 뒤 `C`로 승격할 수 있다. `C`도 내부 maturity label이며 `A+`보다 더
-강한 자동화 기준을 뜻한다.
+`commit-msg`는 `pnpm exec commitlint --edit "$1"`을 실행한다.
 
-`C` 승격 후보는 다음과 같다.
+`pre-commit`은 다음 명령을 순서대로 실행한다.
 
-- staged file 중심 검사 최적화.
-- 더 세밀한 import boundary plugin 설정.
-- visual regression 또는 screenshot 검증 자동화.
-- CE e2e 검증 job 분리.
+1. `pnpm format:check`
+2. `pnpm lint`
+3. `pnpm typecheck`
+4. `pnpm arch:check`
+5. `pnpm test`
+
+`pnpm check`는 작업 완료 전 최종 게이트다. Root script 기준으로 `typecheck`, `lint`,
+`format:check`, `arch:check`, `test`가 모두 통과해야 한다.
 
 ## 자동 검사 책임
 
@@ -53,43 +57,45 @@ Walking skeleton이 완성된 뒤 `C`로 승격할 수 있다. `C`도 내부 mat
 | Husky | 로컬 강제 진입점 |
 | commitlint | conventional commit message 검사 |
 
-Custom architecture script는 저장소 고유 architecture invariant만 맡는다. 이미 있는 고유 검사는
-유지하되, 파일 길이, 함수 길이, docs Markdown formatting, package 분리 정책 같은 범용 규칙을
-새로 맡기지 않는다.
+Custom architecture script는 저장소 고유 architecture invariant만 맡는다. 예를 들어 금지된 shared
+domain/application package, deferred module, backend domain purity는 저장소 고유 규칙이다. 파일
+길이, 함수 길이, 일반 naming, docs Markdown formatting 같은 범용 규칙은 ESLint와 Prettier가
+맡는다.
 
-## 로컬 강제 지점
+## ESLint 강제 규칙
 
-`commit-msg`는 commitlint를 실행한다.
+ESLint는 production source를 기본 대상으로 한다. `docs/research/**`는 POC 산출물과 benchmark
+코드를 보존하기 위해 ESLint 대상에서 제외한다. Generated output, build output, coverage,
+Playwright output, `pnpm-lock.yaml`도 제외한다.
 
-`pre-commit`은 빠른 로컬 게이트다. 기본 목표는 format check, lint, typecheck, architecture
-check, 빠른 테스트를 커밋 전에 실행하는 것이다. CE e2e처럼 무거운 검증은 작업 완료 전
-`pnpm check` 또는 명시적 CE 검증 명령으로 실행한다.
+Production `ts`, `tsx`, `mjs` 파일의 기본 규칙은 다음과 같다.
 
-`pnpm check`는 작업 완료 전 최종 게이트다. 현재 root script의 `typecheck`, `lint`,
-`format:check`, `arch:check`, `test`를 모두 통과해야 한다.
+- File length는 blank line과 comment를 제외하고 250 lines 이하.
+- 일반 함수 body는 blank line과 comment를 제외하고 30 lines 이하.
+- Cyclomatic complexity는 6 이하.
+- `max-depth`는 2 이하. 즉, 2단계 중첩까지 허용하고 3단계 중첩부터 실패한다.
+- Type, interface, class는 `PascalCase`.
+- Function은 `camelCase` 또는 React component용 `PascalCase`.
+- `const`와 variable은 `camelCase`, `PascalCase`, `UPPER_CASE` 중 하나.
+- `import/no-cycle`은 external dependency를 제외하고 1단계 순환 import 탐색을 실패로 본다.
+- `apps/api/src/**`를 직접 import하는 frontend code는 실패한다.
 
-## ESLint 규칙 방향
+Use-case 파일은 orchestration 성격을 고려해 함수 body를 50 lines까지 허용한다.
 
-ESLint는 deterministic rule을 최대한 사용한다. 규칙 적용 범위는 production source를 기본으로
-하고, tests와 generated output은 별도 override로 완화하거나 제외한다.
+React component와 adapter 파일은 cyclomatic complexity를 8까지 허용한다.
 
-- Production `ts`와 `tsx` 파일은 250 lines 이하.
-- 일반 함수 body는 30 lines 이하.
-- Orchestration 또는 use-case 성격의 함수 body는 50 lines 이하.
-- Production 기본 cyclomatic complexity는 6 이하.
-- React component와 adapter는 cyclomatic complexity 8 이하.
-- Test file은 cyclomatic complexity 10 이하로 완화할 수 있다.
-- Production `max-depth`는 2 이하.
-- `@typescript-eslint/naming-convention`으로 type, interface, class, function, const naming을
-  강제한다.
-- `no-restricted-imports`와 import boundary plugin으로 금지 import pattern을 빠르게 잡는다.
-- React, React Hooks, a11y plugin을 추가해 frontend 기본 위반을 잡는다.
+Test file과 `e2e/**/*.ts`는 cyclomatic complexity를 10까지 허용하고, file length, function
+length, `max-depth` 제한을 적용하지 않는다.
 
-Cyclomatic complexity는 함수 안의 실행 경로 수를 세는 기준이다. `if`, `else if`, loop, `case`,
-`catch`, ternary, 논리 분기가 늘수록 점수가 올라간다. Line 수가 짧아도 분기가 많으면 실패해야
-한다.
+Backend domain 파일은 provider-neutral이어야 한다. Domain 파일에서 다음 계열 import는 실패한다.
 
-## 코드 품질 규칙
+- NestJS, React, Tiptap, ProseMirror, Yjs, Hocuspocus, Yorkie
+- Prisma, AWS SDK, Redis client
+
+Frontend React 파일은 React Hooks와 a11y 규칙을 적용한다. React 19 JSX runtime을 쓰므로
+`react/react-in-jsx-scope`와 `react/jsx-uses-react`는 끈다.
+
+## 코드 구조 규칙
 
 한 함수는 같은 추상화 레벨의 문장으로 읽혀야 한다. Domain decision, IO/provider 호출,
 formatting, rendering을 한 함수에 섞지 않는다. 상위 함수는 단계만 읽히게 하고, 세부 계산은
@@ -153,28 +159,30 @@ Prettier 설정은 현재 값을 유지한다.
 - `trailingComma: "all"`
 - `proseWrap: "preserve"`
 
-`docs/**/*.md`와 루트 `*.md`는 Prettier 강제 대상에 넣지 않는다. 공식 문서 품질은 자동 포맷보다
+`docs/**/*.md`와 루트 `*.md`는 Prettier 강제 대상이 아니다. 공식 문서 품질은 자동 포맷보다
 요구사항 정합성, CE 기준, ADR/domain/product 문맥 유지로 관리한다.
 
-`tasks/**/*.md`는 현재처럼 Prettier 대상에 둔다.
+`tasks/**/*.md`는 Prettier 대상이다.
 
-## 제외 범위
+## 제외 범위와 승격 조건
 
-이번 컨벤션 설계에서 다음은 제외한다.
+현재 convention은 다음을 강제하지 않는다.
 
-- Package 분리 금지 또는 허용 목록.
-- 새 `packages/*` 생성에 대한 문서 규칙, cruiser 규칙, 리뷰 규칙.
+- 새 `packages/*` 생성에 대한 허용 목록.
 - docs Markdown 자동 formatting.
-- Custom architecture script의 책임 확대.
 - UI 구현 전 ErrorBoundary와 Suspense 경계 규칙.
 - 원격 CI와 pre-push 강제.
 
-새 package가 필요한지는 코딩 컨벤션이 아니라 그때의 architecture/design 판단으로 결정한다.
+새 package가 필요한지는 coding convention이 아니라 그때의 architecture/design 판단으로 결정한다.
+
+Walking skeleton 완성 뒤 다음 항목을 별도 task로 승격할 수 있다.
+
+- Staged file 중심 검사 최적화.
+- 더 세밀한 import boundary plugin 설정.
+- Visual regression 또는 screenshot 검증 자동화.
+- CE e2e 검증 job 분리.
 
 ## 변경 검증
 
-이 문서나 task Markdown을 바꾸는 작업은 다음을 확인한다.
-
-- Placeholder, 모순, 애매한 범위가 없는지 self-review한다.
-- `pnpm format:check`로 task Markdown 포맷을 확인한다.
-- 코드 또는 설정 변경이 함께 있으면 `pnpm check` 또는 더 좁은 명시적 검증 명령을 실행한다.
+이 문서를 바꿀 때는 최소한 `git diff --check`를 실행한다. 코드, 설정, hook, package 변경이 함께
+있으면 `pnpm check`를 실행한다.
