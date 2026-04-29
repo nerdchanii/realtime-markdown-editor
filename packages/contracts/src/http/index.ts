@@ -41,7 +41,7 @@ export type ProjectDto = Readonly<{
   rootFolderId: FolderId;
 }>;
 
-export type FolderKindDto = "workspaceRoot" | "projectRoot" | "folder";
+export type FolderKindDto = "workspaceRoot" | "projectRoot" | "regular" | "inbox";
 
 export type FolderDto = Readonly<{
   id: FolderId;
@@ -64,6 +64,14 @@ export type DocumentPropertyValueDto =
 export type DocumentPropertyDto = Readonly<{
   key: string;
   value: DocumentPropertyValueDto;
+}>;
+
+export type BacklinkDto = Readonly<{
+  sourceDocumentId: DocumentId;
+  targetDocumentId: DocumentId;
+  markdownHref: string;
+  sourceTitle: string;
+  preview: string;
 }>;
 
 export type ArtifactReferenceDto = Readonly<{
@@ -133,8 +141,11 @@ export type SeedReviewContextDto = Readonly<{
   workspace: WorkspaceDto;
   project: ProjectDto;
   folder: FolderDto;
+  folders: readonly FolderDto[];
   document: DocumentDetailDto;
+  documents: readonly DocumentDetailDto[];
   members: readonly WorkspaceMemberDto[];
+  backlinks: readonly BacklinkDto[];
   collaboration: CollaborationSessionDto;
   revisions: readonly RevisionDto[];
   checkpoints: readonly CheckpointDto[];

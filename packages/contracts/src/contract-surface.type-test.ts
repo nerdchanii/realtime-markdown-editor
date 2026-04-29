@@ -1,6 +1,7 @@
 import type {
   ArtifactReferenceDto,
   AutosaveSnapshotDto,
+  BacklinkDto,
   CheckpointDto,
   CheckpointId,
   CheckpointSnapshotInspectDto,
@@ -133,6 +134,14 @@ const document = {
   publishedRevisionId: revisionId,
 } satisfies DocumentDetailDto;
 
+const backlink = {
+  sourceDocumentId: documentId,
+  targetDocumentId: documentId,
+  markdownHref: "./review-plan.md",
+  sourceTitle: "Review Plan",
+  preview: "Linked from the seeded review context.",
+} satisfies BacklinkDto;
+
 const sync = {
   status: "offline",
   pendingLocalEdits: 1,
@@ -154,8 +163,11 @@ const seed = {
   workspace,
   project,
   folder,
+  folders: [folder],
   document,
+  documents: [document],
   members: [member],
+  backlinks: [backlink],
   collaboration,
   revisions: [revision],
   checkpoints: [checkpoint],
