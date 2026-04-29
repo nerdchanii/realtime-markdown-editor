@@ -16,6 +16,11 @@ import type {
   CollaborationDocumentState,
 } from "../ports/collaboration-adapter";
 import {
+  setAwarenessIdentity,
+  useAwarenessPresence,
+  useAwarenessSelectionUpdate,
+} from "./tiptap-yjs-awareness";
+import {
   createRealtimeSyncStatus,
   type RuntimeSyncSnapshot,
   useRuntimeSyncSnapshot,
@@ -46,13 +51,16 @@ function useTiptapYjsDocument(options: CollaborationDocumentOptions): Collaborat
   useTiptapYjsRuntime(session, setRuntime);
   useYTextState(runtime, options.initialMarkdown, setMarkdown);
   const syncSnapshot = useRuntimeSyncSnapshot(runtime);
+  const presence = useAwarenessPresence(session, runtime, options.initialPresence);
   const updateMarkdown = useYTextUpdate(runtime, setMarkdown);
+  const updateSelection = useAwarenessSelectionUpdate(session, runtime);
 
   return {
     markdown,
     updateMarkdown,
+    updateSelection,
     syncStatus: createSyncStatus(options, session, runtime, syncSnapshot),
-    presence: options.initialPresence,
+    presence,
     providerName: tiptapYjsCollaborationProviderName,
   };
 }
@@ -142,6 +150,7 @@ function createRuntime(session: CollaborationSessionDto): TiptapYjsRuntime {
   const markdown = document.getText("markdown");
   const provider = createProvider(session, document);
   const member = findCurrentMember(session);
+  setAwarenessIdentity(provider, member);
   const extensions = createExtensions(document, provider, member);
 
   return {

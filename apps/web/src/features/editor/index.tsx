@@ -3,10 +3,12 @@ import { useCallback } from "react";
 import type { CollaborationSessionDto } from "@rme/contracts";
 
 import { MarkdownPreview } from "./MarkdownPreview";
+import { SourcePane } from "./SourcePane";
 import { mockCollaborationAdapter } from "./adapters/mock-collaboration-adapter";
 import { createTiptapYjsCollaborationAdapter } from "./adapters/tiptap-yjs-collaboration-adapter";
 import type {
   CollaborationAdapter,
+  EditorSelectionSnapshot,
   EditorMode,
   PresenceMember,
   SyncStatusViewModel,
@@ -18,7 +20,6 @@ import {
   presenceDotStyle,
   presenceLayerStyle,
   syncStatusStyle,
-  textareaStyle,
   toolbarStyle,
   workspaceGridStyle,
 } from "./styles";
@@ -31,7 +32,13 @@ export {
   mockCollaborationProviderName,
 } from "./adapters/mock-collaboration-adapter";
 export { createTiptapYjsCollaborationAdapter } from "./adapters/tiptap-yjs-collaboration-adapter";
-export type { CollaborationAdapter, EditorMode, PresenceMember, SyncStatusViewModel };
+export type {
+  CollaborationAdapter,
+  EditorMode,
+  EditorSelectionSnapshot,
+  PresenceMember,
+  SyncStatusViewModel,
+};
 
 export type EditorWorkspaceViewModel = Readonly<{
   replacementPoint: string;
@@ -83,10 +90,8 @@ export function EditorWorkspaceSlot({
   viewModel,
   collaborationAdapter = mockCollaborationAdapter,
 }: EditorWorkspaceSlotProps) {
-  const { markdown, mode, syncStatus, presence, handleMarkdownChange } = useEditorWorkspaceState(
-    viewModel,
-    collaborationAdapter,
-  );
+  const { markdown, mode, syncStatus, presence, handleMarkdownChange, handleSelectionChange } =
+    useEditorWorkspaceState(viewModel, collaborationAdapter);
 
   return (
     <div
@@ -96,7 +101,11 @@ export function EditorWorkspaceSlot({
     >
       <EditorToolbar label={viewModel.label} mode={mode} syncStatus={syncStatus} />
       <div style={workspaceGridStyle} data-testid="editor-split-view">
-        <SourcePane markdown={markdown} onMarkdownChange={handleMarkdownChange} />
+        <SourcePane
+          markdown={markdown}
+          onMarkdownChange={handleMarkdownChange}
+          onSelectionChange={handleSelectionChange}
+        />
         <MarkdownPreview markdown={markdown} />
       </div>
       <PresenceLayer members={presence} />
@@ -110,21 +119,20 @@ function useEditorWorkspaceState(
   collaborationAdapter: CollaborationAdapter,
 ) {
   const activeAdapter = selectCollaborationAdapter(viewModel, collaborationAdapter);
-  const documentId = viewModel.documentId ?? readDocumentIdFromLocation();
-  const initialMarkdown = viewModel.markdown ?? fallbackMarkdown;
-  const { markdown, updateMarkdown, syncStatus, presence } = activeAdapter.useDocument({
-    documentId,
-    initialMarkdown,
-    initialSyncStatus: viewModel.syncStatus ?? fallbackSyncStatus,
-    initialPresence: viewModel.presence ?? fallbackPresence,
-    ...(viewModel.collaborationSession ? { session: viewModel.collaborationSession } : {}),
-  });
+  const { markdown, updateMarkdown, updateSelection, syncStatus, presence } =
+    activeAdapter.useDocument(createCollaborationOptions(viewModel));
   const mode = viewModel.mode ?? "split";
   const handleMarkdownChange = useCallback(
     (nextMarkdown: string) => {
       updateMarkdown(nextMarkdown);
     },
     [updateMarkdown],
+  );
+  const handleSelectionChange = useCallback(
+    (selection: EditorSelectionSnapshot) => {
+      updateSelection(selection);
+    },
+    [updateSelection],
   );
 
   return {
@@ -133,6 +141,17 @@ function useEditorWorkspaceState(
     syncStatus,
     presence,
     handleMarkdownChange,
+    handleSelectionChange,
+  };
+}
+
+function createCollaborationOptions(viewModel: EditorWorkspaceViewModel) {
+  return {
+    documentId: viewModel.documentId ?? readDocumentIdFromLocation(),
+    initialMarkdown: viewModel.markdown ?? fallbackMarkdown,
+    initialSyncStatus: viewModel.syncStatus ?? fallbackSyncStatus,
+    initialPresence: viewModel.presence ?? fallbackPresence,
+    ...(viewModel.collaborationSession ? { session: viewModel.collaborationSession } : {}),
   };
 }
 
@@ -189,27 +208,6 @@ function SyncStatusSlot({ status }: { status: SyncStatusViewModel }) {
       <span>{status.detail}</span>
       <span>{status.pendingEdits} pending</span>
     </div>
-  );
-}
-
-function SourcePane({
-  markdown,
-  onMarkdownChange,
-}: {
-  markdown: string;
-  onMarkdownChange: (markdown: string) => void;
-}) {
-  return (
-    <section aria-label="Markdown source" data-testid="markdown-source-pane">
-      <textarea
-        aria-label="Markdown editor"
-        data-testid="collaborative-markdown-editor"
-        value={markdown}
-        onChange={(event) => onMarkdownChange(event.currentTarget.value)}
-        spellCheck={false}
-        style={textareaStyle}
-      />
-    </section>
   );
 }
 

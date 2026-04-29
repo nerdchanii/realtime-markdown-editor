@@ -40,6 +40,7 @@ export function useMockMarkdownDocument({
   return {
     markdown,
     updateMarkdown,
+    updateSelection: () => undefined,
     syncStatus: initialSyncStatus,
     presence: initialPresence,
     providerName: mockCollaborationProviderName,

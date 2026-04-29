@@ -15,6 +15,11 @@ export type PresenceMember = Readonly<{
   range: string;
 }>;
 
+export type EditorSelectionSnapshot = Readonly<{
+  anchor: number;
+  head: number;
+}>;
+
 export type CollaborationDocumentOptions = Readonly<{
   documentId: string;
   initialMarkdown: string;
@@ -26,6 +31,7 @@ export type CollaborationDocumentOptions = Readonly<{
 export type CollaborationDocumentState = Readonly<{
   markdown: string;
   updateMarkdown: (markdown: string) => void;
+  updateSelection: (selection: EditorSelectionSnapshot) => void;
   syncStatus: SyncStatusViewModel;
   presence: readonly PresenceMember[];
   providerName: string;
