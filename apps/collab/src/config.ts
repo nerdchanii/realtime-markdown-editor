@@ -13,7 +13,10 @@ export function readCollabRuntimeConfig(env: NodeJS.ProcessEnv): CollabRuntimeCo
     host,
     port,
     publicRealtimeUrl: readString(env.RME_COLLAB_PUBLIC_URL, `ws://${host}:${port}`),
-    seedDocumentKey: readString(env.RME_COLLAB_SEED_DOCUMENT_KEY, "workspace_seed:document_seed"),
+    seedDocumentKey: readString(
+      env.RME_COLLAB_SEED_DOCUMENT_KEY,
+      "workspace_review/document_review_plan",
+    ),
   };
 }
 

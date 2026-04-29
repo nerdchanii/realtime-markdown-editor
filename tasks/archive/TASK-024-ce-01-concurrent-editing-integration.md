@@ -1,10 +1,10 @@
 ---
 title: TASK-024-ce-01-concurrent-editing-integration
-status: todo
+status: archived
 phase: P2
 task_type: integration
 task_mode: integration
-owner: unassigned
+owner: main-session
 depends_on:
   - TASK-021
   - TASK-022
@@ -98,12 +98,26 @@ Connect API session, collab runtime, and web adapter so CE-01 concurrent editing
 
 ## Archive Checklist
 
-- [ ] `status`를 `archived`로 변경했다.
-- [ ] 파일을 `tasks/archive/`로 이동했다.
-- [ ] 검증 결과를 이 문서에 기록했다.
-- [ ] 필요한 공식 문서 업데이트를 완료했다.
-- [ ] follow-up 또는 blocker를 기록했다.
+- [x] `status`를 `archived`로 변경했다.
+- [x] 파일을 `tasks/archive/`로 이동했다.
+- [x] 검증 결과를 이 문서에 기록했다.
+- [x] 필요한 공식 문서 업데이트를 완료했다.
+- [x] follow-up 또는 blocker를 기록했다.
 
 ## 메모
 
 - CE-01 failure at Plan 01 exit is expected until this integration is complete.
+- Verification:
+  - `node -v` -> `v24.15.0`
+  - `pnpm -v` -> `10.28.2`
+  - `pnpm typecheck` -> pass.
+  - `pnpm lint` -> pass.
+  - `pnpm arch:check` -> pass.
+  - `pnpm format:check` -> pass.
+  - `pnpm test:e2e e2e/ce-01-concurrent-editing.spec.ts` -> pass.
+- Integration notes:
+  - editor resolves the provider-neutral API session before connecting the Hocuspocus provider.
+  - collab runtime and API seed session now share `workspace_review/document_review_plan`.
+  - textarea source pane is bound to a shared Yjs text using a minimal diff update.
+- Review note: read-only reviewer timed out once; main session reviewed the final diff and found no
+  write-set or provider-specific domain/contract leakage issue.

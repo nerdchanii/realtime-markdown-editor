@@ -4,6 +4,7 @@ import type { CollaborationSessionDto } from "@rme/contracts";
 
 import { MarkdownPreview } from "./MarkdownPreview";
 import { mockCollaborationAdapter } from "./adapters/mock-collaboration-adapter";
+import { createTiptapYjsCollaborationAdapter } from "./adapters/tiptap-yjs-collaboration-adapter";
 import type {
   CollaborationAdapter,
   EditorMode,
@@ -108,9 +109,10 @@ function useEditorWorkspaceState(
   viewModel: EditorWorkspaceViewModel,
   collaborationAdapter: CollaborationAdapter,
 ) {
+  const activeAdapter = selectCollaborationAdapter(viewModel, collaborationAdapter);
   const documentId = viewModel.documentId ?? readDocumentIdFromLocation();
   const initialMarkdown = viewModel.markdown ?? fallbackMarkdown;
-  const { markdown, updateMarkdown, syncStatus, presence } = collaborationAdapter.useDocument({
+  const { markdown, updateMarkdown, syncStatus, presence } = activeAdapter.useDocument({
     documentId,
     initialMarkdown,
     initialSyncStatus: viewModel.syncStatus ?? fallbackSyncStatus,
@@ -132,6 +134,14 @@ function useEditorWorkspaceState(
     presence,
     handleMarkdownChange,
   };
+}
+
+function selectCollaborationAdapter(
+  viewModel: EditorWorkspaceViewModel,
+  fallbackAdapter: CollaborationAdapter,
+): CollaborationAdapter {
+  if (viewModel.collaborationSession) return createTiptapYjsCollaborationAdapter();
+  return fallbackAdapter;
 }
 
 function EditorToolbar({
