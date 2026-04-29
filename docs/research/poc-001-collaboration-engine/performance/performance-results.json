@@ -1,0 +1,869 @@
+{
+  "generatedAt": "2026-04-29T05:02:25.141Z",
+  "runCount": 3,
+  "serverStarts": [
+    {
+      "label": "tiptap sync server",
+      "port": 19234,
+      "reused": false,
+      "pid": 47496
+    },
+    {
+      "label": "tiptap app server",
+      "port": 19174,
+      "reused": false,
+      "pid": 47520
+    },
+    {
+      "label": "yorkie sync server",
+      "port": 19080,
+      "reused": false,
+      "pid": 47532
+    },
+    {
+      "label": "yorkie app server",
+      "port": 19175,
+      "reused": false,
+      "pid": 47537
+    }
+  ],
+  "largeDocument": {
+    "sectionCount": 60,
+    "bytes": 20310
+  },
+  "portBase": 19000,
+  "candidateFilter": [],
+  "candidates": [
+    {
+      "id": "tiptap",
+      "label": "Tiptap + Yjs + Hocuspocus",
+      "bundle": {
+        "exists": true,
+        "rawBytes": 839030,
+        "gzipBytes": 263064,
+        "files": [
+          {
+            "name": "index-Bt2qvGe7.js",
+            "rawBytes": 831178,
+            "gzipBytes": 260779
+          },
+          {
+            "name": "index-DJzpaWm7.css",
+            "rawBytes": 7852,
+            "gzipBytes": 2285
+          }
+        ]
+      },
+      "summary": {
+        "initialEditorVisibleMs": 192.2,
+        "firstComparableReadyMs": 230.8,
+        "firstContentfulPaintMs": 184,
+        "localEditEchoMs": 9.6,
+        "remoteEditVisibleMs": 11.2,
+        "reconnectConvergenceMs": 11,
+        "largeSourceCommitMs": 476.6,
+        "largeRichRenderAfterSourceMs": 110.6,
+        "largeLocalEditEchoMs": 14.9,
+        "largeSourceReflectionMs": 64.6,
+        "browserHeapAfterFirstReadyMb": 10.99,
+        "browserHeapAfterLargeMb": 21.19,
+        "browserDomNodesAfterLarge": 12870,
+        "networkHttpBytes": 12352551,
+        "networkWsSentBytes": 118028,
+        "networkWsReceivedBytes": 122172,
+        "syncServerPeakRssMb": 110.98,
+        "syncServerPeakCpuPercent": 18,
+        "appServerPeakRssMb": 174.03,
+        "appServerPeakCpuPercent": 25.7
+      },
+      "runs": [
+        {
+          "runIndex": 1,
+          "documentName": "perf-tiptap-1777438948316-1-main-93iypw",
+          "initialEditorVisibleMs": 655.1,
+          "firstComparableReadyMs": 708.4,
+          "navigation": {
+            "domContentLoadedMs": 536.0999999940395,
+            "loadEventMs": 538,
+            "firstContentfulPaintMs": 640
+          },
+          "readinessPhases": {
+            "first": {
+              "editorVisibleMs": 655.1,
+              "transportReadyMs": 690.9,
+              "seedVisibleMs": 708.4
+            },
+            "peer": {
+              "editorVisibleMs": 168.2,
+              "transportReadyMs": 206.6,
+              "seedVisibleMs": 208
+            },
+            "reconnect": {
+              "tokenConvergenceMs": 11
+            }
+          },
+          "debug": {
+            "first": {
+              "transport": {
+                "ready": true,
+                "connectionStatus": "connected",
+                "localCacheStatus": "ready"
+              },
+              "seed": null
+            },
+            "peer": {
+              "transport": {
+                "ready": true,
+                "connectionStatus": "connected",
+                "localCacheStatus": "ready"
+              },
+              "seed": null
+            },
+            "reconnect": {
+              "transport": {
+                "ready": true,
+                "connectionStatus": "connected",
+                "localCacheStatus": "ready"
+              },
+              "seed": null
+            }
+          },
+          "editLatency": {
+            "localEditEchoMs": 5.9160830000000715,
+            "remoteEditVisibleMs": 7.840957999999773
+          },
+          "reconnectConvergenceMs": 10.975166999999601,
+          "largeDocument": {
+            "sourceReadyPhases": {
+              "editorVisibleMs": 154.1,
+              "transportReadyMs": 183.9,
+              "seedVisibleMs": 187.5
+            },
+            "sourceCommitMs": 457.8590830000003,
+            "richRenderAfterSourceMs": 90.49479100000008,
+            "localEditEchoMs": 14.940499999999702,
+            "sourceReflectionMs": 64.26116699999966
+          },
+          "memory": {
+            "afterFirstReady": {
+              "jsHeapUsedBytes": 11520132,
+              "jsHeapTotalBytes": 18300928,
+              "domNodes": 299,
+              "documents": 4,
+              "layoutCount": 0,
+              "recalcStyleCount": 0
+            },
+            "afterReconnect": {
+              "jsHeapUsedBytes": 12645828,
+              "jsHeapTotalBytes": 20660224,
+              "domNodes": 406,
+              "documents": 6,
+              "layoutCount": 0,
+              "recalcStyleCount": 0
+            },
+            "afterLargeDocument": {
+              "jsHeapUsedBytes": 23418136,
+              "jsHeapTotalBytes": 34816000,
+              "domNodes": 12870,
+              "documents": 2,
+              "layoutCount": 0,
+              "recalcStyleCount": 0
+            }
+          },
+          "network": {
+            "httpBytes": 12352551,
+            "httpRequests": 150,
+            "wsSentBytes": 126296,
+            "wsReceivedBytes": 130556,
+            "wsFramesSent": 36,
+            "wsFramesReceived": 48
+          },
+          "serverProcesses": {
+            "sampleCount": 9,
+            "syncServer": {
+              "peakRssKb": 105632,
+              "peakCpuPercent": 18,
+              "pids": [
+                47516
+              ],
+              "commands": [
+                "/opt/homebrew/Cellar/node/25.9.0_2/bin/node --require /Users/gim-yechan/.codex/worktrees/702c/realtime-markdown-editor/docs/research/poc-001-collaboration-engine/node_modules/.pnpm/tsx@4.21.0/node_modules/tsx/dist/preflight.cjs --import file:///Users/gim-yechan/.codex/worktrees/702c/realtime-markdown-editor/docs/research/poc-001-collaboration-engine/node_modules/.pnpm/tsx@4.21.0/node_modules/tsx/dist/loader.mjs server/hocuspocus.ts"
+              ]
+            },
+            "appServer": {
+              "peakRssKb": 168576,
+              "peakCpuPercent": 97.3,
+              "pids": [
+                47521
+              ],
+              "commands": [
+                "node ./node_modules/.bin/../vite/bin/vite.js --host 127.0.0.1 --port 19174"
+              ]
+            }
+          }
+        },
+        {
+          "runIndex": 2,
+          "documentName": "perf-tiptap-1777438950389-2-main-08z3c6",
+          "initialEditorVisibleMs": 151.2,
+          "firstComparableReadyMs": 185.1,
+          "navigation": {
+            "domContentLoadedMs": 91.59999999403954,
+            "loadEventMs": 92,
+            "firstContentfulPaintMs": 148
+          },
+          "readinessPhases": {
+            "first": {
+              "editorVisibleMs": 151.2,
+              "transportReadyMs": 177.9,
+              "seedVisibleMs": 185.1
+            },
+            "peer": {
+              "editorVisibleMs": 158.9,
+              "transportReadyMs": 183.5,
+              "seedVisibleMs": 185.9
+            },
+            "reconnect": {
+              "tokenConvergenceMs": 17.2
+            }
+          },
+          "debug": {
+            "first": {
+              "transport": {
+                "ready": true,
+                "connectionStatus": "connected",
+                "localCacheStatus": "ready"
+              },
+              "seed": null
+            },
+            "peer": {
+              "transport": {
+                "ready": true,
+                "connectionStatus": "connected",
+                "localCacheStatus": "ready"
+              },
+              "seed": null
+            },
+            "reconnect": {
+              "transport": {
+                "ready": true,
+                "connectionStatus": "connected",
+                "localCacheStatus": "ready"
+              },
+              "seed": null
+            }
+          },
+          "editLatency": {
+            "localEditEchoMs": 14.241541000000325,
+            "remoteEditVisibleMs": 16.110666000000492
+          },
+          "reconnectConvergenceMs": 17.237583000000086,
+          "largeDocument": {
+            "sourceReadyPhases": {
+              "editorVisibleMs": 160.8,
+              "transportReadyMs": 196.7,
+              "seedVisibleMs": 198.3
+            },
+            "sourceCommitMs": 476.5885840000001,
+            "richRenderAfterSourceMs": 123.77524999999969,
+            "localEditEchoMs": 18.149749999999585,
+            "sourceReflectionMs": 80.85579199999938
+          },
+          "memory": {
+            "afterFirstReady": {
+              "jsHeapUsedBytes": 11507536,
+              "jsHeapTotalBytes": 18300928,
+              "domNodes": 299,
+              "documents": 4,
+              "layoutCount": 0,
+              "recalcStyleCount": 0
+            },
+            "afterReconnect": {
+              "jsHeapUsedBytes": 13988436,
+              "jsHeapTotalBytes": 19349504,
+              "domNodes": 321,
+              "documents": 6,
+              "layoutCount": 1,
+              "recalcStyleCount": 1
+            },
+            "afterLargeDocument": {
+              "jsHeapUsedBytes": 22060020,
+              "jsHeapTotalBytes": 33243136,
+              "domNodes": 12870,
+              "documents": 2,
+              "layoutCount": 0,
+              "recalcStyleCount": 0
+            }
+          },
+          "network": {
+            "httpBytes": 12352551,
+            "httpRequests": 150,
+            "wsSentBytes": 118028,
+            "wsReceivedBytes": 122172,
+            "wsFramesSent": 35,
+            "wsFramesReceived": 45
+          },
+          "serverProcesses": {
+            "sampleCount": 6,
+            "syncServer": {
+              "peakRssKb": 113648,
+              "peakCpuPercent": 18,
+              "pids": [
+                47516
+              ],
+              "commands": [
+                "/opt/homebrew/Cellar/node/25.9.0_2/bin/node --require /Users/gim-yechan/.codex/worktrees/702c/realtime-markdown-editor/docs/research/poc-001-collaboration-engine/node_modules/.pnpm/tsx@4.21.0/node_modules/tsx/dist/preflight.cjs --import file:///Users/gim-yechan/.codex/worktrees/702c/realtime-markdown-editor/docs/research/poc-001-collaboration-engine/node_modules/.pnpm/tsx@4.21.0/node_modules/tsx/dist/loader.mjs server/hocuspocus.ts"
+              ]
+            },
+            "appServer": {
+              "peakRssKb": 178208,
+              "peakCpuPercent": 25.7,
+              "pids": [
+                47521
+              ],
+              "commands": [
+                "node ./node_modules/.bin/../vite/bin/vite.js --host 127.0.0.1 --port 19174"
+              ]
+            }
+          }
+        },
+        {
+          "runIndex": 3,
+          "documentName": "perf-tiptap-1777438951850-3-main-tkf9zy",
+          "initialEditorVisibleMs": 192.2,
+          "firstComparableReadyMs": 230.8,
+          "navigation": {
+            "domContentLoadedMs": 117,
+            "loadEventMs": 117.5,
+            "firstContentfulPaintMs": 184
+          },
+          "readinessPhases": {
+            "first": {
+              "editorVisibleMs": 192.2,
+              "transportReadyMs": 222.7,
+              "seedVisibleMs": 230.8
+            },
+            "peer": {
+              "editorVisibleMs": 139,
+              "transportReadyMs": 160.6,
+              "seedVisibleMs": 161.7
+            },
+            "reconnect": {
+              "tokenConvergenceMs": 10.2
+            }
+          },
+          "debug": {
+            "first": {
+              "transport": {
+                "ready": true,
+                "connectionStatus": "connected",
+                "localCacheStatus": "ready"
+              },
+              "seed": null
+            },
+            "peer": {
+              "transport": {
+                "ready": true,
+                "connectionStatus": "connected",
+                "localCacheStatus": "ready"
+              },
+              "seed": null
+            },
+            "reconnect": {
+              "transport": {
+                "ready": true,
+                "connectionStatus": "connected",
+                "localCacheStatus": "ready"
+              },
+              "seed": null
+            }
+          },
+          "editLatency": {
+            "localEditEchoMs": 9.632915999999568,
+            "remoteEditVisibleMs": 11.19841600000018
+          },
+          "reconnectConvergenceMs": 10.152874999999767,
+          "largeDocument": {
+            "sourceReadyPhases": {
+              "editorVisibleMs": 184.5,
+              "transportReadyMs": 218,
+              "seedVisibleMs": 222.6
+            },
+            "sourceCommitMs": 535.0485830000007,
+            "richRenderAfterSourceMs": 110.61237500000061,
+            "localEditEchoMs": 8.022249999999985,
+            "sourceReflectionMs": 64.59995899999922
+          },
+          "memory": {
+            "afterFirstReady": {
+              "jsHeapUsedBytes": 11520420,
+              "jsHeapTotalBytes": 18300928,
+              "domNodes": 299,
+              "documents": 4,
+              "layoutCount": 0,
+              "recalcStyleCount": 0
+            },
+            "afterReconnect": {
+              "jsHeapUsedBytes": 13830828,
+              "jsHeapTotalBytes": 19349504,
+              "domNodes": 321,
+              "documents": 6,
+              "layoutCount": 0,
+              "recalcStyleCount": 0
+            },
+            "afterLargeDocument": {
+              "jsHeapUsedBytes": 22219708,
+              "jsHeapTotalBytes": 33243136,
+              "domNodes": 12870,
+              "documents": 2,
+              "layoutCount": 0,
+              "recalcStyleCount": 0
+            }
+          },
+          "network": {
+            "httpBytes": 12352551,
+            "httpRequests": 150,
+            "wsSentBytes": 118016,
+            "wsReceivedBytes": 122160,
+            "wsFramesSent": 35,
+            "wsFramesReceived": 45
+          },
+          "serverProcesses": {
+            "sampleCount": 6,
+            "syncServer": {
+              "peakRssKb": 114528,
+              "peakCpuPercent": 5.2,
+              "pids": [
+                47516
+              ],
+              "commands": [
+                "/opt/homebrew/Cellar/node/25.9.0_2/bin/node --require /Users/gim-yechan/.codex/worktrees/702c/realtime-markdown-editor/docs/research/poc-001-collaboration-engine/node_modules/.pnpm/tsx@4.21.0/node_modules/tsx/dist/preflight.cjs --import file:///Users/gim-yechan/.codex/worktrees/702c/realtime-markdown-editor/docs/research/poc-001-collaboration-engine/node_modules/.pnpm/tsx@4.21.0/node_modules/tsx/dist/loader.mjs server/hocuspocus.ts"
+              ]
+            },
+            "appServer": {
+              "peakRssKb": 182640,
+              "peakCpuPercent": 17.7,
+              "pids": [
+                47521
+              ],
+              "commands": [
+                "node ./node_modules/.bin/../vite/bin/vite.js --host 127.0.0.1 --port 19174"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "yorkie",
+      "label": "Yorkie + ProseMirror",
+      "bundle": {
+        "exists": true,
+        "rawBytes": 892377,
+        "gzipBytes": 268105,
+        "files": [
+          {
+            "name": "index-CssEHHH5.css",
+            "rawBytes": 6398,
+            "gzipBytes": 1903
+          },
+          {
+            "name": "index-bi4BHrNX.js",
+            "rawBytes": 885979,
+            "gzipBytes": 266202
+          }
+        ]
+      },
+      "summary": {
+        "initialEditorVisibleMs": 255,
+        "firstComparableReadyMs": 259.1,
+        "firstContentfulPaintMs": 160,
+        "localEditEchoMs": 11.9,
+        "remoteEditVisibleMs": 115.2,
+        "reconnectConvergenceMs": 215.5,
+        "largeSourceCommitMs": 455.1,
+        "largeRichRenderAfterSourceMs": 54.6,
+        "largeLocalEditEchoMs": 63.3,
+        "largeSourceReflectionMs": 101.8,
+        "browserHeapAfterFirstReadyMb": 7,
+        "browserHeapAfterLargeMb": 10.83,
+        "browserDomNodesAfterLarge": 12995,
+        "networkHttpBytes": 8399925,
+        "networkWsSentBytes": 0,
+        "networkWsReceivedBytes": 60,
+        "syncServerPeakRssMb": 41.73,
+        "syncServerPeakCpuPercent": 3.3,
+        "appServerPeakRssMb": 158.2,
+        "appServerPeakCpuPercent": 13.8
+      },
+      "runs": [
+        {
+          "runIndex": 1,
+          "documentName": "perf-yorkie-1777438953432-1-main-4gsklz",
+          "initialEditorVisibleMs": 404.7,
+          "firstComparableReadyMs": 408,
+          "navigation": {
+            "domContentLoadedMs": 255.2999999821186,
+            "loadEventMs": 255.69999998807907,
+            "firstContentfulPaintMs": 308
+          },
+          "readinessPhases": {
+            "first": {
+              "editorVisibleMs": 404.7,
+              "transportReadyMs": 407.1,
+              "seedVisibleMs": 408
+            },
+            "peer": {
+              "editorVisibleMs": 217.1,
+              "transportReadyMs": 219.3,
+              "seedVisibleMs": 220
+            },
+            "reconnect": {
+              "tokenConvergenceMs": 108.4
+            }
+          },
+          "debug": {
+            "first": {
+              "transport": {
+                "ready": true,
+                "connectionStatus": "online",
+                "syncStatus": "synced"
+              }
+            },
+            "peer": {
+              "transport": {
+                "ready": true,
+                "connectionStatus": "online",
+                "syncStatus": "synced"
+              }
+            },
+            "reconnect": {
+              "transport": {
+                "ready": true,
+                "connectionStatus": "online",
+                "syncStatus": "synced"
+              }
+            }
+          },
+          "editLatency": {
+            "localEditEchoMs": 11.89191700000083,
+            "remoteEditVisibleMs": 115.22683400000096
+          },
+          "reconnectConvergenceMs": 108.41541700000016,
+          "largeDocument": {
+            "sourceReadyPhases": {
+              "editorVisibleMs": 126.2,
+              "transportReadyMs": 233.5,
+              "seedVisibleMs": 234.2
+            },
+            "sourceCommitMs": 627.3608339999992,
+            "richRenderAfterSourceMs": 58.72862499999974,
+            "localEditEchoMs": 76.72075000000041,
+            "sourceReflectionMs": 196.1175830000011
+          },
+          "memory": {
+            "afterFirstReady": {
+              "jsHeapUsedBytes": 7338280,
+              "jsHeapTotalBytes": 14385152,
+              "domNodes": 381,
+              "documents": 1,
+              "layoutCount": 0,
+              "recalcStyleCount": 0
+            },
+            "afterReconnect": {
+              "jsHeapUsedBytes": 10864332,
+              "jsHeapTotalBytes": 15433728,
+              "domNodes": 1139,
+              "documents": 1,
+              "layoutCount": 0,
+              "recalcStyleCount": 0
+            },
+            "afterLargeDocument": {
+              "jsHeapUsedBytes": 11660068,
+              "jsHeapTotalBytes": 20414464,
+              "domNodes": 14273,
+              "documents": 1,
+              "layoutCount": 0,
+              "recalcStyleCount": 0
+            }
+          },
+          "network": {
+            "httpBytes": 8400373,
+            "httpRequests": 144,
+            "wsSentBytes": 0,
+            "wsReceivedBytes": 60,
+            "wsFramesSent": 0,
+            "wsFramesReceived": 3
+          },
+          "serverProcesses": {
+            "sampleCount": 8,
+            "syncServer": {
+              "peakRssKb": 37232,
+              "peakCpuPercent": 3.6,
+              "pids": [
+                47532
+              ],
+              "commands": [
+                "yorkie server --rpc-port 19080 --log-level error"
+              ]
+            },
+            "appServer": {
+              "peakRssKb": 144480,
+              "peakCpuPercent": 65.1,
+              "pids": [
+                47538
+              ],
+              "commands": [
+                "node ./node_modules/.bin/../vite/bin/vite.js --host 127.0.0.1 --port 19175"
+              ]
+            }
+          }
+        },
+        {
+          "runIndex": 2,
+          "documentName": "perf-yorkie-1777438955664-2-main-2lbiry",
+          "initialEditorVisibleMs": 255,
+          "firstComparableReadyMs": 259.1,
+          "navigation": {
+            "domContentLoadedMs": 109.5,
+            "loadEventMs": 110,
+            "firstContentfulPaintMs": 160
+          },
+          "readinessPhases": {
+            "first": {
+              "editorVisibleMs": 255,
+              "transportReadyMs": 258,
+              "seedVisibleMs": 259.1
+            },
+            "peer": {
+              "editorVisibleMs": 238,
+              "transportReadyMs": 240.2,
+              "seedVisibleMs": 241
+            },
+            "reconnect": {
+              "tokenConvergenceMs": 1045.2
+            }
+          },
+          "debug": {
+            "first": {
+              "transport": {
+                "ready": true,
+                "connectionStatus": "online",
+                "syncStatus": "synced"
+              }
+            },
+            "peer": {
+              "transport": {
+                "ready": true,
+                "connectionStatus": "online",
+                "syncStatus": "synced"
+              }
+            },
+            "reconnect": {
+              "transport": {
+                "ready": true,
+                "connectionStatus": "online",
+                "syncStatus": "synced"
+              }
+            }
+          },
+          "editLatency": {
+            "localEditEchoMs": 9.208957999999257,
+            "remoteEditVisibleMs": 113.56545799999913
+          },
+          "reconnectConvergenceMs": 1045.1981250000008,
+          "largeDocument": {
+            "sourceReadyPhases": {
+              "editorVisibleMs": 112.3,
+              "transportReadyMs": 219.3,
+              "seedVisibleMs": 220.2
+            },
+            "sourceCommitMs": 442.40870800000084,
+            "richRenderAfterSourceMs": 43.38712499999929,
+            "localEditEchoMs": 63.25520900000083,
+            "sourceReflectionMs": 101.75054199999977
+          },
+          "memory": {
+            "afterFirstReady": {
+              "jsHeapUsedBytes": 7335340,
+              "jsHeapTotalBytes": 12550144,
+              "domNodes": 381,
+              "documents": 1,
+              "layoutCount": 0,
+              "recalcStyleCount": 0
+            },
+            "afterReconnect": {
+              "jsHeapUsedBytes": 8803764,
+              "jsHeapTotalBytes": 15171584,
+              "domNodes": 1319,
+              "documents": 1,
+              "layoutCount": 0,
+              "recalcStyleCount": 0
+            },
+            "afterLargeDocument": {
+              "jsHeapUsedBytes": 11262912,
+              "jsHeapTotalBytes": 20414464,
+              "domNodes": 12995,
+              "documents": 1,
+              "layoutCount": 0,
+              "recalcStyleCount": 0
+            }
+          },
+          "network": {
+            "httpBytes": 8399925,
+            "httpRequests": 143,
+            "wsSentBytes": 2061,
+            "wsReceivedBytes": 60,
+            "wsFramesSent": 2,
+            "wsFramesReceived": 3
+          },
+          "serverProcesses": {
+            "sampleCount": 11,
+            "syncServer": {
+              "peakRssKb": 42736,
+              "peakCpuPercent": 3.3,
+              "pids": [
+                47532
+              ],
+              "commands": [
+                "yorkie server --rpc-port 19080 --log-level error"
+              ]
+            },
+            "appServer": {
+              "peakRssKb": 162000,
+              "peakCpuPercent": 13.8,
+              "pids": [
+                47538
+              ],
+              "commands": [
+                "node ./node_modules/.bin/../vite/bin/vite.js --host 127.0.0.1 --port 19175"
+              ]
+            }
+          }
+        },
+        {
+          "runIndex": 3,
+          "documentName": "perf-yorkie-1777438958335-3-main-pipymh",
+          "initialEditorVisibleMs": 242.2,
+          "firstComparableReadyMs": 246.1,
+          "navigation": {
+            "domContentLoadedMs": 103.7000000178814,
+            "loadEventMs": 104.2000000178814,
+            "firstContentfulPaintMs": 144
+          },
+          "readinessPhases": {
+            "first": {
+              "editorVisibleMs": 242.2,
+              "transportReadyMs": 245.1,
+              "seedVisibleMs": 246.1
+            },
+            "peer": {
+              "editorVisibleMs": 244.5,
+              "transportReadyMs": 246.6,
+              "seedVisibleMs": 247.6
+            },
+            "reconnect": {
+              "tokenConvergenceMs": 215.5
+            }
+          },
+          "debug": {
+            "first": {
+              "transport": {
+                "ready": true,
+                "connectionStatus": "online",
+                "syncStatus": "synced"
+              }
+            },
+            "peer": {
+              "transport": {
+                "ready": true,
+                "connectionStatus": "online",
+                "syncStatus": "synced"
+              }
+            },
+            "reconnect": {
+              "transport": {
+                "ready": true,
+                "connectionStatus": "online",
+                "syncStatus": "synced"
+              }
+            }
+          },
+          "editLatency": {
+            "localEditEchoMs": 12.857874999999694,
+            "remoteEditVisibleMs": 220.39300000000003
+          },
+          "reconnectConvergenceMs": 215.4889579999999,
+          "largeDocument": {
+            "sourceReadyPhases": {
+              "editorVisibleMs": 114.2,
+              "transportReadyMs": 220.8,
+              "seedVisibleMs": 221.6
+            },
+            "sourceCommitMs": 455.1304170000003,
+            "richRenderAfterSourceMs": 54.61974999999984,
+            "localEditEchoMs": 46.715791000000536,
+            "sourceReflectionMs": 100.15529100000094
+          },
+          "memory": {
+            "afterFirstReady": {
+              "jsHeapUsedBytes": 7336948,
+              "jsHeapTotalBytes": 13336576,
+              "domNodes": 381,
+              "documents": 1,
+              "layoutCount": 0,
+              "recalcStyleCount": 0
+            },
+            "afterReconnect": {
+              "jsHeapUsedBytes": 10974552,
+              "jsHeapTotalBytes": 14385152,
+              "domNodes": 1139,
+              "documents": 1,
+              "layoutCount": 0,
+              "recalcStyleCount": 0
+            },
+            "afterLargeDocument": {
+              "jsHeapUsedBytes": 11356172,
+              "jsHeapTotalBytes": 21200896,
+              "domNodes": 12995,
+              "documents": 1,
+              "layoutCount": 0,
+              "recalcStyleCount": 0
+            }
+          },
+          "network": {
+            "httpBytes": 8399878,
+            "httpRequests": 143,
+            "wsSentBytes": 0,
+            "wsReceivedBytes": 60,
+            "wsFramesSent": 0,
+            "wsFramesReceived": 3
+          },
+          "serverProcesses": {
+            "sampleCount": 8,
+            "syncServer": {
+              "peakRssKb": 45856,
+              "peakCpuPercent": 1.9,
+              "pids": [
+                47532
+              ],
+              "commands": [
+                "yorkie server --rpc-port 19080 --log-level error"
+              ]
+            },
+            "appServer": {
+              "peakRssKb": 163232,
+              "peakCpuPercent": 13.1,
+              "pids": [
+                47538
+              ],
+              "commands": [
+                "node ./node_modules/.bin/../vite/bin/vite.js --host 127.0.0.1 --port 19175"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

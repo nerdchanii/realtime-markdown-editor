@@ -1,0 +1,252 @@
+{
+  "title": "POC-001 Headless CRDT Text Benchmark",
+  "scope": "headless-crdt-text",
+  "generatedAt": "2026-04-29T03:09:58.995Z",
+  "runs": 5,
+  "largeSectionCount": 60,
+  "repeatEdits": 20,
+  "sourceDocumentBytes": 18542,
+  "excludedRuntime": {
+    "browser": true,
+    "editor": true,
+    "provider": true,
+    "persistence": true,
+    "syncServer": true
+  },
+  "candidates": [
+    {
+      "id": "yjs",
+      "label": "Yjs Y.Text",
+      "converged": true,
+      "finalTextSha256A": "64289db477599735f70e747459ebaca1b817c1e4b2845d1eb3284de2c5864d71",
+      "finalTextSha256B": "64289db477599735f70e747459ebaca1b817c1e4b2845d1eb3284de2c5864d71",
+      "finalTextBytesA": 20213,
+      "finalTextBytesB": 20213,
+      "metrics": {
+        "seedApplyMs": 0.1,
+        "localEditMs": 0.6,
+        "encodeUpdatesMs": 0.1,
+        "applyRemoteUpdatesMs": 0.2,
+        "updatePayloadBytes": 2165,
+        "gzipPayloadBytes": 494,
+        "finalTextBytes": 20213,
+        "operationCount": 44
+      }
+    },
+    {
+      "id": "yorkie",
+      "label": "Yorkie Text",
+      "converged": true,
+      "finalTextSha256A": "ae45f03973a9e73d0bff5937e8ff886daccdabfd5968c6c97a49ede314f78312",
+      "finalTextSha256B": "ae45f03973a9e73d0bff5937e8ff886daccdabfd5968c6c97a49ede314f78312",
+      "finalTextBytesA": 20213,
+      "finalTextBytesB": 20213,
+      "metrics": {
+        "seedApplyMs": 0.1,
+        "localEditMs": 0.8,
+        "encodeUpdatesMs": 0,
+        "applyRemoteUpdatesMs": 1,
+        "updatePayloadBytes": 12876,
+        "gzipPayloadBytes": 752,
+        "finalTextBytes": 20213,
+        "operationCount": 44
+      }
+    }
+  ],
+  "rawRuns": {
+    "yjs": [
+      {
+        "id": "yjs",
+        "label": "Yjs Y.Text",
+        "converged": true,
+        "finalTextSha256A": "64289db477599735f70e747459ebaca1b817c1e4b2845d1eb3284de2c5864d71",
+        "finalTextSha256B": "64289db477599735f70e747459ebaca1b817c1e4b2845d1eb3284de2c5864d71",
+        "finalTextBytesA": 20213,
+        "finalTextBytesB": 20213,
+        "metrics": {
+          "seedApplyMs": 0.5,
+          "localEditMs": 1.3,
+          "encodeUpdatesMs": 0.3,
+          "applyRemoteUpdatesMs": 0.4,
+          "updatePayloadBytes": 2165,
+          "gzipPayloadBytes": 497,
+          "finalTextBytes": 20213,
+          "operationCount": 44
+        }
+      },
+      {
+        "id": "yjs",
+        "label": "Yjs Y.Text",
+        "converged": true,
+        "finalTextSha256A": "64289db477599735f70e747459ebaca1b817c1e4b2845d1eb3284de2c5864d71",
+        "finalTextSha256B": "64289db477599735f70e747459ebaca1b817c1e4b2845d1eb3284de2c5864d71",
+        "finalTextBytesA": 20213,
+        "finalTextBytesB": 20213,
+        "metrics": {
+          "seedApplyMs": 0.1,
+          "localEditMs": 0.6,
+          "encodeUpdatesMs": 0.3,
+          "applyRemoteUpdatesMs": 0.2,
+          "updatePayloadBytes": 2165,
+          "gzipPayloadBytes": 496,
+          "finalTextBytes": 20213,
+          "operationCount": 44
+        }
+      },
+      {
+        "id": "yjs",
+        "label": "Yjs Y.Text",
+        "converged": true,
+        "finalTextSha256A": "64289db477599735f70e747459ebaca1b817c1e4b2845d1eb3284de2c5864d71",
+        "finalTextSha256B": "64289db477599735f70e747459ebaca1b817c1e4b2845d1eb3284de2c5864d71",
+        "finalTextBytesA": 20213,
+        "finalTextBytesB": 20213,
+        "metrics": {
+          "seedApplyMs": 0.1,
+          "localEditMs": 0.6,
+          "encodeUpdatesMs": 0.1,
+          "applyRemoteUpdatesMs": 0.2,
+          "updatePayloadBytes": 2165,
+          "gzipPayloadBytes": 494,
+          "finalTextBytes": 20213,
+          "operationCount": 44
+        }
+      },
+      {
+        "id": "yjs",
+        "label": "Yjs Y.Text",
+        "converged": true,
+        "finalTextSha256A": "64289db477599735f70e747459ebaca1b817c1e4b2845d1eb3284de2c5864d71",
+        "finalTextSha256B": "64289db477599735f70e747459ebaca1b817c1e4b2845d1eb3284de2c5864d71",
+        "finalTextBytesA": 20213,
+        "finalTextBytesB": 20213,
+        "metrics": {
+          "seedApplyMs": 0.1,
+          "localEditMs": 0.6,
+          "encodeUpdatesMs": 0.1,
+          "applyRemoteUpdatesMs": 0.2,
+          "updatePayloadBytes": 2165,
+          "gzipPayloadBytes": 492,
+          "finalTextBytes": 20213,
+          "operationCount": 44
+        }
+      },
+      {
+        "id": "yjs",
+        "label": "Yjs Y.Text",
+        "converged": true,
+        "finalTextSha256A": "64289db477599735f70e747459ebaca1b817c1e4b2845d1eb3284de2c5864d71",
+        "finalTextSha256B": "64289db477599735f70e747459ebaca1b817c1e4b2845d1eb3284de2c5864d71",
+        "finalTextBytesA": 20213,
+        "finalTextBytesB": 20213,
+        "metrics": {
+          "seedApplyMs": 0,
+          "localEditMs": 0.6,
+          "encodeUpdatesMs": 0.1,
+          "applyRemoteUpdatesMs": 0.2,
+          "updatePayloadBytes": 2165,
+          "gzipPayloadBytes": 493,
+          "finalTextBytes": 20213,
+          "operationCount": 44
+        }
+      }
+    ],
+    "yorkie": [
+      {
+        "id": "yorkie",
+        "label": "Yorkie Text",
+        "converged": true,
+        "finalTextSha256A": "ae45f03973a9e73d0bff5937e8ff886daccdabfd5968c6c97a49ede314f78312",
+        "finalTextSha256B": "ae45f03973a9e73d0bff5937e8ff886daccdabfd5968c6c97a49ede314f78312",
+        "finalTextBytesA": 20213,
+        "finalTextBytesB": 20213,
+        "metrics": {
+          "seedApplyMs": 0.5,
+          "localEditMs": 2.5,
+          "encodeUpdatesMs": 0,
+          "applyRemoteUpdatesMs": 1.8,
+          "updatePayloadBytes": 12876,
+          "gzipPayloadBytes": 752,
+          "finalTextBytes": 20213,
+          "operationCount": 44
+        }
+      },
+      {
+        "id": "yorkie",
+        "label": "Yorkie Text",
+        "converged": true,
+        "finalTextSha256A": "ae45f03973a9e73d0bff5937e8ff886daccdabfd5968c6c97a49ede314f78312",
+        "finalTextSha256B": "ae45f03973a9e73d0bff5937e8ff886daccdabfd5968c6c97a49ede314f78312",
+        "finalTextBytesA": 20213,
+        "finalTextBytesB": 20213,
+        "metrics": {
+          "seedApplyMs": 0.1,
+          "localEditMs": 1.3,
+          "encodeUpdatesMs": 0,
+          "applyRemoteUpdatesMs": 1,
+          "updatePayloadBytes": 12876,
+          "gzipPayloadBytes": 752,
+          "finalTextBytes": 20213,
+          "operationCount": 44
+        }
+      },
+      {
+        "id": "yorkie",
+        "label": "Yorkie Text",
+        "converged": true,
+        "finalTextSha256A": "ae45f03973a9e73d0bff5937e8ff886daccdabfd5968c6c97a49ede314f78312",
+        "finalTextSha256B": "ae45f03973a9e73d0bff5937e8ff886daccdabfd5968c6c97a49ede314f78312",
+        "finalTextBytesA": 20213,
+        "finalTextBytesB": 20213,
+        "metrics": {
+          "seedApplyMs": 0.1,
+          "localEditMs": 0.8,
+          "encodeUpdatesMs": 0,
+          "applyRemoteUpdatesMs": 1.1,
+          "updatePayloadBytes": 12876,
+          "gzipPayloadBytes": 752,
+          "finalTextBytes": 20213,
+          "operationCount": 44
+        }
+      },
+      {
+        "id": "yorkie",
+        "label": "Yorkie Text",
+        "converged": true,
+        "finalTextSha256A": "ae45f03973a9e73d0bff5937e8ff886daccdabfd5968c6c97a49ede314f78312",
+        "finalTextSha256B": "ae45f03973a9e73d0bff5937e8ff886daccdabfd5968c6c97a49ede314f78312",
+        "finalTextBytesA": 20213,
+        "finalTextBytesB": 20213,
+        "metrics": {
+          "seedApplyMs": 0.1,
+          "localEditMs": 0.7,
+          "encodeUpdatesMs": 0,
+          "applyRemoteUpdatesMs": 0.8,
+          "updatePayloadBytes": 12876,
+          "gzipPayloadBytes": 752,
+          "finalTextBytes": 20213,
+          "operationCount": 44
+        }
+      },
+      {
+        "id": "yorkie",
+        "label": "Yorkie Text",
+        "converged": true,
+        "finalTextSha256A": "ae45f03973a9e73d0bff5937e8ff886daccdabfd5968c6c97a49ede314f78312",
+        "finalTextSha256B": "ae45f03973a9e73d0bff5937e8ff886daccdabfd5968c6c97a49ede314f78312",
+        "finalTextBytesA": 20213,
+        "finalTextBytesB": 20213,
+        "metrics": {
+          "seedApplyMs": 0.1,
+          "localEditMs": 0.6,
+          "encodeUpdatesMs": 0,
+          "applyRemoteUpdatesMs": 0.7,
+          "updatePayloadBytes": 12876,
+          "gzipPayloadBytes": 752,
+          "finalTextBytes": 20213,
+          "operationCount": 44
+        }
+      }
+    ]
+  }
+}
