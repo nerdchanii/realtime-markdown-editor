@@ -4,7 +4,7 @@ title: "ADR-0000: 결정 제목"
 status: proposed
 date: YYYY-MM-DD
 authors:
-  - 이름 또는 역할
+  - 결정 소유자 이름 또는 역할
 decision_type: architecture
 tags:
   - tag-name
@@ -18,6 +18,8 @@ superseded_by: null
 ---
 
 # ADR-0000: 결정 제목
+
+`authors`와 변경 이력의 `결정자`는 ADR 결정을 승인하고 소유하는 사람 또는 역할이다. AI assistant는 문서 작성을 도왔더라도 결정자로 기록하지 않는다.
 
 ## 맥락
 
@@ -71,6 +73,6 @@ superseded_by: null
 
 ## 변경 이력
 
-| 날짜 | 변경 내용 | 작성자 |
+| 날짜 | 변경 내용 | 결정자 |
 | --- | --- | --- |
 | YYYY-MM-DD | 최초 작성 |  |

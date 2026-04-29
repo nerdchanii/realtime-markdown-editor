@@ -4,7 +4,7 @@ title: "ADR-0003: 저장소 역할은 RDB, S3-compatible object storage, 선택�
 status: proposed
 date: 2026-04-28
 authors:
-  - Codex
+  - nerdchanii
 decision_type: architecture
 tags:
   - storage
@@ -107,8 +107,8 @@ Object storage는 운영 provider를 지금 확정한다는 뜻이 아니라, ar
 
 ## 변경 이력
 
-| 날짜 | 변경 내용 | 작성자 |
+| 날짜 | 변경 내용 | 결정자 |
 | --- | --- | --- |
-| 2026-04-28 | 최초 작성 | Codex |
-| 2026-04-28 | MinIO 중심 표현을 S3-compatible object storage boundary로 정정 | Codex |
-| 2026-04-29 | artifact 용어가 domain object를 의미하지 않음을 명시 | Codex |
+| 2026-04-28 | 최초 작성 | nerdchanii |
+| 2026-04-28 | MinIO 중심 표현을 S3-compatible object storage boundary로 정정 | nerdchanii |
+| 2026-04-29 | artifact 용어가 domain object를 의미하지 않음을 명시 | nerdchanii |

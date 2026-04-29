@@ -4,7 +4,7 @@ title: "ADR-0004: DocumentState는 workflow 기반으로 분리하고 hook은 �
 status: proposed
 date: 2026-04-28
 authors:
-  - Codex
+  - nerdchanii
 decision_type: product-architecture
 tags:
   - document-lifecycle
@@ -104,7 +104,7 @@ DocumentState는 지금 깊게 구현하지 않더라도 도메인 경계로 중
 
 ## 변경 이력
 
-| 날짜 | 변경 내용 | 작성자 |
+| 날짜 | 변경 내용 | 결정자 |
 | --- | --- | --- |
-| 2026-04-28 | 최초 작성 | Codex |
-| 2026-04-28 | DocumentState foundation과 deferred hooks 정책으로 재정리 | Codex |
+| 2026-04-28 | 최초 작성 | nerdchanii |
+| 2026-04-28 | DocumentState foundation과 deferred hooks 정책으로 재정리 | nerdchanii |

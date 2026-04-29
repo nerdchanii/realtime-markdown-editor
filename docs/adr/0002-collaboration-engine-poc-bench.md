@@ -4,7 +4,7 @@ title: "ADR-0002: 협업 엔진은 POC로 평가한 뒤 최종 선택한다"
 status: proposed
 date: 2026-04-28
 authors:
-  - Codex
+  - nerdchanii
 decision_type: architecture
 tags:
   - collaboration-engine
@@ -107,7 +107,7 @@ Offline merge가 핵심 위험이므로 CRDT 계열 후보를 먼저 검증한�
 
 ## 변경 이력
 
-| 날짜 | 변경 내용 | 작성자 |
+| 날짜 | 변경 내용 | 결정자 |
 | --- | --- | --- |
-| 2026-04-28 | 최초 작성 | Codex |
-| 2026-04-28 | POC ADR와 final sync ADR 분리 정책 명시 | Codex |
+| 2026-04-28 | 최초 작성 | nerdchanii |
+| 2026-04-28 | POC ADR와 final sync ADR 분리 정책 명시 | nerdchanii |

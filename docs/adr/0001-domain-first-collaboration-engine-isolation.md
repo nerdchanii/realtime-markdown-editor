@@ -4,7 +4,7 @@ title: "ADR-0001: 도메인 우선 설계와 협업 엔진 격리 원칙"
 status: proposed
 date: 2026-04-28
 authors:
-  - Codex
+  - nerdchanii
 decision_type: architecture
 tags:
   - domain-model
@@ -127,8 +127,8 @@ First skeleton의 domain 분류는 다음처럼 둔다.
 
 ## 변경 이력
 
-| 날짜 | 변경 내용 | 작성자 |
+| 날짜 | 변경 내용 | 결정자 |
 | --- | --- | --- |
-| 2026-04-28 | 최초 작성 | Codex |
-| 2026-04-28 | 새 요구사항 ID와 도메인 경계 문서 구조에 맞게 정리 | Codex |
-| 2026-04-29 | app-private domain, Nest composition boundary, MCP interface boundary, domain model classification 명시 | Codex |
+| 2026-04-28 | 최초 작성 | nerdchanii |
+| 2026-04-28 | 새 요구사항 ID와 도메인 경계 문서 구조에 맞게 정리 | nerdchanii |
+| 2026-04-29 | app-private domain, Nest composition boundary, MCP interface boundary, domain model classification 명시 | nerdchanii |

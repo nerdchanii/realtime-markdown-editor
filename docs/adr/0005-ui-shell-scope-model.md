@@ -4,7 +4,7 @@ title: "ADR-0005: UI shell은 에디터 우선 범위를 유지한다"
 status: proposed
 date: 2026-04-28
 authors:
-  - Codex
+  - nerdchanii
 decision_type: product-architecture
 tags:
   - ui-shell
@@ -108,7 +108,7 @@ UI는 CE walking skeleton을 먼저 증명해야 한다. Workspace와 workflow f
 
 ## 변경 이력
 
-| 날짜 | 변경 내용 | 작성자 |
+| 날짜 | 변경 내용 | 결정자 |
 | --- | --- | --- |
-| 2026-04-28 | 최초 작성 | Codex |
-| 2026-04-28 | editor-first shell, frontmatter export, DocumentState foundation에 맞게 정리 | Codex |
+| 2026-04-28 | 최초 작성 | nerdchanii |
+| 2026-04-28 | editor-first shell, frontmatter export, DocumentState foundation에 맞게 정리 | nerdchanii |
