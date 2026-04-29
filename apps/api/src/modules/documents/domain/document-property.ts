@@ -1,4 +1,4 @@
-import type { WorkspaceMembershipId } from "@/modules/identity/domain/workspace-membership.js";
+import type { WorkspaceMembershipId } from "@/modules/documents/domain/references.js";
 
 export type DocumentPropertyValue =
   | { type: "text"; value: string }

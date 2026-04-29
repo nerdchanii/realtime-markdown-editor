@@ -1,5 +1,7 @@
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
-import { join } from "node:path";
+import { dirname, join, normalize } from "node:path";
+
+import ts from "typescript";
 
 const forbiddenPackageDirs = [
   ["packages", "domain"].join("/"),
@@ -8,8 +10,10 @@ const forbiddenPackageDirs = [
   ["packages", "utils"].join("/"),
 ];
 
+const deferredModuleDirs = [["apps", "api", "src", "modules", "history"].join("/")];
+
 const domainImportPattern =
-  /from\s+["'](@nestjs|react|@tiptap|prosemirror-|yjs|y-|@hocuspocus|yorkie-js-sdk|@prisma|prisma|aws-sdk|@aws-sdk|ioredis|redis)/;
+  /^(@nestjs(?:\/|$)|react(?:\/|$)|@tiptap(?:\/|$)|prosemirror-|yjs$|y-|@hocuspocus(?:\/|$)|yorkie-js-sdk(?:\/|$)|@prisma(?:\/|$)|prisma$|aws-sdk(?:\/|$)|@aws-sdk(?:\/|$)|ioredis$|redis$)/;
 const nestDecoratorPattern =
   /@(Injectable|Module|Controller|Get|Post|Put|Patch|Delete|WebSocketGateway)\b/;
 
@@ -32,12 +36,82 @@ function walk(dir) {
   });
 }
 
-for (const file of walk("apps/api/src/modules")) {
-  if (!file.includes("/domain/")) continue;
-  const content = readFileSync(file, "utf8");
-  if (domainImportPattern.test(content)) {
-    failures.push(`Domain file imports forbidden framework/provider package: ${file}`);
+for (const dir of deferredModuleDirs) {
+  if (walk(dir).length > 0) {
+    failures.push(`Deferred backend module has source before promotion criteria are met: ${dir}`);
   }
+}
+
+function toPosixPath(path) {
+  return path.replaceAll("\\", "/");
+}
+
+function apiModuleNameForPath(path) {
+  return toPosixPath(path).match(/^apps\/api\/src\/modules\/([^/]+)\//)?.[1] ?? null;
+}
+
+function apiDomainModuleNameForSpecifier(file, specifier) {
+  const aliasMatch = specifier.match(/^@\/modules\/([^/]+)\/domain(?:\/|$)/);
+  if (aliasMatch) return aliasMatch[1];
+
+  if (!specifier.startsWith(".")) return null;
+
+  const resolved = toPosixPath(normalize(join(dirname(file), specifier)));
+  return resolved.match(/^apps\/api\/src\/modules\/([^/]+)\/domain(?:\/|$)/)?.[1] ?? null;
+}
+
+function importSpecifiersFor(file, content) {
+  const sourceFile = ts.createSourceFile(
+    file,
+    content,
+    ts.ScriptTarget.Latest,
+    true,
+    file.endsWith(".tsx") ? ts.ScriptKind.TSX : ts.ScriptKind.TS,
+  );
+  const specifiers = [];
+
+  function visit(node) {
+    if (
+      (ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) &&
+      node.moduleSpecifier &&
+      ts.isStringLiteral(node.moduleSpecifier)
+    ) {
+      specifiers.push(node.moduleSpecifier.text);
+    }
+
+    if (
+      ts.isImportTypeNode(node) &&
+      ts.isLiteralTypeNode(node.argument) &&
+      ts.isStringLiteral(node.argument.literal)
+    ) {
+      specifiers.push(node.argument.literal.text);
+    }
+
+    ts.forEachChild(node, visit);
+  }
+
+  visit(sourceFile);
+  return specifiers;
+}
+
+for (const file of walk("apps/api/src/modules")) {
+  if (!toPosixPath(file).includes("/domain/")) continue;
+  const currentModule = apiModuleNameForPath(file);
+  const content = readFileSync(file, "utf8");
+
+  for (const specifier of importSpecifiersFor(file, content)) {
+    if (domainImportPattern.test(specifier)) {
+      failures.push(
+        `Domain file imports forbidden framework/provider package: ${file} -> ${specifier}`,
+      );
+    }
+
+    const importedDomainModule = apiDomainModuleNameForSpecifier(file, specifier);
+    if (importedDomainModule && importedDomainModule !== currentModule) {
+      failures.push(`Domain file imports another module's domain: ${file} -> ${specifier}`);
+    }
+  }
+
   if (nestDecoratorPattern.test(content)) {
     failures.push(`Domain file contains Nest/framework decorator: ${file}`);
   }

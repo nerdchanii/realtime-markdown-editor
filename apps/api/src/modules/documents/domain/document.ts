@@ -1,6 +1,6 @@
-import type { FolderId } from "@/modules/workspace/domain/folder.js";
 import type { DocumentProperty } from "@/modules/documents/domain/document-property.js";
 import type { DocumentState } from "@/modules/documents/domain/document-state.js";
+import type { FolderId } from "@/modules/documents/domain/references.js";
 
 export type DocumentId = string & { readonly __brand: "DocumentId" };
 
