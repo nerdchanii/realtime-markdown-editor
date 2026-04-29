@@ -12,7 +12,7 @@ status: active
 ## 초기 상태
 
 - `draft`: active editing 상태.
-- `review`: review 또는 feedback 준비 상태.
+- `review`: review 또는 feedback 준비 상태. First skeleton에서 저장 전 필수 gate가 아니다.
 - `saved`: 현재 제품 언어에서 published/baselined 상태.
 
 ## 보류된 확장
@@ -27,12 +27,18 @@ status: active
 ```mermaid
 stateDiagram-v2
   [*] --> draft
+  draft --> saved
   draft --> review
   review --> draft
   review --> saved
   saved --> draft
+  saved --> review
 ```
 
 ## 규칙
 
-`DocumentState`를 sync status와 합치지 않는다. Document는 fully synced 상태에서도 `draft`일 수 있고, local edits pending 상태에서도 `review`일 수 있다. First skeleton에서는 별도 aggregate나 독립 lifecycle object로 만들지 않고 `Document`가 가진 상태 값으로 구현한다.
+`DocumentState`를 sync status와 합치지 않는다. Document는 fully synced 상태에서도 `draft`일 수 있고, local edits pending 상태에서도 `review`일 수 있다.
+
+First skeleton에서는 `DocumentState`를 별도 aggregate나 독립 lifecycle object로 만들지 않고 `Document`가 가진 value/state로 구현한다. 사용자는 `draft`, `review`, `saved` 사이를 직접 변경할 수 있으며, `review`를 거쳐야만 `saved`가 되는 transition policy는 없다.
+
+Transition guard, publish/draft visibility, ownership-based visibility, external hook execution, 외부 시스템이 state를 되돌려 쓰는 reverse update는 workflow capability가 승격될 때 함께 결정한다.

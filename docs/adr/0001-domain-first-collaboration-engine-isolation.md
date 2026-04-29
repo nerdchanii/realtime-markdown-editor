@@ -1,7 +1,7 @@
 ---
 id: ADR-0001
 title: "ADR-0001: 도메인 우선 설계와 협업 엔진 격리 원칙"
-status: proposed
+status: accepted
 date: 2026-04-28
 authors:
   - nerdchanii
@@ -48,8 +48,8 @@ First skeleton의 domain 분류는 다음처럼 둔다.
 
 - Entity/Aggregate: `Workspace`, `Project`, `Folder`, `Document`, `User`, `WorkspaceMembership`, `Checkpoint`
 - Document-owned child/value: `DocumentProperty`
-- Value/state: `DocumentState`
-- Derived projection/read model: `LinkEdge`
+- Value/state: `FolderKind`, `DocumentState`, `WorkspaceMembershipRole`
+- Derived projection/read model: `LinkEdge`, workspace/project/folder/document navigation projection
 - Domain object 아님: `Presence`, `RemoteCursor`, `RemoteSelection`, `AwarenessState`, `SyncStatus`, `CollaborationArtifact`
 
 어댑터는 최소한 다음 책임을 가진다.
@@ -132,3 +132,4 @@ First skeleton의 domain 분류는 다음처럼 둔다.
 | 2026-04-28 | 최초 작성 | nerdchanii |
 | 2026-04-28 | 새 요구사항 ID와 도메인 경계 문서 구조에 맞게 정리 | nerdchanii |
 | 2026-04-29 | app-private domain, Nest composition boundary, MCP interface boundary, domain model classification 명시 | nerdchanii |
+| 2026-04-29 | TF architecture review에 따라 accepted로 승격하고 domain classification을 현행 문서와 정렬 | nerdchanii |

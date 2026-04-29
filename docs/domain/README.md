@@ -37,7 +37,7 @@ Domain meaning 변경은 민감하다. Entity responsibility, relationship meani
 | ----------------------------- | ------------------------------------------------------------------------------------------------------ |
 | Entity/Aggregate              | `Workspace`, `Project`, `Folder`, `Document`, `User`, `WorkspaceMembership`, `Checkpoint`              |
 | Document-owned child/value    | `DocumentProperty`                                                                                     |
-| Value/state                   | `FolderKind`, `DocumentState`                                                                          |
+| Value/state                   | `FolderKind`, `DocumentState`, `WorkspaceMembershipRole`                                               |
 | Derived projection/read model | `LinkEdge`, workspace/project/folder/document navigation projection                                    |
 | Domain object 아님            | `Presence`, `RemoteCursor`, `RemoteSelection`, `AwarenessState`, `SyncStatus`, `CollaborationArtifact` |
 

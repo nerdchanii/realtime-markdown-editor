@@ -19,14 +19,23 @@ related_adrs:
 
 - Document state를 editor body content와 분리한다.
 - 시작 상태는 `draft`, `review`, `saved`로 둔다.
+- First skeleton에서는 `draft`, `review`, `saved` 사이의 direct change를 허용한다.
+- `review`는 first skeleton에서 저장 전 필수 gate가 아니다.
 - Future hooks를 붙일 수 있을 만큼 state model을 안정적으로 유지한다.
 
 ## 보류
 
+- State transition policy와 guard.
+- Publish/draft visibility, ownership-based visibility.
+- Workflow executor capability.
 - User-facing workflow builder는 보류한다.
 - Slack, Agent, mail, logging, notification hook 설정.
 - External system이 document state를 바꾸는 reverse hook.
 - tldraw 또는 graph 기반 workflow editing.
+
+## 승격 조건
+
+`DocumentState`는 first skeleton에서 `Document`가 가진 value/state다. Workflow가 transition policy, ownership/visibility, external hook execution, reverse update를 요구할 때 별도 workflow capability나 workflow executor로 승격한다.
 
 ## 검증
 

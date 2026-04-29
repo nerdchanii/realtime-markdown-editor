@@ -48,6 +48,8 @@ superseded_by: null
 
 여기서 `artifact`, `collaboration document artifact`는 storage/infrastructure payload를 가리키는 용어다. 이는 domain object classification의 `CollaborationArtifact`를 도메인 객체로 승격한다는 뜻이 아니며, artifact format과 provider-specific serialized state는 adapter/infrastructure boundary 뒤에 둔다.
 
+이 ADR은 아직 `proposed` 상태다. RDB와 S3-compatible object storage의 책임 분리는 방향으로 유지하지만, checkpoint artifact format과 read-only inspect path가 Markdown, CRDT update, rendered HTML, combined artifact 중 무엇을 기준으로 할지 구현 전 확정되지 않았다.
+
 ## 후보안
 
 ### 1. RDB + S3-compatible object storage + optional realtime support
@@ -88,6 +90,7 @@ Object storage는 운영 provider를 지금 확정한다는 뜻이 아니라, ar
 ### 후속 작업
 
 - POC 이후 collaboration artifact format을 확정한다.
+- Checkpoint artifact format과 read-only inspect path를 확정한다.
 - local/dev storage provider를 선택한다.
 - Redis가 실제로 필요한지 POC/운영 단순성 기준으로 판단한다.
 
@@ -112,3 +115,4 @@ Object storage는 운영 provider를 지금 확정한다는 뜻이 아니라, ar
 | 2026-04-28 | 최초 작성 | nerdchanii |
 | 2026-04-28 | MinIO 중심 표현을 S3-compatible object storage boundary로 정정 | nerdchanii |
 | 2026-04-29 | artifact 용어가 domain object를 의미하지 않음을 명시 | nerdchanii |
+| 2026-04-29 | checkpoint artifact format과 inspect path 미결정으로 proposed 유지 사유 명시 | nerdchanii |

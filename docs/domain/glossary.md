@@ -17,9 +17,10 @@ status: active
 | Document               | 협업 가능한 Markdown file/content 단위. 정확히 하나의 Folder에 속하며 `folderId`를 필수로 가진다.                                   |
 | Markdown body          | 사용자가 작성하는 이식 가능한 body content. Internal properties는 제외한다.                                                         |
 | Document property      | Markdown body 밖에 저장되는 `Document` 소유 구조화 metadata. 독립 aggregate가 아니다.                                               |
-| DocumentState          | `draft`, `review`, `saved` 같은 workflow-facing value/state.                                                                        |
+| DocumentState          | `draft`, `review`, `saved` 같은 workflow-facing value/state. First skeleton에서는 직접 변경할 수 있고 transition policy가 없다.     |
 | User                   | 특정 workspace와 독립적인 사람/account identity.                                                                                    |
 | WorkspaceMembership    | 한 workspace 안에서 user가 갖는 identity. member display name/color를 포함한다.                                                     |
+| WorkspaceMembershipRole | `owner`, `editor`, `viewer` 같은 membership role value. Authorization behavior는 deferred다.                                        |
 | Presence               | cursor와 selection을 보여주는 임시 realtime awareness. Domain entity가 아니라 application/provider awareness state다.               |
 | Checkpoint             | metadata를 가진 user-visible historical document state.                                                                             |
 | Autosave               | 지속적인 persistence/sync behavior. User-facing checkpoint가 아니다.                                                                |

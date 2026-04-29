@@ -22,11 +22,12 @@ History는 ordinary autosave/sync와 intentional checkpoint를 구분하면서 r
 - Author, timestamp, message, content state를 표시한다.
 - Reviewer가 previous document content를 inspect할 수 있게 한다.
 - 모든 autosave를 user-facing revision처럼 취급하지 않는다.
+- CE-04의 minimum path는 checkpoint 생성, 목록, metadata, read-only snapshot inspection이다.
 
-## 열린 질문
+## 보류
 
-- 첫 product skeleton에서 restore가 필요한지 여부.
-- Checkpoint artifact가 Markdown, CRDT update, rendered HTML, 또는 combined artifact인지 여부.
+- Restore와 branching은 first skeleton 범위가 아니며 `HistoryModule` 승격 trigger다.
+- Checkpoint artifact가 Markdown, CRDT update, rendered HTML, 또는 combined artifact인지 여부는 ADR-0003의 구현 세부 결정으로 남긴다.
 
 ## 검증
 

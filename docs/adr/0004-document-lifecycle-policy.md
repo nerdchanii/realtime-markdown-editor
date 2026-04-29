@@ -1,7 +1,7 @@
 ---
 id: ADR-0004
 title: "ADR-0004: DocumentState는 workflow 기반으로 분리하고 hook은 보류한다"
-status: proposed
+status: accepted
 date: 2026-04-28
 authors:
   - nerdchanii
@@ -47,6 +47,10 @@ MVP/first skeleton에서는 다음을 구분한다.
 
 Workflow hooks, visual builder, external integrations, reverse hooks는 deferred로 둔다.
 
+First skeleton에서 `DocumentState`는 `Document`가 가진 value/state이며 `draft`, `review`, `saved` 사이의 direct change를 허용한다. `review`는 저장 전 필수 gate가 아니고, `saved`는 sync 완료나 모든 client의 pending edit 부재를 증명하지 않는다.
+
+Workflow transition policy, publish/draft visibility, ownership-based visibility, external hook execution, reverse update가 필요해지면 별도 workflow capability 또는 workflow executor로 승격한다.
+
 ## 후보안
 
 ### 1. DocumentState foundation + hooks deferred
@@ -78,22 +82,26 @@ DocumentState는 지금 깊게 구현하지 않더라도 도메인 경계로 중
 - draft/review/saved 의미가 sync status와 섞이지 않는다.
 - future hooks가 attach될 도메인 지점이 생긴다.
 - history/checkpoint와 workflow state를 구분할 수 있다.
+- first skeleton에서 review gate를 강제하지 않아 CE path를 방해하지 않는다.
 
 ### 부정적 영향 또는 트레이드오프
 
 - 첫 구현에서 DocumentState는 얇은 foundation일 수 있다.
 - state UI 노출 범위는 후속 제품 판단이 필요하다.
+- workflow executor 승격 시 transition policy와 visibility policy를 새로 결정해야 한다.
 
 ### 후속 작업
 
 - domain docs의 state transition이 구현과 어긋나지 않게 유지한다.
 - hooks를 promotion할 때 requirements, product docs, ADR을 함께 업데이트한다.
+- workflow executor가 필요해질 때 publish/draft visibility와 ownership-based visibility를 함께 결정한다.
 
 ## 검증 방법
 
 - DocumentState가 sync state와 별도 개념으로 문서화되어 있는지 확인한다.
 - checkpoint/history가 autosave와 구분되는지 확인한다.
 - deferred hooks가 backlog에 남아 있는지 확인한다.
+- `review`가 저장 전 필수 transition으로 문서화되지 않았는지 확인한다.
 
 ## 관련 문서
 
@@ -108,3 +116,4 @@ DocumentState는 지금 깊게 구현하지 않더라도 도메인 경계로 중
 | --- | --- | --- |
 | 2026-04-28 | 최초 작성 | nerdchanii |
 | 2026-04-28 | DocumentState foundation과 deferred hooks 정책으로 재정리 | nerdchanii |
+| 2026-04-29 | TF architecture review에 따라 accepted로 승격하고 review bypass/direct state change 원칙 명시 | nerdchanii |

@@ -9,6 +9,8 @@ status: active
 
 `Checkpoint`는 reviewer가 조회할 수 있는 user-visible historical document state의 metadata다. Ordinary autosave나 provider sync event가 아니다.
 
+First skeleton에서 `Checkpoint`는 `Documents` capability가 소유하는 document history metadata다. Standalone `HistoryModule`은 restore, branching, independent retention/compliance, 또는 별도 SLA가 필요할 때 승격한다.
+
 ## 책임
 
 - 어떤 `Document`의 history entry인지 나타낸다.

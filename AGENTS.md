@@ -13,7 +13,7 @@ purpose: AI agent용 저장소 안내
 2. 과제 충족 지도: `docs/compliance/subject-matrix.md`
 3. 정규화 요구사항: `docs/requirements/registry.md`
 4. product surface: `docs/product/README.md`
-5. 아키텍처 경계와 결정: `ARCHITECTURE.md`, `docs/adr/`
+5. 아키텍처 경계와 결정: `ARCHITECTURE.md`, `docs/architecture/README.md`, `docs/adr/`
 6. 도메인 개념 변경 전: `docs/domain/README.md`
 7. UI 변경 전: `DESIGN.md`
 

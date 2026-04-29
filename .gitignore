@@ -1,6 +1,7 @@
 .note/
 .codex/
 .superpower/
+.superpowers/
 
 # Dependency and package manager output
 node_modules/
