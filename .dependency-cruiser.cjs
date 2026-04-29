@@ -55,6 +55,17 @@ module.exports = {
       },
     },
     {
+      name: "web-imports-feature-public-api",
+      severity: "error",
+      from: {
+        path: "^apps/web/src/",
+        pathNot: "^apps/web/src/features/",
+      },
+      to: {
+        path: "^apps/web/src/features/[^/]+/.+",
+      },
+    },
+    {
       name: "contracts-do-not-import-apps",
       severity: "error",
       from: {

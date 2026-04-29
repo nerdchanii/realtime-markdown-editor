@@ -1,6 +1,13 @@
 :root {
-  color: #1f2328;
-  background: #f6f8fa;
+  --color-background: #f6f8fa;
+  --color-surface: #ffffff;
+  --color-text-primary: #1f2328;
+  --color-text-secondary: #57606a;
+  --color-text-muted: #6e7781;
+  --color-border: #d0d7de;
+  --color-accent: #0969da;
+  color: var(--color-text-primary);
+  background: var(--color-background);
   font-family:
     Inter,
     system-ui,
@@ -16,18 +23,69 @@ body {
 
 .app-shell {
   display: grid;
-  grid-template-columns: 260px minmax(0, 1fr) 320px;
+  grid-template-columns: minmax(180px, 260px) minmax(0, 1fr) minmax(220px, 320px);
   min-height: 100vh;
 }
 
 .workspace-panel,
 .editor-panel,
-.inspector-panel {
-  border-right: 1px solid #d0d7de;
-  background: #ffffff;
+.inspector-panel,
+.document-context,
+.editor-workspace {
+  min-width: 0;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
   padding: 16px;
 }
 
+.workspace-panel,
+.inspector-panel {
+  border-top: 0;
+  border-bottom: 0;
+}
+
 .editor-panel {
-  background: #f6f8fa;
+  display: grid;
+  grid-template-rows: auto minmax(220px, 1fr);
+  gap: 12px;
+  border: 0;
+  background: var(--color-background);
+}
+
+.document-context,
+.editor-workspace {
+  border-radius: 8px;
+}
+
+.slot-kicker,
+.replacement-point {
+  color: var(--color-text-muted);
+  font-size: 12px;
+  font-weight: 650;
+  text-transform: uppercase;
+}
+
+.slot-title {
+  margin: 6px 0 0;
+  color: var(--color-text-primary);
+  font-size: 18px;
+  line-height: 1.35;
+}
+
+.replacement-point {
+  margin-top: 16px;
+  color: var(--color-text-secondary);
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 900px) {
+  .app-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .workspace-panel,
+  .inspector-panel {
+    border: 0;
+    border-bottom: 1px solid var(--color-border);
+  }
 }

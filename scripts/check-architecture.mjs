@@ -46,6 +46,10 @@ function toPosixPath(path) {
   return path.replaceAll("\\", "/");
 }
 
+function frontendFeatureNameForPath(path) {
+  return toPosixPath(path).match(/^apps\/web\/src\/features\/([^/]+)\//)?.[1] ?? null;
+}
+
 function apiModuleNameForPath(path) {
   return toPosixPath(path).match(/^apps\/api\/src\/modules\/([^/]+)\//)?.[1] ?? null;
 }
@@ -126,9 +130,56 @@ function domainSpecifierFailuresFor(file, currentModule, specifier) {
   return specifierFailures;
 }
 
+function resolveRelativeSpecifier(file, specifier) {
+  if (!specifier.startsWith(".")) return null;
+  return toPosixPath(normalize(join(dirname(file), specifier)));
+}
+
+function frontendSpecifierFailuresFor(file, specifier) {
+  const specifierFailures = [];
+  if (isApiSourceImport(specifier)) {
+    specifierFailures.push(`Frontend file imports API source: ${file} -> ${specifier}`);
+  }
+
+  if (isOtherFeatureAliasSubpathImport(file, specifier)) {
+    specifierFailures.push(`Frontend file imports feature internals: ${file} -> ${specifier}`);
+  }
+
+  if (isOtherFeatureRelativeImport(file, specifier)) {
+    specifierFailures.push(
+      `Frontend file imports another feature by relative path: ${file} -> ${specifier}`,
+    );
+  }
+
+  return specifierFailures;
+}
+
+function isApiSourceImport(specifier) {
+  return specifier.includes("apps/api/src") || specifier.startsWith("@/../api/");
+}
+
+function isOtherFeatureAliasSubpathImport(file, specifier) {
+  const importerFeature = frontendFeatureNameForPath(file);
+  const aliasFeatureSubpath = specifier.match(/^@\/features\/([^/]+)\/.+/);
+  return Boolean(aliasFeatureSubpath && aliasFeatureSubpath[1] !== importerFeature);
+}
+
+function isOtherFeatureRelativeImport(file, specifier) {
+  const resolvedRelative = resolveRelativeSpecifier(file, specifier);
+  const relativeFeature = resolvedRelative ? frontendFeatureNameForPath(resolvedRelative) : null;
+  return Boolean(relativeFeature && relativeFeature !== frontendFeatureNameForPath(file));
+}
+
 for (const file of walk("apps/api/src/modules")) {
   if (!toPosixPath(file).includes("/domain/")) continue;
   failures.push(...domainImportFailuresFor(file, readFileSync(file, "utf8")));
+}
+
+for (const file of walk("apps/web/src")) {
+  const content = readFileSync(file, "utf8");
+  for (const specifier of importSpecifiersFor(file, content)) {
+    failures.push(...frontendSpecifierFailuresFor(file, specifier));
+  }
 }
 
 if (failures.length > 0) {
