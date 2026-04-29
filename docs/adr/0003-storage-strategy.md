@@ -46,6 +46,8 @@ superseded_by: null
 - Redis: durable store가 아니라 presence, pub/sub, cache, queue 같은 optional support 후보.
 - IndexedDB/local persistence: open-page offline editing을 위한 browser-local document persistence adapter.
 
+여기서 `artifact`, `collaboration document artifact`는 storage/infrastructure payload를 가리키는 용어다. 이는 domain object classification의 `CollaborationArtifact`를 도메인 객체로 승격한다는 뜻이 아니며, artifact format과 provider-specific serialized state는 adapter/infrastructure boundary 뒤에 둔다.
+
 ## 후보안
 
 ### 1. RDB + S3-compatible object storage + optional realtime support
@@ -109,3 +111,4 @@ Object storage는 운영 provider를 지금 확정한다는 뜻이 아니라, ar
 | --- | --- | --- |
 | 2026-04-28 | 최초 작성 | Codex |
 | 2026-04-28 | MinIO 중심 표현을 S3-compatible object storage boundary로 정정 | Codex |
+| 2026-04-29 | artifact 용어가 domain object를 의미하지 않음을 명시 | Codex |
