@@ -74,7 +74,12 @@ function BacklinksSurface({ backlinks }: { backlinks: readonly DocumentBacklink[
       <div style={sectionTitleStyle}>Backlinks</div>
       <ul style={backlinkListStyle}>
         {backlinks.map((backlink) => (
-          <li key={backlink.source} style={backlinkItemStyle}>
+          <li
+            key={backlink.source}
+            style={backlinkItemStyle}
+            data-source-document={backlink.sourceDocumentId}
+            data-target-document={backlink.targetDocumentId}
+          >
             <strong>{backlink.title}</strong>
             <a href={backlink.source} style={backlinkSourceStyle}>
               {backlink.source}

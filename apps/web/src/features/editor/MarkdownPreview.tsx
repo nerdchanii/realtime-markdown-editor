@@ -237,7 +237,7 @@ function PreviewTable({ row }: Readonly<{ row: Extract<PreviewRow, { kind: "tabl
 }
 
 function InlineMarkdown({ text }: Readonly<{ text: string }>) {
-  const link = /\[(?<label>[^\]]+)\]\((?<href>https?:\/\/[^)]+)\)/.exec(text);
+  const link = /\[(?<label>[^\]]+)\]\((?<href>[^)\s]+)\)/.exec(text);
 
   if (link?.groups) {
     const before = text.slice(0, link.index);
