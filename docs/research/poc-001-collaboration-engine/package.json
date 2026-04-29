@@ -1,0 +1,26 @@
+{
+  "name": "@poc/collaboration-engine",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev:tiptap": "pnpm --filter @poc/tiptap-yjs-hocuspocus dev",
+    "dev:yorkie": "pnpm --filter @poc/yorkie-prosemirror dev",
+    "server:tiptap": "pnpm --filter @poc/tiptap-yjs-hocuspocus run server",
+    "test": "node --test benchmarks/performance-benchmark.test.mjs && pnpm --recursive test",
+    "test:perf-benchmark": "node --test benchmarks/performance-benchmark.test.mjs",
+    "test:e2e": "playwright test",
+    "test:e2e:tiptap": "playwright test e2e/tiptap-offline-merge.spec.ts",
+    "test:e2e:yorkie": "playwright test e2e/yorkie-offline-merge.spec.ts",
+    "test:crdt": "node --test benchmarks/headless-crdt-benchmark.test.mjs",
+    "bench:perf": "node benchmarks/performance-benchmark.mjs",
+    "bench:crdt": "node benchmarks/headless-crdt-benchmark.mjs",
+    "typecheck": "pnpm --recursive typecheck",
+    "build": "pnpm --recursive build"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.52.0",
+    "typescript": "^5.8.3"
+  },
+  "packageManager": "pnpm@10.10.0"
+}
