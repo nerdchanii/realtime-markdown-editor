@@ -26,3 +26,10 @@ NestJS module은 DI와 composition을 위한 framework boundary다. `apps/api/sr
 - S3, R2, MinIO는 object-storage-compatible boundary 뒤의 provider choices다.
 - IndexedDB는 local persistence 뒤의 browser implementation detail이다.
 - MCP protocol shape는 interface adapter concern이다.
+
+## History Artifact 규칙
+
+- User-visible checkpoint/revision history는 collaboration provider state를 직접 노출하지 않는다.
+- CE-04 read-only inspect path는 checkpoint metadata를 조회한 뒤 artifact storage adapter에서 Markdown snapshot을 읽어 반환한다.
+- Live Yjs binary persistence는 open collaborative document reload/reconnect를 위한 provider state persistence이며 product revision snapshot artifact와 같은 DTO 또는 domain concept로 합치지 않는다.
+- First skeleton은 production S3/R2/MinIO setup을 요구하지 않는다. Local-compatible artifact adapter를 쓰더라도 provider 이름과 storage key format은 domain code에 새지 않아야 한다.

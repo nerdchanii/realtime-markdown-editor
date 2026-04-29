@@ -137,16 +137,20 @@ export type SeedReviewContextDto = Readonly<{
   members: readonly WorkspaceMemberDto[];
   collaboration: CollaborationSessionDto;
   revisions: readonly RevisionDto[];
+  checkpoints: readonly CheckpointDto[];
   publications: readonly PublicationDto[];
   autosaves: readonly AutosaveSnapshotDto[];
 }>;
 
-export type DocumentSnapshotInspectDto = Readonly<{
+export type CheckpointSnapshotInspectDto = Readonly<{
+  checkpointId: CheckpointId;
   documentId: DocumentId;
   revisionId: RevisionId;
   markdownBody: string;
   artifact: ArtifactReferenceDto;
 }>;
+
+export type DocumentSnapshotInspectDto = CheckpointSnapshotInspectDto;
 
 export type DocumentReviewStateDto = Readonly<{
   document: DocumentDetailDto;

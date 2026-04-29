@@ -52,6 +52,8 @@ V1 CE skeleton에서는 checkpoint snapshot artifact를 inspectable Markdown sna
 
 Live Yjs binary persistence와 product revision snapshot artifact는 서로 다른 저장 책임이다. Hocuspocus/Yjs persistence는 열린 collaborative document의 provider state 재수화에만 사용하고, user-visible checkpoint/revision history는 product metadata와 snapshot artifact boundary로 관리한다.
 
+V1 CE skeleton의 local review는 production S3/R2/MinIO 구성을 요구하지 않는다. 구현은 S3-compatible adapter port를 유지하되, filesystem 또는 in-memory 같은 local-compatible artifact adapter로 checkpoint Markdown snapshot을 저장하고 inspect path를 검증할 수 있다.
+
 ## 후보안
 
 ### 1. RDB + S3-compatible object storage + optional realtime support
@@ -59,6 +61,8 @@ Live Yjs binary persistence와 product revision snapshot artifact는 서로 다�
 - 장점: metadata, artifact, transient state의 책임이 분리된다.
 - 단점: local setup 설명이 늘어날 수 있다.
 - 리스크: 과제 범위에 비해 storage infra가 커질 수 있다.
+
+V1 skeleton에서는 이 후보를 adapter boundary로 채택하되 production object storage provider를 필수 실행 조건으로 만들지 않는다.
 
 ### 2. RDB 단일 저장소
 
@@ -107,6 +111,7 @@ V1 checkpoint artifact를 Markdown snapshot으로 두면 CE-04 reviewer path가 
 - live Yjs binary persistence와 product revision snapshot artifact가 같은 타입/테이블/DTO로 합쳐지지 않는지 확인한다.
 - durable document state가 Redis에만 존재하지 않는지 확인한다.
 - MinIO/S3/R2 provider 이름이 domain code에 새지 않는지 확인한다.
+- Local-compatible artifact adapter를 쓰더라도 API contract는 checkpoint metadata와 Markdown snapshot inspect response를 분리하는지 확인한다.
 
 ## 관련 문서
 
@@ -118,10 +123,11 @@ V1 checkpoint artifact를 Markdown snapshot으로 두면 CE-04 reviewer path가 
 
 ## 변경 이력
 
-| 날짜 | 변경 내용 | 결정자 |
-| --- | --- | --- |
-| 2026-04-28 | 최초 작성 | nerdchanii |
-| 2026-04-28 | MinIO 중심 표현을 S3-compatible object storage boundary로 정정 | nerdchanii |
-| 2026-04-29 | artifact 용어가 domain object를 의미하지 않음을 명시 | nerdchanii |
-| 2026-04-29 | checkpoint artifact format과 inspect path 미결정으로 proposed 유지 사유 명시 | nerdchanii |
+| 날짜       | 변경 내용                                                                          | 결정자     |
+| ---------- | ---------------------------------------------------------------------------------- | ---------- |
+| 2026-04-28 | 최초 작성                                                                          | nerdchanii |
+| 2026-04-28 | MinIO 중심 표현을 S3-compatible object storage boundary로 정정                     | nerdchanii |
+| 2026-04-29 | artifact 용어가 domain object를 의미하지 않음을 명시                               | nerdchanii |
+| 2026-04-29 | checkpoint artifact format과 inspect path 미결정으로 proposed 유지 사유 명시       | nerdchanii |
 | 2026-04-30 | V1 CE skeleton 범위에서 Markdown snapshot artifact와 read-only inspect path를 승인 | nerdchanii |
+| 2026-04-30 | 첫 skeleton에서 production S3/R2/MinIO setup이 필수가 아님을 명시                  | nerdchanii |

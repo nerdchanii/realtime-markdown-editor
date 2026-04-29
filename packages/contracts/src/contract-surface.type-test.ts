@@ -1,6 +1,9 @@
 import type {
   ArtifactReferenceDto,
   AutosaveSnapshotDto,
+  CheckpointDto,
+  CheckpointId,
+  CheckpointSnapshotInspectDto,
   CollaborationSessionDto,
   DocumentDetailDto,
   DocumentId,
@@ -29,6 +32,7 @@ const documentId = "document_seed" as DocumentId;
 const userId = "user_alice" as UserId;
 const membershipId = "membership_alice" as WorkspaceMembershipId;
 const revisionId = "revision_seed" as RevisionId;
+const checkpointId = "checkpoint_seed" as CheckpointId;
 const publicationId = "publication_seed" as PublicationId;
 
 const user = {
@@ -79,11 +83,29 @@ const revision = {
   id: revisionId,
   documentId,
   authorMembershipId: membershipId,
-  source: "publication",
-  message: "Publish review plan",
+  source: "checkpoint",
+  message: "Capture review plan",
   createdAt: "2026-04-30T00:00:00.000Z",
   snapshotArtifact: artifact,
 } satisfies RevisionDto;
+
+const checkpoint = {
+  id: checkpointId,
+  documentId,
+  revisionId,
+  authorMembershipId: membershipId,
+  message: "Capture review plan",
+  createdAt: "2026-04-30T00:00:00.000Z",
+  snapshotArtifact: artifact,
+} satisfies CheckpointDto;
+
+const inspectSnapshot = {
+  checkpointId,
+  documentId,
+  revisionId,
+  markdownBody: "# Review Plan",
+  artifact,
+} satisfies CheckpointSnapshotInspectDto;
 
 const publication = {
   id: publicationId,
@@ -136,8 +158,10 @@ const seed = {
   members: [member],
   collaboration,
   revisions: [revision],
+  checkpoints: [checkpoint],
   publications: [publication],
   autosaves: [autosave],
 } satisfies SeedReviewContextDto;
 
 void seed;
+void inspectSnapshot;
