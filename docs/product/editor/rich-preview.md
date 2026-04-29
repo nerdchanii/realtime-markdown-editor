@@ -21,13 +21,14 @@ Markdown authoring은 source-level control과 portability를 잃지 않으면서
 - Rich editing mode를 제공한다.
 - Markdown source mode를 제공한다.
 - Rendered preview를 포함한 Split mode를 제공한다.
+- 여기서 Split mode는 하나의 document를 Markdown source와 rendered preview로 나누어 보는 CE-05 범위다.
 - Mode 전환 중 content 보존.
 
 ## 제외 범위
 
 - Core body content를 위한 non-portable custom Markdown syntax.
 - Full block database editing은 제외한다.
-- Split preview를 넘어서는 multi-pane editing.
+- 여러 workspace document를 center editor area에서 동시에 여는 IDE-style multi-pane editing은 CE-05가 아니라 post-CE product-extension으로 보류한다.
 
 ## 검증
 

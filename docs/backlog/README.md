@@ -18,6 +18,7 @@ Backlog는 first subject skeleton으로 오해하면 안 되는 보류 요청, �
 | Comments와 suggestions | CRDT anchor와 stale-anchor policy가 필요하다. | Collaboration engine 선택 후 basic history가 동작한 뒤. |
 | Quick chat, mention, notification, DM | 커뮤니케이션 workflow가 editor-first 제품을 압도할 수 있다. | Core collaboration과 review surface가 안정화된 뒤. |
 | Wikilink | Standard Markdown links/backlinks가 먼저다. | Standard link resolution과 export가 안정화된 뒤. |
+| IDE-style multi-pane document workspace | 여러 workspace document를 center editor area에서 split/tab으로 동시에 여는 기능은 CE skeleton보다 UI/session/collaboration scope가 크다. | CE-01부터 CE-05와 basic workspace/document navigation이 안정화된 뒤 workspace presence/follow 확장과 비교 검토한다. |
 | 전체 workspace offline cache | CE-03 open-page offline path보다 비용이 크다. | Open-page offline merge가 안정화된 뒤. |
 | Property template과 inheritance | 반복적인 property 사용 evidence가 필요하다. | Basic properties가 검증된 뒤. |
 | Workflow hooks와 visual builder | `DocumentState` foundation이 먼저 필요하다. | DocumentState가 안정화되고 CE skeleton이 완료된 뒤. |

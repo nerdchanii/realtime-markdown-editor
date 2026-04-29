@@ -48,6 +48,8 @@ UI shell은 다음 scope를 분리한다.
 
 기본 화면은 left workspace panel, center editor/preview, right inspector를 가진다. Properties는 title 근처에 두며, Markdown export는 frontmatter representation을 사용한다.
 
+CE-05의 Split mode는 하나의 document 안에서 Markdown source와 rendered preview를 나누어 보는 범위다. 여러 workspace document를 center editor area에서 split/tab으로 동시에 여는 IDE-style multi-pane workspace는 향후 확장 가능성을 남기되 first subject skeleton에는 포함하지 않는다.
+
 ## 후보안
 
 ### 1. Editor-first scope shell
