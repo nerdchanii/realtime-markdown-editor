@@ -1,10 +1,10 @@
 ---
 title: TASK-022-collab-runtime-skeleton
-status: todo
+status: archived
 phase: P2
 task_type: runtime
 task_mode: parallel-backend
-owner: unassigned
+owner: worker-019ddaf9-3ec5-7be3-abd8-d9a62a426267
 depends_on:
   - TASK-020
 write_set:
@@ -92,12 +92,26 @@ Build `apps/collab` as the standalone realtime runtime skeleton.
 
 ## Archive Checklist
 
-- [ ] `status`를 `archived`로 변경했다.
-- [ ] 파일을 `tasks/archive/`로 이동했다.
-- [ ] 검증 결과를 이 문서에 기록했다.
-- [ ] 필요한 공식 문서 업데이트를 완료했다.
-- [ ] follow-up 또는 blocker를 기록했다.
+- [x] `status`를 `archived`로 변경했다.
+- [x] 파일을 `tasks/archive/`로 이동했다.
+- [x] 검증 결과를 이 문서에 기록했다.
+- [x] 필요한 공식 문서 업데이트를 완료했다.
+- [x] follow-up 또는 blocker를 기록했다.
 
 ## 메모
 
 - Unblocks `TASK-024` with `TASK-021` and `TASK-023`.
+- Verification:
+  - `node -v` -> `v24.15.0`
+  - `pnpm -v` -> `10.28.2`
+  - `pnpm --filter @rme/collab typecheck` -> pass.
+  - `pnpm --filter @rme/collab test` -> pass.
+  - `pnpm arch:check` -> pass.
+  - `pnpm lint` -> pass after collab lint fixes.
+  - `pnpm format:check` -> pass.
+- Worker reported `pnpm --filter @rme/collab build` passed and `pnpm --filter @rme/collab start`
+  started locally after port escalation, then was stopped.
+- Lint follow-up handled by main session:
+  - extracted seeded session payload to keep function length inside lint limit.
+  - imported `URL` from `node:url` in the boundary test.
+- Worker reported acceptance met and no unresolved TASK-022 blockers.

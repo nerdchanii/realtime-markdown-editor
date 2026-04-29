@@ -1,12 +1,19 @@
 export type CollabRuntimeConfig = {
   host: string;
   port: number;
+  publicRealtimeUrl: string;
+  seedDocumentKey: string;
 };
 
 export function readCollabRuntimeConfig(env: NodeJS.ProcessEnv): CollabRuntimeConfig {
+  const host = readString(env.RME_COLLAB_HOST, "127.0.0.1");
+  const port = readPort(env.RME_COLLAB_PORT, 1234);
+
   return {
-    host: readString(env.RME_COLLAB_HOST, "127.0.0.1"),
-    port: readPort(env.RME_COLLAB_PORT, 1234),
+    host,
+    port,
+    publicRealtimeUrl: readString(env.RME_COLLAB_PUBLIC_URL, `ws://${host}:${port}`),
+    seedDocumentKey: readString(env.RME_COLLAB_SEED_DOCUMENT_KEY, "workspace_seed:document_seed"),
   };
 }
 
