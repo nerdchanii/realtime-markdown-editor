@@ -17,9 +17,11 @@ First skeleton에서 `Checkpoint`는 `Documents` capability가 소유하는 docu
 - 작성자 역할의 `WorkspaceMembership`을 참조할 수 있다.
 - 생성 시각과 사용자에게 보이는 message를 가진다.
 - Inspectable content snapshot을 찾기 위한 opaque artifact reference를 가진다.
+- First skeleton의 inspectable snapshot은 ADR-0003 V1에 따라 Markdown snapshot artifact로 제공된다.
 
 ## 경계
 
-- Snapshot payload, CRDT update, rendered HTML, object storage key의 세부 형식은 domain entity가 아니다.
+- Snapshot payload, CRDT update, rendered HTML, object storage key의 provider 세부 형식은 domain entity가 아니다.
+- Markdown snapshot artifact는 CE-04 read-only inspection을 위한 product revision artifact이며, live Yjs binary persistence와 구분한다.
 - Checkpoint restore는 first skeleton에서 필수 요구가 아니다. CE-04는 history 조회와 이전 content inspection을 우선한다.
 - Autosave/sync state를 자동으로 user-authored checkpoint처럼 표시하지 않는다.

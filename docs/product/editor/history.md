@@ -27,7 +27,7 @@ History는 ordinary autosave/sync와 intentional checkpoint를 구분하면서 r
 ## 보류
 
 - Restore와 branching은 first skeleton 범위가 아니며 `HistoryModule` 승격 trigger다.
-- Checkpoint artifact가 Markdown, CRDT update, rendered HTML, 또는 combined artifact인지 여부는 ADR-0003의 구현 세부 결정으로 남긴다.
+- CRDT update replay, rendered HTML snapshot 저장, combined artifact format은 first skeleton 범위가 아니다. ADR-0003 V1은 CE-04 checkpoint artifact를 inspectable Markdown snapshot과 artifact metadata로 둔다.
 
 ## 검증
 

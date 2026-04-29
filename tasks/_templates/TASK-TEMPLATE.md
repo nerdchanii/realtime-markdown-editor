@@ -3,6 +3,7 @@ title: TASK-000-example
 status: todo
 phase: none
 task_type: contract
+task_mode: blocking
 owner: unassigned
 depends_on: []
 write_set:
@@ -36,9 +37,13 @@ review_required: true
 
 ## 계약과 의존성
 
-- 선행 task: 없음.
+| Task       | Mode       | Depends on | Unlocks | Notes |
+| ---------- | ---------- | ---------- | ------- | ----- |
+| `TASK-000` | `blocking` | 없음       | 없음    | 예시  |
+
 - 안정 contract: 없음.
 - mock 허용 여부: 허용하지 않음.
+- checklist는 최대 2단까지만 사용하고, 복잡한 dependency는 위 table로 표현한다.
 
 ## Write Set
 
@@ -65,6 +70,7 @@ review_required: true
 - Spec compliance review 필요 여부: 필요.
 - Code quality review 필요 여부: 필요.
 - Boundary review 필요 여부: 해당 없음.
+- Orchestration guardrail 확인: approved contract/design 없이 implementation worker를 시작하지 않는다.
 
 ## Archive Checklist
 
