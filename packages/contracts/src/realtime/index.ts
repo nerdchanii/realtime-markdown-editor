@@ -53,3 +53,12 @@ export type CollaborationSessionDto = Readonly<{
   members: readonly RealtimeMemberDto[];
   sync: DocumentSyncStateDto;
 }>;
+
+export type IssuedCollaborationSessionDto = Readonly<{
+  documentId: DocumentId;
+  documentKey: string;
+  realtimeUrl: string;
+  currentMember: RealtimeMemberDto;
+  allowedMembers: readonly RealtimeMemberDto[];
+  sync: DocumentSyncStateDto;
+}>;

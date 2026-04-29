@@ -9,7 +9,11 @@ import type {
   WorkspaceId,
   WorkspaceMembershipId,
 } from "../ids.js";
-import type { CollaborationSessionDto, DocumentSyncStateDto } from "../realtime/index.js";
+import type {
+  CollaborationSessionDto,
+  DocumentSyncStateDto,
+  IssuedCollaborationSessionDto,
+} from "../realtime/index.js";
 
 export type WorkspaceMemberRoleDto = "owner" | "editor" | "viewer";
 
@@ -169,3 +173,5 @@ export type DocumentReviewStateDto = Readonly<{
   latestRevision: RevisionDto | null;
   currentPublication: PublicationDto | null;
 }>;
+
+export type CollaborationSessionResponseDto = IssuedCollaborationSessionDto;

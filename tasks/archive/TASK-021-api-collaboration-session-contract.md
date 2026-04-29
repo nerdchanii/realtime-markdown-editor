@@ -1,10 +1,10 @@
 ---
 title: TASK-021-api-collaboration-session-contract
-status: todo
+status: archived
 phase: P2
 task_type: contract
 task_mode: parallel-backend
-owner: unassigned
+owner: worker-019ddaf9-3e6d-7b13-abd8-dde5e19c67c1
 depends_on:
   - TASK-020
 write_set:
@@ -96,12 +96,21 @@ Implement provider-neutral collaboration session issuance in the API.
 
 ## Archive Checklist
 
-- [ ] `status`를 `archived`로 변경했다.
-- [ ] 파일을 `tasks/archive/`로 이동했다.
-- [ ] 검증 결과를 이 문서에 기록했다.
-- [ ] 필요한 공식 문서 업데이트를 완료했다.
-- [ ] follow-up 또는 blocker를 기록했다.
+- [x] `status`를 `archived`로 변경했다.
+- [x] 파일을 `tasks/archive/`로 이동했다.
+- [x] 검증 결과를 이 문서에 기록했다.
+- [x] 필요한 공식 문서 업데이트를 완료했다.
+- [x] follow-up 또는 blocker를 기록했다.
 
 ## 메모
 
 - Unblocks `TASK-024` with `TASK-022` and `TASK-023`.
+- Verification:
+  - `node -v` -> `v24.15.0`
+  - `pnpm -v` -> `10.28.2`
+  - `pnpm --filter @rme/api typecheck` -> pass.
+  - `pnpm --filter @rme/contracts typecheck` -> pass.
+  - `pnpm arch:check` -> pass.
+  - `pnpm lint` -> pass after TASK-022 lint fix.
+  - `pnpm format:check` -> pass after TASK-023 formatting fix.
+- Worker reported acceptance met and no unresolved TASK-021 blockers.
