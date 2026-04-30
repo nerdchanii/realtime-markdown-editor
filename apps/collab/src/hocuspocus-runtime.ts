@@ -1,15 +1,18 @@
 import { Server } from "@hocuspocus/server";
 import * as Y from "yjs";
 
-import type { CollabRuntimeConfig, LiveYjsPersistenceConfig } from "./config.js";
+import type { CollabRuntimeConfig } from "./config.js";
 import {
   createHttpDocumentContentProjectionClient,
   type DocumentContentProjectionClient,
 } from "./document-content-projection-client.js";
+import { createProductCollaborationSessionClient } from "./session/product-collaboration-session-client.js";
 import type { CollaborationSessionClient } from "./session/session-client.js";
 import { createSeedCollaborationSessionClient } from "./seed/seed-collaboration-session-client.js";
 import {
+  FallbackLiveYjsPersistenceAdapter,
   FileSystemLiveYjsPersistenceAdapter,
+  HttpLiveYjsPersistenceAdapter,
   InMemoryLiveYjsPersistenceAdapter,
   SeededYjsDocumentStore,
   type LiveYjsPersistenceAdapter,
@@ -92,16 +95,28 @@ function createDefaultRuntimeDependencies(
   config: CollabRuntimeConfig,
 ): HocuspocusRuntimeDependencies {
   return {
-    sessionClient: createSeedCollaborationSessionClient(config),
+    sessionClient: createDefaultCollaborationSessionClient(config),
     documentStore: new SeededYjsDocumentStore({
       seed: {
         documentKey: config.seedDocumentKey,
         markdown: "# Review Plan\n\nSeeded collaborative Markdown document.\n",
       },
-      persistence: createLiveYjsPersistenceAdapter(config.liveYjsPersistence),
+      persistence: createLiveYjsPersistenceAdapter(config),
     }),
     projectionClient: createHttpDocumentContentProjectionClient(config.apiBaseUrl),
   };
+}
+
+function createDefaultCollaborationSessionClient(
+  config: CollabRuntimeConfig,
+): CollaborationSessionClient {
+  const productClient = createProductCollaborationSessionClient(config.apiBaseUrl);
+  if (!config.enableSeedSessionFallback) return productClient;
+
+  return createFallbackCollaborationSessionClient([
+    productClient,
+    createSeedCollaborationSessionClient(config),
+  ]);
 }
 
 async function loadFallbackMarkdown(
@@ -129,9 +144,37 @@ async function saveMarkdownProjection(
 }
 
 function createLiveYjsPersistenceAdapter(
-  config: LiveYjsPersistenceConfig,
+  runtimeConfig: CollabRuntimeConfig,
 ): LiveYjsPersistenceAdapter {
+  const config = runtimeConfig.liveYjsPersistence;
+  if (config.provider === "api-postgres") {
+    const apiPersistence = new HttpLiveYjsPersistenceAdapter(runtimeConfig.apiBaseUrl);
+    if (!runtimeConfig.enableLiveYjsPersistenceFallback) return apiPersistence;
+
+    return new FallbackLiveYjsPersistenceAdapter(
+      apiPersistence,
+      new InMemoryLiveYjsPersistenceAdapter(),
+    );
+  }
   if (config.provider === "memory") return new InMemoryLiveYjsPersistenceAdapter();
 
   return new FileSystemLiveYjsPersistenceAdapter(config.directory);
+}
+
+function createFallbackCollaborationSessionClient(
+  clients: readonly CollaborationSessionClient[],
+): CollaborationSessionClient {
+  return {
+    async loadSession(documentKey) {
+      let lastError: unknown = null;
+      for (const client of clients) {
+        try {
+          return await client.loadSession(documentKey);
+        } catch (error) {
+          lastError = error;
+        }
+      }
+      throw lastError instanceof Error ? lastError : new Error("Collaboration session not found.");
+    },
+  };
 }

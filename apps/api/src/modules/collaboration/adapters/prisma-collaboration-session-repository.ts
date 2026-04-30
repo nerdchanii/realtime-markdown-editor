@@ -42,6 +42,27 @@ export class PrismaCollaborationSessionRepository implements CollaborationSessio
     };
   }
 
+  async findRuntimeSession(lookup: { documentKey: string }): Promise<CollaborationSession | null> {
+    const document = await findDocumentByCollaborationKey(this.database, lookup.documentKey);
+    if (!document) return null;
+
+    const memberships = await this.database.workspaceMembership.findMany({
+      where: { workspaceId: document.folder.workspaceId },
+      orderBy: { createdAt: "asc" },
+    });
+    const currentMember = memberships[0];
+    if (!currentMember) return null;
+
+    return {
+      documentId: document.id as CollaborationDocumentId,
+      documentKey: documentKeyFromRecord(document),
+      realtimeUrl: realtimeUrlFromRecord(document, this.realtimeUrl),
+      currentMember: mapMember(currentMember),
+      allowedMembers: memberships.map(mapMember),
+      sync: syncStateFromRecord(document),
+    };
+  }
+
   async findSeedSession(): Promise<CollaborationSession | null> {
     return null;
   }
@@ -63,6 +84,21 @@ async function findDocumentForCollaboration(
 type CollaborationDocumentRecord = NonNullable<
   Awaited<ReturnType<typeof findDocumentForCollaboration>>
 >;
+
+async function findDocumentByCollaborationKey(
+  database: PrismaDatabaseService,
+  documentKey: string,
+) {
+  const liveState = await database.liveCollaborationState.findUnique({
+    where: { documentKey },
+    select: { documentId: true },
+  });
+
+  return findDocumentForCollaboration(
+    database,
+    (liveState?.documentId ?? documentIdFromKey(documentKey)) as CollaborationDocumentId,
+  );
+}
 
 function documentKeyFromRecord(document: CollaborationDocumentRecord): string {
   return document.liveCollaboration?.documentKey ?? fallbackDocumentKey(document);
@@ -86,6 +122,11 @@ function syncStateFromRecord(document: CollaborationDocumentRecord): Collaborati
 
 function fallbackDocumentKey(document: { id: string; folder: { workspaceId: string } }): string {
   return `${document.folder.workspaceId}/${document.id}`;
+}
+
+function documentIdFromKey(documentKey: string): string {
+  const segments = documentKey.split("/");
+  return segments[segments.length - 1] ?? documentKey;
 }
 
 function mapMember(member: {

@@ -39,9 +39,16 @@ export type CollaborationSessionLookup = Readonly<{
   currentMembershipId: CollaborationMembershipId;
 }>;
 
+export type RuntimeCollaborationSessionLookup = Readonly<{
+  documentKey: string;
+}>;
+
 export const COLLABORATION_SESSION_REPOSITORY = Symbol("COLLABORATION_SESSION_REPOSITORY");
 
 export interface CollaborationSessionRepository {
   findSession(lookup: CollaborationSessionLookup): Promise<CollaborationSession | null>;
+  findRuntimeSession(
+    lookup: RuntimeCollaborationSessionLookup,
+  ): Promise<CollaborationSession | null>;
   findSeedSession(memberId: CollaborationMembershipId | null): Promise<CollaborationSession | null>;
 }

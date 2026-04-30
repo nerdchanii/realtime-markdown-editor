@@ -74,6 +74,12 @@ export class SeedCollaborationSessionRepository implements CollaborationSessionR
     return this.buildSession(lookup.currentMembershipId);
   }
 
+  async findRuntimeSession(lookup: { documentKey: string }): Promise<CollaborationSession | null> {
+    if (lookup.documentKey === this.documentKey) return this.buildSession(null);
+    if (!lookup.documentKey.startsWith(`${seedWorkspaceId}/`)) return null;
+    return this.buildRouteSession(lookup.documentKey);
+  }
+
   async findSeedSession(
     memberId: CollaborationMembershipId | null,
   ): Promise<CollaborationSession | null> {
@@ -99,8 +105,30 @@ export class SeedCollaborationSessionRepository implements CollaborationSessionR
       },
     };
   }
+
+  private buildRouteSession(documentKey: string): CollaborationSession {
+    const currentMember = seedMembers[0] as CollaborationMember;
+
+    return {
+      documentId: documentIdFromKey(documentKey),
+      documentKey,
+      realtimeUrl: this.realtimeUrl,
+      currentMember,
+      allowedMembers: seedMembers,
+      sync: {
+        status: "synced",
+        pendingLocalEdits: 0,
+        lastSyncedAt: seedSyncedAt,
+      },
+    };
+  }
 }
 
 function readString(value: string | undefined, fallback: string): string {
   return value && value.trim().length > 0 ? value.trim() : fallback;
+}
+
+function documentIdFromKey(documentKey: string): CollaborationDocumentId {
+  const segments = documentKey.split("/");
+  return (segments[segments.length - 1] ?? documentKey) as CollaborationDocumentId;
 }

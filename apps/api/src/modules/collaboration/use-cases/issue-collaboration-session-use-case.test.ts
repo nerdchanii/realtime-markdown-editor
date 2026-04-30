@@ -62,4 +62,8 @@ class RecordingCollaborationSessionRepository implements CollaborationSessionRep
   async findSeedSession(): Promise<CollaborationSession | null> {
     return null;
   }
+
+  async findRuntimeSession(): Promise<CollaborationSession | null> {
+    return null;
+  }
 }

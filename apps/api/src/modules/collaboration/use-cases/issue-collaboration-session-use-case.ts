@@ -30,3 +30,11 @@ export class IssueSeedCollaborationSessionUseCase {
     return this.sessions.findSeedSession(input.memberId);
   }
 }
+
+export class LoadRuntimeCollaborationSessionUseCase {
+  constructor(private readonly sessions: CollaborationSessionRepository) {}
+
+  async execute(input: { documentKey: string }): Promise<CollaborationSession | null> {
+    return this.sessions.findRuntimeSession({ documentKey: input.documentKey });
+  }
+}
