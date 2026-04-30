@@ -1,9 +1,9 @@
 import type { Editor } from "@tiptap/core";
 import { useCallback, useEffect, useRef, type ReactNode, type RefObject } from "react";
 
-import type { CollaborationSessionDto, DocumentId } from "@rme/contracts";
+import type { CollaborationSessionDto } from "@rme/contracts";
 
-import { createProductApiClient, updateDocumentContent, type ApiClient } from "@/lib/api-client";
+import type { ApiClient } from "@/lib/api-client";
 import { writeCurrentEditorMarkdown } from "@/lib/current-editor-markdown";
 
 import { EditorToolbar } from "./EditorToolbar";
@@ -178,11 +178,7 @@ function useEditorWorkspaceState(
   const documentState = selectCollaborationAdapter(viewModel, collaborationAdapter).useDocument(
     createCollaborationOptions(viewModel, documentId),
   );
-  const handleMarkdownChange = useMarkdownProjectionHandler(
-    viewModel,
-    documentId,
-    documentState.updateMarkdown,
-  );
+  const handleMarkdownChange = useMarkdownProjectionHandler(documentState.updateMarkdown);
   const handleSelectionChange = useCallback(
     (selection: EditorSelectionSnapshot) => documentState.updateSelection(selection),
     [documentState],
@@ -199,22 +195,13 @@ function useEditorWorkspaceState(
   };
 }
 
-function useMarkdownProjectionHandler(
-  viewModel: EditorWorkspaceViewModel,
-  documentId: string,
-  updateMarkdown: (markdown: string) => void,
-) {
+function useMarkdownProjectionHandler(updateMarkdown: (markdown: string) => void) {
   return useCallback(
     (nextMarkdown: string) => {
       updateMarkdown(nextMarkdown);
       writeCurrentEditorMarkdown(nextMarkdown);
-      void saveCurrentMarkdownProjection(
-        viewModel.apiClient ?? createProductApiClient(),
-        documentId as DocumentId,
-        nextMarkdown,
-      );
     },
-    [documentId, updateMarkdown, viewModel.apiClient],
+    [updateMarkdown],
   );
 }
 
@@ -224,25 +211,8 @@ function createCollaborationOptions(viewModel: EditorWorkspaceViewModel, documen
     initialMarkdown: viewModel.markdown ?? fallbackMarkdown,
     initialSyncStatus: viewModel.syncStatus ?? fallbackSyncStatus,
     initialPresence: viewModel.presence ?? fallbackPresence,
-    ...(viewModel.collaborationSession && isSeedReviewDocumentId(documentId)
-      ? { session: viewModel.collaborationSession }
-      : {}),
+    ...(viewModel.collaborationSession ? { session: viewModel.collaborationSession } : {}),
   };
-}
-
-async function saveCurrentMarkdownProjection(
-  apiClient: ApiClient,
-  documentId: DocumentId,
-  markdownBody: string,
-) {
-  try {
-    await updateDocumentContent(apiClient, documentId, {
-      markdownBody,
-      source: "collaboration-projection",
-    });
-  } catch {
-    // Projection persistence must not break the live collaborative editor.
-  }
 }
 
 function selectCollaborationAdapter(
@@ -263,8 +233,4 @@ function readDocumentIdFromLocation() {
 
 export function resolveActiveEditorDocumentId(viewModelDocumentId: string | undefined): string {
   return viewModelDocumentId ?? readDocumentIdFromLocation();
-}
-
-function isSeedReviewDocumentId(documentId: string): boolean {
-  return documentId === "document_review_plan" || documentId === "seed-review-plan";
 }

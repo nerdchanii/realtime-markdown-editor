@@ -2,7 +2,8 @@ import { useState } from "react";
 
 import type { DocumentId, MarkdownExportResponseDto } from "@rme/contracts";
 
-import { createMarkdownExport, createMockApiClient } from "@/lib/api-client";
+import { createMarkdownExport, createMockApiClient, updateDocumentContent } from "@/lib/api-client";
+import { readCurrentEditorMarkdown } from "@/lib/current-editor-markdown";
 
 import type { DocumentProperty } from "./types";
 
@@ -62,10 +63,16 @@ function useMarkdownExport({
   return { exportResult, exportError, createExport };
 }
 
-function requestMarkdownExport(documentId: string | undefined, title: string) {
+async function requestMarkdownExport(documentId: string | undefined, title: string) {
   const exportDocumentId = (documentId ?? readDocumentId()) as DocumentId;
+  const client = createMockApiClient();
 
-  return createMarkdownExport(createMockApiClient(), exportDocumentId, {
+  await updateDocumentContent(client, exportDocumentId, {
+    markdownBody: readCurrentEditorMarkdown(),
+    source: "collaboration-projection",
+  });
+
+  return createMarkdownExport(client, exportDocumentId, {
     filename: `${slugify(title)}.md`,
   });
 }

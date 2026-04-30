@@ -1,6 +1,6 @@
 ---
 title: TASK-082-product-runtime-integration
-status: todo
+status: archived
 phase: P10
 task_type: integration
 task_mode: integration
@@ -105,9 +105,22 @@ Backend, collaboration runtime, frontend 결과를 하나의 authenticated produ
 ## 검증
 
 - 실행 명령: `pnpm check`
-- 기대 결과: full check passes.
+- 결과: passed with safe local DB env
+  `DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:55432/realtime_markdown_editor`
+  and `POSTGRES_HOST_PORT=55432`.
 - 실행 명령: `pnpm test:e2e e2e/ce-01-concurrent-editing.spec.ts e2e/ce-02-presence.spec.ts e2e/ce-03-offline-merge.spec.ts e2e/ce-04-history.spec.ts e2e/ce-05-rich-preview.spec.ts`
-- 기대 결과: CE e2e suite passes.
+- 결과: passed, 9/9 Chromium tests, with safe local DB env above and `NODE_ENV=test`.
+
+추가 확인:
+
+- `pnpm --filter @rme/api test`: passed, 47/47 API tests.
+- Required read-only Critic review completed. Initial blockers were addressed:
+  - product editor now uses authenticated document collaboration sessions instead of URL member
+    spoofing or fabricated sessions;
+  - export/checkpoint flows explicitly flush current editor Markdown to the server projection before
+    server-side export/checkpoint creation;
+  - dev-only seed routes are hidden before validation outside explicit local/test environments;
+  - CE-05 image coverage uses the real artifact upload API path.
 
 ## Review
 
@@ -118,12 +131,15 @@ Backend, collaboration runtime, frontend 결과를 하나의 authenticated produ
 
 ## Archive Checklist
 
-- [ ] `status`를 `archived`로 변경했다.
-- [ ] 파일을 `tasks/archive/`로 이동했다.
-- [ ] 검증 결과를 이 문서에 기록했다.
-- [ ] 필요한 공식 문서 업데이트를 완료했다.
-- [ ] follow-up 또는 blocker를 기록했다.
+- [x] `status`를 `archived`로 변경했다.
+- [x] 파일을 `tasks/archive/`로 이동했다.
+- [x] 검증 결과를 이 문서에 기록했다.
+- [x] 필요한 공식 문서 업데이트를 완료했다.
+- [x] follow-up 또는 blocker를 기록했다.
 
 ## 메모
 
 - This is the final integration task before full verification gate.
+- Residual follow-up: legacy manual reviewer documentation/scripts still mention seeded
+  `?member=...&document=seed-review-plan` URLs. TASK-082 product runtime and CE e2e no longer use
+  that path; updating those helper docs/scripts is outside this task write set.

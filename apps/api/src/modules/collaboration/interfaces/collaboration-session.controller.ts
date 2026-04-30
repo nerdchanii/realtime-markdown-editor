@@ -1,5 +1,6 @@
 import { Controller, Get, Inject, NotFoundException, Query } from "@nestjs/common";
 
+import { assertDevSeedRouteEnabled } from "@/interfaces/http/dev-seed-route-gate.js";
 import type { CollaborationSessionResponseDto } from "@/modules/collaboration/interfaces/collaboration-session.dto.js";
 import type { CollaborationMembershipId } from "@/modules/collaboration/ports/collaboration-session-repository.js";
 import { mapCollaborationSessionToResponseDto } from "@/modules/collaboration/interfaces/collaboration-session.mapper.js";
@@ -16,6 +17,8 @@ export class CollaborationSessionController {
   async getSeedSession(
     @Query("memberId") memberId?: string,
   ): Promise<CollaborationSessionResponseDto> {
+    assertDevSeedRouteEnabled();
+
     const session = await this.issueSeedCollaborationSession.execute({
       memberId: memberId ? (memberId as CollaborationMembershipId) : null,
     });

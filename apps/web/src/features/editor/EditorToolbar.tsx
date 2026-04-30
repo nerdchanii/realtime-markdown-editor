@@ -186,12 +186,17 @@ function ToolbarButton({
   label,
   testId,
   children,
+  onMouseDown,
   ...props
 }: ButtonProps & Readonly<{ label: string; testId: string }>) {
   return (
     <Button
       aria-label={label}
       data-testid={testId}
+      onMouseDown={(event) => {
+        event.preventDefault();
+        onMouseDown?.(event);
+      }}
       size="icon"
       title={label}
       variant="ghost"

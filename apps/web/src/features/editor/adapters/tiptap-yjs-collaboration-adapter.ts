@@ -8,7 +8,6 @@ import type {
   CollaborationDocumentState,
 } from "../ports/collaboration-adapter";
 import { useAwarenessPresence, useAwarenessSelectionUpdate } from "./tiptap-yjs-awareness";
-import { resolveRouteCollaborationSession } from "./tiptap-yjs-route-session";
 import { createRuntime, replaceYText, type TiptapYjsRuntime } from "./tiptap-yjs-runtime";
 import {
   createRealtimeSyncStatus,
@@ -53,32 +52,17 @@ function useCollaborationSession(
   options: CollaborationDocumentOptions,
   setSession: (session: CollaborationSessionDto | null) => void,
 ) {
-  const { documentId, session: initialSession } = options;
+  const { session: initialSession } = options;
 
   useEffect(() => {
-    const abortController = new AbortController();
-    void resolveCollaborationSession(
-      documentId,
-      initialSession ?? null,
-      abortController.signal,
-      setSession,
-    );
-    return () => abortController.abort();
-  }, [documentId, initialSession, setSession]);
-}
+    if (initialSession) {
+      setSession(initialSession);
+      return undefined;
+    }
 
-async function resolveCollaborationSession(
-  documentId: string,
-  initialSession: CollaborationSessionDto | null,
-  signal: AbortSignal,
-  setSession: (session: CollaborationSessionDto | null) => void,
-) {
-  try {
-    const session = await resolveRouteCollaborationSession(documentId, initialSession);
-    if (!signal.aborted) setSession(session);
-  } catch {
-    if (!signal.aborted) setSession(initialSession);
-  }
+    setSession(null);
+    return undefined;
+  }, [initialSession, setSession]);
 }
 
 function useTiptapYjsRuntime(

@@ -31,6 +31,9 @@ type WorkspaceScaffold = Readonly<{
   projectRootFolderId: string;
 }>;
 
+export const reviewerWorkspaceId = "workspace_review";
+export const reviewerProjectRootFolderId = "folder_project_root";
+
 const apiRequire = createRequire(new URL("../../apps/api/package.json", import.meta.url));
 const { PrismaClient } = apiRequire("@prisma/client") as {
   PrismaClient: new () => PrismaFixtureClient;
@@ -93,21 +96,46 @@ export async function ensureReviewerProductFixture() {
 
   try {
     await seedWorkspaceScaffold(prisma, {
-      workspaceId: "workspace_review",
+      workspaceId: reviewerWorkspaceId,
       workspaceName: "Review Team Workspace",
       workspaceRootFolderId: "folder_workspace_root",
       projectId: "project_editor",
       projectName: "Editor Review",
-      projectRootFolderId: "folder_project_root",
+      projectRootFolderId: reviewerProjectRootFolderId,
     });
-    await seedMember(prisma, {
-      userId: "user_alice",
-      email: "alice@example.test",
-      membershipId: "member_alice",
-      workspaceId: "workspace_review",
-      displayName: "Alice",
-    });
+    await seedReviewerMembers(prisma);
     await seedReviewerDocuments(prisma);
+  } finally {
+    await prisma.$disconnect();
+  }
+}
+
+export async function ensureReviewerProductDocument(documentId: string, title?: string) {
+  if (documentId === "document_review_plan") return;
+
+  const prisma = new PrismaClient();
+
+  try {
+    await prisma.document.upsert({
+      where: { id: documentId },
+      update: {
+        folderId: reviewerProjectRootFolderId,
+        title: title ?? titleFromDocumentId(documentId),
+        state: "review",
+        archivedAt: null,
+        markdownBody: `# ${title ?? titleFromDocumentId(documentId)}\n\nThis document is loaded from product storage.`,
+        contentSource: "manualImport",
+      },
+      create: {
+        id: documentId,
+        folderId: reviewerProjectRootFolderId,
+        title: title ?? titleFromDocumentId(documentId),
+        state: "review",
+        markdownBodyRef: `documents/${documentId}/current.md`,
+        markdownBody: `# ${title ?? titleFromDocumentId(documentId)}\n\nThis document is loaded from product storage.`,
+        contentSource: "manualImport",
+      },
+    });
   } finally {
     await prisma.$disconnect();
   }
@@ -176,6 +204,8 @@ async function seedMember(
     membershipId: string;
     workspaceId: string;
     displayName: string;
+    color?: string;
+    role?: "owner" | "member";
   }>,
 ) {
   await prisma.user.upsert({
@@ -189,17 +219,56 @@ async function seedMember(
       userId: member.userId,
       workspaceId: member.workspaceId,
       displayName: member.displayName,
-      color: "#0969da",
-      role: "owner",
+      color: member.color ?? "#0969da",
+      role: member.role ?? "owner",
     },
     create: {
       id: member.membershipId,
       userId: member.userId,
       workspaceId: member.workspaceId,
       displayName: member.displayName,
-      color: "#0969da",
-      role: "owner",
+      color: member.color ?? "#0969da",
+      role: member.role ?? "owner",
     },
+  });
+}
+
+async function seedReviewerMembers(prisma: PrismaFixtureClient) {
+  await seedMember(prisma, {
+    userId: "user_alice",
+    email: "alice@example.test",
+    membershipId: "member_alice",
+    workspaceId: reviewerWorkspaceId,
+    displayName: "Alice",
+    color: "#0969da",
+    role: "owner",
+  });
+  await seedMember(prisma, {
+    userId: "user_bob",
+    email: "bob@example.test",
+    membershipId: "member_bob",
+    workspaceId: reviewerWorkspaceId,
+    displayName: "Bob",
+    color: "#1a7f37",
+    role: "member",
+  });
+  await seedMember(prisma, {
+    userId: "user_carol",
+    email: "carol@example.test",
+    membershipId: "member_carol",
+    workspaceId: reviewerWorkspaceId,
+    displayName: "Carol",
+    color: "#8250df",
+    role: "member",
+  });
+  await seedMember(prisma, {
+    userId: "user_dana",
+    email: "dana@example.test",
+    membershipId: "member_dana",
+    workspaceId: reviewerWorkspaceId,
+    displayName: "Dana",
+    color: "#bf3989",
+    role: "member",
   });
 }
 
@@ -217,7 +286,7 @@ async function seedReviewerDocuments(prisma: PrismaFixtureClient) {
     },
     create: {
       id: "document_review_plan",
-      folderId: "folder_project_root",
+      folderId: reviewerProjectRootFolderId,
       title: "Review Plan",
       state: "review",
       markdownBodyRef: "documents/document_review_plan/current.md",
@@ -238,7 +307,7 @@ async function seedReviewerDocuments(prisma: PrismaFixtureClient) {
     },
     create: {
       id: "document_decision_log",
-      folderId: "folder_project_root",
+      folderId: reviewerProjectRootFolderId,
       title: "Decision Log",
       state: "saved",
       markdownBodyRef: "documents/document_decision_log/current.md",
@@ -282,4 +351,12 @@ async function seedReviewerDocuments(prisma: PrismaFixtureClient) {
       preview: "Decision Log references the current review plan.",
     },
   });
+}
+
+function titleFromDocumentId(documentId: string) {
+  return documentId
+    .split(/[-_]/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
 }

@@ -2,6 +2,7 @@ import type { DocumentId, SessionDto, WorkspaceId } from "@rme/contracts";
 
 import {
   fetchAuthSession,
+  fetchCollaborationSession,
   fetchDocument,
   fetchDocumentConnections,
   fetchDocumentContent,
@@ -24,7 +25,10 @@ export async function loadProductWorkspace(
   if (!workspaceId || signal.aborted) return null;
 
   const navigation = await fetchWorkspaceNavigation(apiClient, workspaceId as WorkspaceId);
-  const documentId = selectProductDocumentId(navigation, selectedDocumentId);
+  const documentId = selectProductDocumentId(
+    navigation,
+    selectedDocumentId ?? readRouteDocumentId(),
+  );
   if (!documentId) return null;
 
   return fetchProductWorkspaceModel(apiClient, session, navigation, documentId);
@@ -60,10 +64,11 @@ async function fetchProductWorkspaceModel(
   navigation: ProductWorkspaceModel["navigation"],
   documentId: DocumentId,
 ): Promise<ProductWorkspaceModel> {
-  const [{ document }, { content }, connections] = await Promise.all([
+  const [{ document }, { content }, connections, collaborationSession] = await Promise.all([
     fetchDocument(apiClient, documentId),
     fetchDocumentContent(apiClient, documentId),
     fetchDocumentConnections(apiClient, documentId),
+    fetchCollaborationSession(apiClient, documentId),
   ]);
 
   return {
@@ -71,6 +76,7 @@ async function fetchProductWorkspaceModel(
     session,
     navigation,
     selectedDocument: document,
+    collaborationSession,
     markdownBody: content.markdownBody,
     backlinks: connections.backlinks,
   };
@@ -90,4 +96,10 @@ function readRouteWorkspaceId(): string | null {
   if (typeof window === "undefined") return null;
 
   return new URLSearchParams(window.location.search).get("workspace");
+}
+
+function readRouteDocumentId(): DocumentId | null {
+  if (typeof window === "undefined") return null;
+
+  return new URLSearchParams(window.location.search).get("document") as DocumentId | null;
 }

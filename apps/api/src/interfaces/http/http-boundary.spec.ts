@@ -29,7 +29,7 @@ class BoundaryErrorsModule {}
 
 test("HTTP boundary applies centralized CORS", async () => {
   await withApp(AppModule, async (baseUrl) => {
-    const response = await fetch(`${baseUrl}/review-context/seed`, {
+    const response = await fetch(`${baseUrl}/documents/checkpoints/checkpoint_missing/snapshot`, {
       headers: { Origin: "http://localhost:5173" },
     });
 
@@ -44,13 +44,6 @@ test("HTTP boundary returns validation envelopes for invalid params, query, and 
       status: 400,
       code: "validation_failed",
     });
-    await assertError(
-      `${baseUrl}/collaboration/documents/document_review_plan/session?memberId=!`,
-      {
-        status: 400,
-        code: "validation_failed",
-      },
-    );
     await assertError(`${baseUrl}/documents/document_api/checkpoints`, {
       status: 400,
       code: "validation_failed",
@@ -59,6 +52,21 @@ test("HTTP boundary returns validation envelopes for invalid params, query, and 
         body: JSON.stringify({ message: "" }),
         headers: { "Content-Type": "application/json" },
       },
+    });
+  });
+});
+
+test("HTTP boundary hides dev-only seed routes before validating them", async () => {
+  await withEnv({ NODE_ENV: "production", RME_API_ENABLE_DEV_SEED_ROUTES: "true" }, async () => {
+    await withApp(AppModule, async (baseUrl) => {
+      await assertError(`${baseUrl}/collaboration/sessions/seed?memberId=!`, {
+        status: 404,
+        code: "not_found",
+      });
+      await assertError(`${baseUrl}/review-context/seed`, {
+        status: 404,
+        code: "not_found",
+      });
     });
   });
 });
@@ -136,4 +144,24 @@ function baseUrlForApp(app: Awaited<ReturnType<typeof NestFactory.create>>): str
   const address = app.getHttpServer().address();
   assertAddressInfo(address);
   return `http://127.0.0.1:${address.port}`;
+}
+
+async function withEnv(
+  values: Readonly<Record<string, string>>,
+  callback: () => Promise<void>,
+): Promise<void> {
+  const previous = new Map(Object.keys(values).map((key) => [key, process.env[key]]));
+  for (const [key, value] of Object.entries(values)) process.env[key] = value;
+
+  try {
+    await callback();
+  } finally {
+    for (const [key, value] of previous) {
+      if (value === undefined) {
+        delete process.env[key];
+      } else {
+        process.env[key] = value;
+      }
+    }
+  }
 }
