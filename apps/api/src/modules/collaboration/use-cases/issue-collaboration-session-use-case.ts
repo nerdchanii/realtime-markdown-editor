@@ -7,14 +7,17 @@ import type {
 
 export type IssueCollaborationSessionInput = Readonly<{
   documentId: CollaborationDocumentId;
-  memberId: CollaborationMembershipId | null;
+  currentMembershipId: CollaborationMembershipId;
 }>;
 
 export class IssueCollaborationSessionUseCase {
   constructor(private readonly sessions: CollaborationSessionRepository) {}
 
   async execute(input: IssueCollaborationSessionInput): Promise<CollaborationSession | null> {
-    return this.sessions.findSession(input);
+    return this.sessions.findSession({
+      documentId: input.documentId,
+      currentMembershipId: input.currentMembershipId,
+    });
   }
 }
 

@@ -36,7 +36,7 @@ export type CollaborationSession = Readonly<{
 
 export type CollaborationSessionLookup = Readonly<{
   documentId: CollaborationDocumentId;
-  memberId: CollaborationMembershipId | null;
+  currentMembershipId: CollaborationMembershipId;
 }>;
 
 export const COLLABORATION_SESSION_REPOSITORY = Symbol("COLLABORATION_SESSION_REPOSITORY");

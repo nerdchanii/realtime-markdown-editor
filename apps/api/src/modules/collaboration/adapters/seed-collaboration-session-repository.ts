@@ -71,7 +71,7 @@ export class SeedCollaborationSessionRepository implements CollaborationSessionR
 
   async findSession(lookup: CollaborationSessionLookup): Promise<CollaborationSession | null> {
     if (lookup.documentId !== seedDocumentId) return null;
-    return this.buildSession(lookup.memberId);
+    return this.buildSession(lookup.currentMembershipId);
   }
 
   async findSeedSession(
