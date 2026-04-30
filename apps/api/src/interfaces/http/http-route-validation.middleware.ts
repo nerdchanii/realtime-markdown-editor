@@ -13,7 +13,8 @@ import {
   validationEnvelope,
   writeApiErrorResponse,
 } from "@/interfaces/http/api-error-response.js";
-import { matchHttpRoute } from "@/interfaces/http/http-route-match.js";
+import { isDevSeedRouteEnabled } from "@/interfaces/http/dev-seed-route-gate.js";
+import { matchHttpRoute, type MatchedHttpRoute } from "@/interfaces/http/http-route-match.js";
 import { validateHttpSchema } from "@/interfaces/http/http-schema-validation.js";
 
 type BoundaryHttpRequest = Readonly<{
@@ -38,19 +39,40 @@ const schemaById: ReadonlyMap<string, HttpSchemaDescriptor> = new Map(
 
 export function createHttpRouteValidationMiddleware(): BoundaryMiddleware {
   return (request, response, next) => {
-    const issues = validateRequest(request);
+    const requestId = requestIdFromHeaders(request.headers);
+    const route = matchHttpRoute(request.method ?? "GET", pathnameFromRequest(request));
+    if (isHiddenDevOnlyRoute(route)) {
+      writeApiErrorResponse(response, notFoundEnvelope(requestId));
+      return;
+    }
+
+    const issues = validateRequest(route, request);
     if (issues.length === 0) {
       next();
       return;
     }
 
-    const requestId = requestIdFromHeaders(request.headers);
     writeApiErrorResponse(response, validationEnvelope(issues, requestId));
   };
 }
 
-function validateRequest(request: BoundaryHttpRequest): readonly ApiValidationIssueDto[] {
-  const match = matchHttpRoute(request.method ?? "GET", pathnameFromRequest(request));
+function isHiddenDevOnlyRoute(route: MatchedHttpRoute | null): boolean {
+  return route?.route.audience === "dev-only" && !isDevSeedRouteEnabled();
+}
+
+function notFoundEnvelope(requestId: string | undefined) {
+  return {
+    statusCode: 404,
+    code: "not_found" as const,
+    message: "Resource not found.",
+    ...(requestId ? { requestId } : {}),
+  };
+}
+
+function validateRequest(
+  match: MatchedHttpRoute | null,
+  request: BoundaryHttpRequest,
+): readonly ApiValidationIssueDto[] {
   if (!match) return [];
 
   return [

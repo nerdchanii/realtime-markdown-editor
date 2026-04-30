@@ -22,7 +22,6 @@ import type {
   UploadedDocumentImageDto,
   WorkspaceId,
   WorkspaceNavigationResponseDto,
-  WorkspaceMembershipId,
 } from "@rme/contracts";
 
 export type ApiClient = Readonly<{
@@ -135,21 +134,16 @@ export async function fetchSeedReviewContext(client: ApiClient): Promise<SeedRev
 export async function fetchCollaborationSession(
   client: ApiClient,
   documentId: string,
-  member: string | null,
 ): Promise<CollaborationSessionDto> {
-  const params = new URLSearchParams();
-  if (member) params.set("memberId", memberIdForRouteMember(member));
-
-  const response = await fetch(
-    `${client.baseUrl}/collaboration/documents/${encodeURIComponent(documentId)}/session?${params}`,
-  );
-
-  if (!response.ok) {
-    throw new Error(`Collaboration session request failed with ${response.status}`);
-  }
-
   return mapCollaborationSessionResponse(
-    (await response.json()) as CollaborationSessionResponseDto,
+    await fetchJson<CollaborationSessionResponseDto>(
+      client,
+      `/documents/${encodeURIComponent(documentId)}/collaboration-sessions`,
+      {
+        method: "POST",
+        body: JSON.stringify({}),
+      },
+    ),
   );
 }
 
@@ -229,6 +223,7 @@ export async function createMarkdownExport(
     `${client.baseUrl}/documents/${encodeURIComponent(documentId)}/export`,
     {
       method: "POST",
+      credentials: "include",
       body,
     },
   );
@@ -253,6 +248,7 @@ export async function uploadDocumentImage(
     `${client.baseUrl}/documents/${encodeURIComponent(documentId)}/images`,
     {
       method: "POST",
+      credentials: "include",
       body,
     },
   );
@@ -276,9 +272,4 @@ function mapCollaborationSessionResponse(
     members: response.allowedMembers,
     sync: response.sync,
   };
-}
-
-function memberIdForRouteMember(member: string): WorkspaceMembershipId {
-  if (member.startsWith("member_")) return member as WorkspaceMembershipId;
-  return `member_${member}` as WorkspaceMembershipId;
 }

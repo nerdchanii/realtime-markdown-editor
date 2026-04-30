@@ -1,5 +1,6 @@
 import type {
   BacklinkDto,
+  CollaborationSessionDto,
   DocumentDetailDto,
   SessionDto,
   WorkspaceNavigationResponseDto,
@@ -20,6 +21,7 @@ export type ProductWorkspaceModel = Readonly<{
   session: SessionDto | null;
   navigation: WorkspaceNavigationResponseDto;
   selectedDocument: DocumentDetailDto;
+  collaborationSession: CollaborationSessionDto;
   markdownBody: string;
   backlinks: readonly BacklinkDto[];
 }>;

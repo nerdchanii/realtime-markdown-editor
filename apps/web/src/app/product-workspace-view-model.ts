@@ -10,7 +10,7 @@ import type {
 } from "@rme/contracts";
 
 import type { DocumentBacklink, DocumentProperty } from "@/features/document";
-import { createProductApiCollaborationAdapter } from "@/features/editor";
+import { createTiptapYjsCollaborationAdapter } from "@/features/editor";
 import type {
   WorkspaceDocumentCreateRequest,
   WorkspaceNavigationNode,
@@ -31,7 +31,7 @@ export function createProductProviders(
     workspaceNavigation: createWorkspaceNavigation(model, onSelectDocument, onCreateDocument),
     documentContext: createDocumentContext(model, context.memberships),
     editorWorkspace: createEditorWorkspace(model, context.memberships, context.currentMemberId),
-    editorCollaborationAdapter: createProductApiCollaborationAdapter(),
+    editorCollaborationAdapter: createTiptapYjsCollaborationAdapter(),
     historyInspector: createHistoryInspector(model, context.memberships, context.currentMemberId),
   };
 }
@@ -52,6 +52,7 @@ function createEditorWorkspace(
     replacementPoint: "features.editor.provider.product-api",
     label: model.selectedDocument.title,
     documentId: model.selectedDocument.id,
+    collaborationSession: model.collaborationSession,
     markdown: model.markdownBody,
     apiClient: model.apiClient,
     syncStatus: createSyncStatus(),

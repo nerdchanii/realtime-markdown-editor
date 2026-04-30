@@ -14,7 +14,7 @@ test("CE-04: reviewer can create and inspect a user-visible document revision", 
       "# Stale local-only review plan",
     );
   });
-  await page.goto("/?workspace=workspace_ce04");
+  await page.goto("/?workspace=workspace_ce04&document=document_ce04_plan");
 
   const editor = richMarkdownEditor(page);
   const revisionText = `Revision candidate text ${Date.now()}`;

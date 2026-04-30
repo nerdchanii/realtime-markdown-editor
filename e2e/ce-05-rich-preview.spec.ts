@@ -18,7 +18,8 @@ test("CE-05: TipTap rich editor renders Markdown authoring shortcuts in the edit
   const previewHeading = `Rich heading ${Date.now()}`;
   await expect(editor).toBeVisible();
   await editor.click();
-  await page.keyboard.press(process.platform === "darwin" ? "Meta+A" : "Control+A");
+  await page.keyboard.press(process.platform === "darwin" ? "Meta+End" : "Control+End");
+  await page.keyboard.press("Enter");
   await page.keyboard.type(`# ${previewHeading}`);
   await page.keyboard.press("Enter");
   await page.keyboard.type("- list item");
@@ -112,34 +113,6 @@ test("CE-05: toolbar undo and redo operate on the real editor content", async ({
 });
 
 test("CE-05: image insertion uploads through the document artifact API", async ({ page }) => {
-  let uploadedMarkdownImage = "";
-  await page.route("**/documents/*/images", async (route) => {
-    await expect(route.request().method()).toBe("POST");
-    const documentId =
-      route
-        .request()
-        .url()
-        .match(/\/documents\/([^/]+)\/images/)?.[1] ?? "";
-    uploadedMarkdownImage = `![Toolbar image](rme-artifact://documents/${documentId}/images/artifact_image_toolbar)`;
-    await route.fulfill({
-      contentType: "application/json",
-      body: JSON.stringify({
-        image: {
-          documentId: decodeURIComponent(documentId),
-          artifact: {
-            key: "artifact_image_toolbar",
-            contentType: "image/png",
-            checksumSha256: "a".repeat(64),
-            sizeBytes: 68,
-          },
-          filename: "toolbar-image.png",
-          altText: "Toolbar image",
-          markdownImage: uploadedMarkdownImage,
-          url: `rme-artifact://documents/${documentId}/images/artifact_image_toolbar`,
-        },
-      }),
-    });
-  });
   await openReviewerSession(page, { member: "alice", documentId: seededReviewDocumentId });
   await createLocalMarkdownDocument(page, `CE 05 image ${Date.now()}`);
 
@@ -152,9 +125,9 @@ test("CE-05: image insertion uploads through the document artifact API", async (
     ),
   });
 
-  await expect(richMarkdownEditor(page)).toContainText("Toolbar image");
+  await expect(richMarkdownEditor(page)).toContainText("toolbar image");
   await page.getByTestId("markdown-export-button").click();
-  await expect(page.getByTestId("markdown-export-output")).toContainText(uploadedMarkdownImage);
+  await expect(page.getByTestId("markdown-export-output")).toContainText("![toolbar image](");
   await expect(page.getByTestId("markdown-export-output")).toContainText(
     "rme-artifact://documents/",
   );
