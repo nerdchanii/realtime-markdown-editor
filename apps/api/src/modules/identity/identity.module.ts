@@ -1,5 +1,6 @@
 import { Module } from "@nestjs/common";
 
+import { PrismaDatabaseService } from "@/database/database.service.js";
 import { PrismaAuthSessionRepository } from "@/modules/identity/adapters/prisma-auth-session-repository.js";
 import { AuthSessionController } from "@/modules/identity/interfaces/auth-session.controller.js";
 import {
@@ -14,7 +15,8 @@ export const AUTH_SESSION_REPOSITORY = Symbol("AUTH_SESSION_REPOSITORY");
   providers: [
     {
       provide: AUTH_SESSION_REPOSITORY,
-      useClass: PrismaAuthSessionRepository,
+      useFactory: (database: PrismaDatabaseService) => new PrismaAuthSessionRepository(database),
+      inject: [PrismaDatabaseService],
     },
     {
       provide: AuthSessionService,
