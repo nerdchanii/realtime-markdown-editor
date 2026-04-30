@@ -1,6 +1,6 @@
 ---
 title: TASK-079-artifact-backed-image-upload-api
-status: todo
+status: archived
 phase: P10
 task_type: parallel-backend
 task_mode: parallel
@@ -89,8 +89,19 @@ Editor image insertion을 노출하기 전에 durable artifact-backed image uplo
 
 - 실행 명령: `pnpm --filter @rme/api test`
 - 기대 결과: API tests가 통과한다.
+- 결과: 통과, 19 tests / 0 failures. `fnm use` 후 Node `v24.15.0`, pnpm `10.28.2`에서 실행.
 - 실행 명령: `pnpm --filter @rme/api typecheck`
 - 기대 결과: API typecheck가 통과한다.
+- 결과: 통과. `fnm use` 후 Node `v24.15.0`, pnpm `10.28.2`에서 실행.
+- 실행 명령: `pnpm exec tsc -b packages/contracts`
+- 결과: 통과. `fnm use` 후 Node `v24.15.0`, pnpm `10.28.2`에서 실행.
+- 2026-04-30 finalizer fresh rerun:
+  - `pnpm exec tsc -b packages/contracts`: 통과. Node `v24.15.0`,
+    pnpm `10.28.2`.
+  - `pnpm --filter @rme/api test`: 통과, 19 tests / 0 failures. Node
+    `v24.15.0`, pnpm `10.28.2`.
+  - `pnpm --filter @rme/api typecheck`: 통과. Node `v24.15.0`, pnpm
+    `10.28.2`.
 
 ## Review
 
@@ -98,15 +109,20 @@ Editor image insertion을 노출하기 전에 durable artifact-backed image uplo
 - Code quality review 필요 여부: 필요.
 - Boundary review 필요 여부: 필요.
 - Orchestration guardrail 확인: durable insertion must wait for artifact-backed upload.
+- 2026-04-30 finalizer focused review: staged diff checked against TASK-079
+  scope/write set. Backend-only API, artifact storage port, validation envelope,
+  and provider-internal storage key boundary matched task intent. No `apps/web/**`,
+  `apps/collab/**`, `DESIGN.md`, or `.note/**` changes found.
 
 ## Archive Checklist
 
-- [ ] `status`를 `archived`로 변경했다.
-- [ ] 파일을 `tasks/archive/`로 이동했다.
-- [ ] 검증 결과를 이 문서에 기록했다.
-- [ ] 필요한 공식 문서 업데이트를 완료했다.
-- [ ] follow-up 또는 blocker를 기록했다.
+- [x] `status`를 `archived`로 변경했다.
+- [x] 파일을 `tasks/archive/`로 이동했다.
+- [x] 검증 결과를 이 문서에 기록했다.
+- [x] 필요한 공식 문서 업데이트를 완료했다.
+- [x] follow-up 또는 blocker를 기록했다.
 
 ## 메모
 
 - May run after `TASK-072` and `TASK-073` if write set is made disjoint from checkpoint artifact work.
+- Follow-up/blocker: 없음.

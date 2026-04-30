@@ -265,7 +265,10 @@ export type MarkdownExportDto = Readonly<{
 }>;
 
 export type CreateMarkdownExportRequestDto = Readonly<{
-  filename?: string;
+  documentId: DocumentId;
+  filename: string;
+  properties: readonly DocumentPropertyDto[];
+  markdownBody: string;
 }>;
 
 export type MarkdownExportResponseDto = MarkdownExportDto;
@@ -364,7 +367,11 @@ export type CheckpointSnapshotInspectDto = Readonly<{
 export type DocumentSnapshotInspectDto = CheckpointSnapshotInspectDto;
 
 export type CreateCheckpointRequestDto = Readonly<{
+  documentId: DocumentId;
+  authorMembershipId: WorkspaceMembershipId;
   message: string;
+  markdownSnapshot: string;
+  source: "collaboration";
 }>;
 
 export type CreateCheckpointResponseDto = Readonly<{

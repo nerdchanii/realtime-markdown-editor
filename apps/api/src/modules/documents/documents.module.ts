@@ -2,6 +2,14 @@ import { Module } from "@nestjs/common";
 
 import { PrismaDatabaseService } from "@/database/database.service.js";
 import {
+  LocalDocumentImageArtifactStorage,
+  type ImageArtifactPersistenceClient,
+} from "@/modules/artifacts/adapters/local-document-image-artifact-storage.js";
+import {
+  DOCUMENT_IMAGE_ARTIFACT_STORAGE,
+  type DocumentImageArtifactStorage,
+} from "@/modules/artifacts/ports/document-image-artifact-storage.js";
+import {
   PrismaDocumentContentRepository,
   type PrismaDocumentContentPersistenceClient,
 } from "@/modules/documents/adapters/prisma-document-content-repository.js";
@@ -11,6 +19,7 @@ import {
 } from "@/modules/documents/adapters/prisma-document-repository.js";
 import { LocalCheckpointRepository } from "@/modules/documents/adapters/local-checkpoint-repository.js";
 import { CheckpointsController } from "@/modules/documents/interfaces/checkpoints.controller.js";
+import { ImageUploadController } from "@/modules/documents/interfaces/image-upload.controller.js";
 import { MarkdownExportController } from "@/modules/documents/interfaces/markdown-export.controller.js";
 import {
   CHECKPOINT_REPOSITORY,
@@ -29,9 +38,10 @@ import { CreateCheckpointUseCase } from "@/modules/documents/use-cases/create-ch
 import { InspectCheckpointSnapshotUseCase } from "@/modules/documents/use-cases/inspect-checkpoint-snapshot-use-case.js";
 import { ListCheckpointsUseCase } from "@/modules/documents/use-cases/list-checkpoints-use-case.js";
 import { ExportMarkdownUseCase } from "@/modules/documents/use-cases/export-markdown-use-case.js";
+import { UploadDocumentImageUseCase } from "@/modules/documents/use-cases/upload-document-image-use-case.js";
 
 @Module({
-  controllers: [CheckpointsController, MarkdownExportController],
+  controllers: [CheckpointsController, ImageUploadController, MarkdownExportController],
   providers: [
     {
       provide: CHECKPOINT_REPOSITORY,
@@ -48,6 +58,14 @@ import { ExportMarkdownUseCase } from "@/modules/documents/use-cases/export-mark
       useFactory: (database: PrismaDatabaseService) =>
         new PrismaDocumentContentRepository(
           database as unknown as PrismaDocumentContentPersistenceClient,
+        ),
+      inject: [PrismaDatabaseService],
+    },
+    {
+      provide: DOCUMENT_IMAGE_ARTIFACT_STORAGE,
+      useFactory: (database: PrismaDatabaseService) =>
+        new LocalDocumentImageArtifactStorage(
+          database as unknown as ImageArtifactPersistenceClient,
         ),
       inject: [PrismaDatabaseService],
     },
@@ -78,6 +96,12 @@ import { ExportMarkdownUseCase } from "@/modules/documents/use-cases/export-mark
         new ExportMarkdownUseCase(documents, content),
       inject: [DOCUMENT_REPOSITORY, DOCUMENT_CONTENT_REPOSITORY],
     },
+    {
+      provide: UploadDocumentImageUseCase,
+      useFactory: (artifacts: DocumentImageArtifactStorage) =>
+        new UploadDocumentImageUseCase(artifacts),
+      inject: [DOCUMENT_IMAGE_ARTIFACT_STORAGE],
+    },
   ],
   exports: [
     CreateDocumentUseCase,
@@ -85,6 +109,7 @@ import { ExportMarkdownUseCase } from "@/modules/documents/use-cases/export-mark
     InspectCheckpointSnapshotUseCase,
     ListCheckpointsUseCase,
     ExportMarkdownUseCase,
+    UploadDocumentImageUseCase,
     DOCUMENT_CONTENT_REPOSITORY,
   ],
 })
