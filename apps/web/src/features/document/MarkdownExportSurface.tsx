@@ -1,21 +1,14 @@
 import { useState } from "react";
 
-import type {
-  DocumentId,
-  DocumentPropertyDto,
-  MarkdownExportResponseDto,
-  WorkspaceMembershipId,
-} from "@rme/contracts";
+import type { DocumentId, MarkdownExportResponseDto } from "@rme/contracts";
 
 import { createMarkdownExport, createMockApiClient } from "@/lib/api-client";
-import { readCurrentEditorMarkdown } from "@/lib/current-editor-markdown";
 
 import type { DocumentProperty } from "./types";
 
 export function MarkdownExportSurface({
   documentId,
   title,
-  properties,
 }: {
   documentId: string | undefined;
   title: string;
@@ -23,7 +16,6 @@ export function MarkdownExportSurface({
 }) {
   const { exportResult, exportError, createExport } = useMarkdownExport({
     documentId,
-    properties,
     title,
   });
 
@@ -51,17 +43,15 @@ function ExportButton({ onExport }: { onExport: () => Promise<void> }) {
 function useMarkdownExport({
   documentId,
   title,
-  properties,
 }: Readonly<{
   documentId: string | undefined;
   title: string;
-  properties: readonly DocumentProperty[];
 }>) {
   const [exportResult, setExportResult] = useState<MarkdownExportResponseDto | null>(null);
   const [exportError, setExportError] = useState<string | null>(null);
   const createExport = async () => {
     try {
-      const result = await requestMarkdownExport(documentId, title, properties);
+      const result = await requestMarkdownExport(documentId, title);
       setExportError(null);
       setExportResult(result);
     } catch (error) {
@@ -72,18 +62,11 @@ function useMarkdownExport({
   return { exportResult, exportError, createExport };
 }
 
-function requestMarkdownExport(
-  documentId: string | undefined,
-  title: string,
-  properties: readonly DocumentProperty[],
-) {
+function requestMarkdownExport(documentId: string | undefined, title: string) {
   const exportDocumentId = (documentId ?? readDocumentId()) as DocumentId;
 
   return createMarkdownExport(createMockApiClient(), exportDocumentId, {
-    documentId: exportDocumentId,
     filename: `${slugify(title)}.md`,
-    properties: properties.map(toPropertyDto),
-    markdownBody: readCurrentMarkdown(),
   });
 }
 
@@ -96,39 +79,6 @@ function ExportResult({ result }: { result: MarkdownExportResponseDto }) {
       </pre>
     </div>
   );
-}
-
-function toPropertyDto(property: DocumentProperty): DocumentPropertyDto {
-  const key = property.key ?? property.label;
-  const valueType = property.valueType ?? inferPropertyType(property);
-
-  if (valueType === "checkbox") {
-    return { key, value: { type: "checkbox", value: property.value === "true" } };
-  }
-
-  if (valueType === "member") {
-    return { key, value: { type: "member", value: memberIdForProperty(property.value) } };
-  }
-
-  return { key, value: { type: valueType, value: property.value } };
-}
-
-function inferPropertyType(property: DocumentProperty) {
-  const label = property.label.toLowerCase();
-  if (label.includes("date")) return "date";
-  if (label.includes("owner")) return "member";
-  if (label.includes("evidence")) return "checkbox";
-  if (property.tone === "warning") return "status";
-  return "text";
-}
-
-function memberIdForProperty(value: string): WorkspaceMembershipId {
-  if (value.startsWith("member_")) return value as WorkspaceMembershipId;
-  return `member_${value.toLowerCase().replaceAll(" ", "_")}` as WorkspaceMembershipId;
-}
-
-function readCurrentMarkdown() {
-  return readCurrentEditorMarkdown();
 }
 
 function readDocumentId() {

@@ -63,11 +63,7 @@ export async function createCollaborationCheckpoint(
   request: CreateCheckpointRequestDto,
 ): Promise<CreateCheckpointResponseDto> {
   const body = new URLSearchParams({
-    documentId: request.documentId,
-    authorMembershipId: request.authorMembershipId,
     message: request.message,
-    markdownSnapshot: request.markdownSnapshot,
-    source: request.source,
   });
   const response = await fetch(
     `${client.baseUrl}/collaboration/documents/${encodeURIComponent(documentId)}/checkpoints`,
@@ -104,16 +100,14 @@ export async function createMarkdownExport(
   documentId: string,
   request: CreateMarkdownExportRequestDto,
 ): Promise<MarkdownExportResponseDto> {
+  const body = new URLSearchParams();
+  if (request.filename !== undefined) body.set("filename", request.filename);
+
   const response = await fetch(
     `${client.baseUrl}/documents/${encodeURIComponent(documentId)}/export`,
     {
       method: "POST",
-      body: new URLSearchParams({
-        documentId: request.documentId,
-        filename: request.filename,
-        properties: JSON.stringify(request.properties),
-        markdownBody: request.markdownBody,
-      }),
+      body,
     },
   );
 

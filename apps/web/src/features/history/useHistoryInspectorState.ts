@@ -123,11 +123,7 @@ async function createApiCheckpoint(
   const authorMembershipId = viewModel.currentMemberId ?? readRouteMemberId();
   const markdownSnapshot = readCurrentEditorMarkdown();
   const response = await createCollaborationCheckpoint(createMockApiClient(), documentId, {
-    documentId,
-    authorMembershipId,
     message: revisionMessage.trim() || "Untitled revision",
-    markdownSnapshot,
-    source: "collaboration",
   });
 
   const checkpoint = mapCheckpoint(response.checkpoint, {
