@@ -11,6 +11,7 @@ import type {
   DocumentSyncStateDto,
   FolderDto,
   FolderId,
+  ListCheckpointsResponseDto,
   ProjectDto,
   ProjectId,
   PublicationDto,
@@ -108,6 +109,10 @@ const inspectSnapshot = {
   artifact,
 } satisfies CheckpointSnapshotInspectDto;
 
+const checkpointList = {
+  checkpoints: [checkpoint],
+} satisfies ListCheckpointsResponseDto;
+
 const publication = {
   id: publicationId,
   documentId,
@@ -177,3 +182,4 @@ const seed = {
 
 void seed;
 void inspectSnapshot;
+void checkpointList;

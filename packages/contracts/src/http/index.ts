@@ -219,6 +219,10 @@ export type CreateCheckpointResponseDto = Readonly<{
   checkpoint: CheckpointDto;
 }>;
 
+export type ListCheckpointsResponseDto = Readonly<{
+  checkpoints: readonly CheckpointDto[];
+}>;
+
 export type DocumentReviewStateDto = Readonly<{
   document: DocumentDetailDto;
   sync: DocumentSyncStateDto;

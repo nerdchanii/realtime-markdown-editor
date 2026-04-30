@@ -8,7 +8,7 @@
     "build": "tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json",
     "start": "node dist/main.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "node --test"
+    "test": "tsx --test --test-concurrency=1 \"src/**/*.test.ts\" \"src/**/*.smoke.ts\""
   },
   "dependencies": {
     "@nestjs/common": "^11.1.19",

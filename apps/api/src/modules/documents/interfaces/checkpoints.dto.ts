@@ -2,6 +2,7 @@ import type {
   CheckpointDto,
   CheckpointSnapshotInspectDto,
   DocumentId,
+  ListCheckpointsResponseDto,
   WorkspaceMembershipId,
 } from "@rme/contracts";
 
@@ -15,5 +16,7 @@ export type CreateCheckpointRequestDto = Readonly<{
 export type CreateCheckpointResponseDto = Readonly<{
   checkpoint: CheckpointDto;
 }>;
+
+export type ListCheckpointsResponse = ListCheckpointsResponseDto;
 
 export type InspectCheckpointSnapshotResponseDto = CheckpointSnapshotInspectDto;

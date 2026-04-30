@@ -15,6 +15,7 @@ import {
 } from "@/modules/documents/ports/document-repository.js";
 import { CreateCheckpointUseCase } from "@/modules/documents/use-cases/create-checkpoint-use-case.js";
 import { InspectCheckpointSnapshotUseCase } from "@/modules/documents/use-cases/inspect-checkpoint-snapshot-use-case.js";
+import { ListCheckpointsUseCase } from "@/modules/documents/use-cases/list-checkpoints-use-case.js";
 import { ExportMarkdownUseCase } from "@/modules/documents/use-cases/export-markdown-use-case.js";
 
 @Module({
@@ -44,12 +45,18 @@ import { ExportMarkdownUseCase } from "@/modules/documents/use-cases/export-mark
         new InspectCheckpointSnapshotUseCase(repository),
       inject: [CHECKPOINT_REPOSITORY],
     },
+    {
+      provide: ListCheckpointsUseCase,
+      useFactory: (repository: CheckpointRepository) => new ListCheckpointsUseCase(repository),
+      inject: [CHECKPOINT_REPOSITORY],
+    },
     ExportMarkdownUseCase,
   ],
   exports: [
     CreateDocumentUseCase,
     CreateCheckpointUseCase,
     InspectCheckpointSnapshotUseCase,
+    ListCheckpointsUseCase,
     ExportMarkdownUseCase,
   ],
 })

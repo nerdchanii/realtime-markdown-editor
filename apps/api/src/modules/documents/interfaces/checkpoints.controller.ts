@@ -20,9 +20,11 @@ import {
   type CreateCheckpointRequestDto,
   type CreateCheckpointResponseDto,
   type InspectCheckpointSnapshotResponseDto,
+  type ListCheckpointsResponse,
 } from "@/modules/documents/interfaces/checkpoints.dto.js";
 import { CreateCheckpointUseCase } from "@/modules/documents/use-cases/create-checkpoint-use-case.js";
 import { InspectCheckpointSnapshotUseCase } from "@/modules/documents/use-cases/inspect-checkpoint-snapshot-use-case.js";
+import { ListCheckpointsUseCase } from "@/modules/documents/use-cases/list-checkpoints-use-case.js";
 
 @Controller("documents")
 export class CheckpointsController {
@@ -31,7 +33,23 @@ export class CheckpointsController {
     private readonly createCheckpoint: CreateCheckpointUseCase,
     @Inject(InspectCheckpointSnapshotUseCase)
     private readonly inspectCheckpointSnapshot: InspectCheckpointSnapshotUseCase,
+    @Inject(ListCheckpointsUseCase)
+    private readonly listCheckpoints: ListCheckpointsUseCase,
   ) {}
+
+  @Get(":documentId/checkpoints")
+  @Header("Access-Control-Allow-Origin", "*")
+  async listDocumentCheckpoints(
+    @Param("documentId") documentId: string,
+  ): Promise<ListCheckpointsResponse> {
+    const snapshots = await this.listCheckpoints.execute(documentId as DocumentId);
+
+    return {
+      checkpoints: snapshots.map((snapshot) =>
+        mapCheckpointToDto(snapshot.checkpoint, snapshot.markdownBody),
+      ),
+    };
+  }
 
   @Post(":documentId/checkpoints")
   @Header("Access-Control-Allow-Origin", "*")
