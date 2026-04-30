@@ -15,12 +15,14 @@ import type {
 } from "@rme/contracts";
 
 import { AppModule } from "@/app.module.js";
+import { configureHttpBoundary } from "@/interfaces/http/http-boundary.js";
 
 test("checkpoint API creates, lists, and inspects persisted document checkpoints", async () => {
   const previousDataDir = process.env.RME_CHECKPOINT_DATA_DIR;
   const dataDir = await mkdtemp(join(tmpdir(), "rme-checkpoint-api-"));
   process.env.RME_CHECKPOINT_DATA_DIR = dataDir;
   const app = await NestFactory.create(AppModule, { logger: ["error"] });
+  configureHttpBoundary(app);
   await app.listen(0);
 
   try {
@@ -89,7 +91,8 @@ async function createCheckpoint(
     `${baseUrl}/collaboration/documents/${encodeURIComponent(documentId)}/checkpoints`,
     {
       method: "POST",
-      body: new URLSearchParams({
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
         documentId,
         authorMembershipId: input.authorMembershipId,
         message: input.message,

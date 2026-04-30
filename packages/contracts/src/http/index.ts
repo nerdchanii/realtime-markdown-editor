@@ -1,3 +1,5 @@
+/* eslint-disable max-lines */
+
 import type {
   CheckpointId,
   DocumentId,
@@ -32,10 +34,43 @@ export type WorkspaceMemberDto = Readonly<{
   role: WorkspaceMemberRoleDto;
 }>;
 
+export type SessionDto = Readonly<{
+  user: UserDto;
+  memberships: readonly WorkspaceMemberDto[];
+  currentMembership: WorkspaceMemberDto | null;
+}>;
+
+export type CreateSessionRequestDto = Readonly<{
+  email: string;
+  workspaceId?: WorkspaceId;
+}>;
+
+export type SessionResponseDto = Readonly<{
+  session: SessionDto;
+}>;
+
+export type EmptyResponseDto = Readonly<Record<string, never>>;
+
 export type WorkspaceDto = Readonly<{
   id: WorkspaceId;
   name: string;
   rootFolderId: FolderId;
+}>;
+
+export type CreateWorkspaceRequestDto = Readonly<{
+  name: string;
+}>;
+
+export type UpdateWorkspaceRequestDto = Readonly<{
+  name?: string;
+}>;
+
+export type WorkspaceResponseDto = Readonly<{
+  workspace: WorkspaceDto;
+}>;
+
+export type ListWorkspacesResponseDto = Readonly<{
+  workspaces: readonly WorkspaceDto[];
 }>;
 
 export type ProjectDto = Readonly<{
@@ -43,6 +78,22 @@ export type ProjectDto = Readonly<{
   workspaceId: WorkspaceId;
   name: string;
   rootFolderId: FolderId;
+}>;
+
+export type CreateProjectRequestDto = Readonly<{
+  name: string;
+}>;
+
+export type UpdateProjectRequestDto = Readonly<{
+  name?: string;
+}>;
+
+export type ProjectResponseDto = Readonly<{
+  project: ProjectDto;
+}>;
+
+export type ListProjectsResponseDto = Readonly<{
+  projects: readonly ProjectDto[];
 }>;
 
 export type FolderKindDto = "workspaceRoot" | "projectRoot" | "regular" | "inbox";
@@ -54,6 +105,23 @@ export type FolderDto = Readonly<{
   name: string;
   kind: FolderKindDto;
   parentFolderId: FolderId | null;
+}>;
+
+export type CreateFolderRequestDto = Readonly<{
+  parentFolderId: FolderId;
+  name: string;
+}>;
+
+export type UpdateFolderRequestDto = Readonly<{
+  name?: string;
+}>;
+
+export type MoveFolderRequestDto = Readonly<{
+  targetParentFolderId: FolderId;
+}>;
+
+export type FolderResponseDto = Readonly<{
+  folder: FolderDto;
 }>;
 
 export type DocumentStateDto = "draft" | "review" | "saved";
@@ -108,6 +176,71 @@ export type DocumentDetailDto = DocumentSummaryDto &
     properties: readonly DocumentPropertyDto[];
   }>;
 
+export type DocumentContentSourceDto = "collaboration-projection" | "manual-import";
+
+export type DocumentContentDto = Readonly<{
+  documentId: DocumentId;
+  markdownBody: string;
+  latestRevisionId: RevisionId | null;
+  updatedAt: string;
+}>;
+
+export type CreateDocumentRequestDto = Readonly<{
+  title: string;
+  initialMarkdownBody?: string;
+  state?: DocumentStateDto;
+  properties?: readonly DocumentPropertyDto[];
+}>;
+
+export type UpdateDocumentRequestDto = Readonly<{
+  title?: string;
+  state?: DocumentStateDto;
+}>;
+
+export type MoveDocumentRequestDto = Readonly<{
+  targetFolderId: FolderId;
+}>;
+
+export type UpdateDocumentContentRequestDto = Readonly<{
+  markdownBody: string;
+  baseRevisionId?: RevisionId;
+  source: DocumentContentSourceDto;
+}>;
+
+export type ReplaceDocumentPropertiesRequestDto = Readonly<{
+  properties: readonly DocumentPropertyDto[];
+}>;
+
+export type DocumentResponseDto = Readonly<{
+  document: DocumentDetailDto;
+}>;
+
+export type DocumentContentResponseDto = Readonly<{
+  content: DocumentContentDto;
+}>;
+
+export type ListDocumentsResponseDto = Readonly<{
+  documents: readonly DocumentSummaryDto[];
+}>;
+
+export type WorkspaceNavigationResponseDto = Readonly<{
+  workspace: WorkspaceDto;
+  projects: readonly ProjectDto[];
+  folders: readonly FolderDto[];
+  documents: readonly DocumentSummaryDto[];
+}>;
+
+export type FolderChildrenResponseDto = Readonly<{
+  folder: FolderDto;
+  folders: readonly FolderDto[];
+  documents: readonly DocumentSummaryDto[];
+}>;
+
+export type DeletedResourceResponseDto = Readonly<{
+  id: string;
+  deletedAt: string;
+}>;
+
 export type DocumentConnectionsDto = Readonly<{
   documentId: DocumentId;
   links: readonly DocumentLinkDto[];
@@ -132,13 +265,36 @@ export type MarkdownExportDto = Readonly<{
 }>;
 
 export type CreateMarkdownExportRequestDto = Readonly<{
-  documentId: DocumentId;
-  filename: string;
-  properties: readonly DocumentPropertyDto[];
-  markdownBody: string;
+  filename?: string;
 }>;
 
 export type MarkdownExportResponseDto = MarkdownExportDto;
+
+export type UploadedDocumentImageDto = Readonly<{
+  documentId: DocumentId;
+  artifact: ArtifactReferenceDto;
+  filename: string;
+  altText: string | null;
+  markdownImage: string;
+  url: string;
+}>;
+
+export type MultipartFilePartDto = Readonly<{
+  fieldName: "file";
+  filename: string;
+  contentType: string;
+  checksumSha256: string;
+  sizeBytes: number;
+}>;
+
+export type CreateImageUploadRequestDto = Readonly<{
+  file: MultipartFilePartDto;
+  altText?: string;
+}>;
+
+export type ImageUploadResponseDto = Readonly<{
+  image: UploadedDocumentImageDto;
+}>;
 
 export type RevisionSourceDto = "checkpoint" | "publication";
 
@@ -208,11 +364,7 @@ export type CheckpointSnapshotInspectDto = Readonly<{
 export type DocumentSnapshotInspectDto = CheckpointSnapshotInspectDto;
 
 export type CreateCheckpointRequestDto = Readonly<{
-  documentId: DocumentId;
-  authorMembershipId: WorkspaceMembershipId;
   message: string;
-  markdownSnapshot: string;
-  source: "collaboration";
 }>;
 
 export type CreateCheckpointResponseDto = Readonly<{
@@ -223,6 +375,8 @@ export type ListCheckpointsResponseDto = Readonly<{
   checkpoints: readonly CheckpointDto[];
 }>;
 
+export type CheckpointSnapshotInspectResponseDto = CheckpointSnapshotInspectDto;
+
 export type DocumentReviewStateDto = Readonly<{
   document: DocumentDetailDto;
   sync: DocumentSyncStateDto;
@@ -230,4 +384,16 @@ export type DocumentReviewStateDto = Readonly<{
   currentPublication: PublicationDto | null;
 }>;
 
+export type CreateCollaborationSessionRequestDto = Readonly<{
+  clientId?: string;
+}>;
+
+export type CollaborationSessionQueryDto = Readonly<{
+  memberId?: WorkspaceMembershipId;
+}>;
+
 export type CollaborationSessionResponseDto = IssuedCollaborationSessionDto;
+
+export * from "./errors.js";
+export * from "./routes.js";
+export * from "./schemas.js";

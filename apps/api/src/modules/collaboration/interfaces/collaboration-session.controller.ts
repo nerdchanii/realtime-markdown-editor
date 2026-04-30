@@ -2,14 +2,13 @@ import {
   Body,
   Controller,
   Get,
-  Header,
   Inject,
   NotFoundException,
   Param,
   Post,
   Query,
 } from "@nestjs/common";
-import type { CreateCheckpointRequestDto, CreateCheckpointResponseDto } from "@rme/contracts";
+import type { CreateCheckpointResponseDto } from "@rme/contracts";
 
 import type { CollaborationSessionResponseDto } from "@/modules/collaboration/interfaces/collaboration-session.dto.js";
 import {
@@ -19,6 +18,7 @@ import {
 import { mapCollaborationSessionToResponseDto } from "@/modules/collaboration/interfaces/collaboration-session.mapper.js";
 import type { DocumentId } from "@/modules/documents/domain/document.js";
 import type { WorkspaceMembershipId } from "@/modules/documents/domain/references.js";
+import type { CreateCheckpointRequestDto } from "@/modules/documents/interfaces/checkpoints.dto.js";
 import { mapCheckpointToDto } from "@/modules/documents/interfaces/checkpoints.mapper.js";
 import { CreateCheckpointUseCase } from "@/modules/documents/use-cases/create-checkpoint-use-case.js";
 import {
@@ -38,7 +38,6 @@ export class CollaborationSessionController {
   ) {}
 
   @Get("sessions/seed")
-  @Header("Access-Control-Allow-Origin", "*")
   async getSeedSession(
     @Query("memberId") memberId?: string,
   ): Promise<CollaborationSessionResponseDto> {
@@ -53,7 +52,6 @@ export class CollaborationSessionController {
   }
 
   @Get("documents/:documentId/session")
-  @Header("Access-Control-Allow-Origin", "*")
   async getDocumentSession(
     @Param("documentId") documentId: string,
     @Query("memberId") memberId?: string,
@@ -71,7 +69,6 @@ export class CollaborationSessionController {
   }
 
   @Post("documents/:documentId/checkpoints")
-  @Header("Access-Control-Allow-Origin", "*")
   async captureCheckpoint(
     @Param("documentId") documentId: string,
     @Body() body: CreateCheckpointRequestDto,

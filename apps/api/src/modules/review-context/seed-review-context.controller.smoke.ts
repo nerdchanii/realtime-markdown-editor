@@ -8,9 +8,11 @@ import { NestFactory } from "@nestjs/core";
 import type { SeedReviewContextDto } from "@rme/contracts";
 
 import { AppModule } from "@/app.module.js";
+import { configureHttpBoundary } from "@/interfaces/http/http-boundary.js";
 
 test("GET /review-context/seed returns the seeded review context", async () => {
   const app = await NestFactory.create(AppModule, { logger: ["error"] });
+  configureHttpBoundary(app);
   await app.listen(0);
 
   try {

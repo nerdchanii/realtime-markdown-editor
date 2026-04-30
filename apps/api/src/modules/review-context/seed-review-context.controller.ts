@@ -1,4 +1,4 @@
-import { Controller, Get, Header, Inject } from "@nestjs/common";
+import { Controller, Get, Inject } from "@nestjs/common";
 import type { SeedReviewContextDto } from "@rme/contracts";
 
 import { SeedReviewContextService } from "@/modules/review-context/seed-review-context.service.js";
@@ -11,7 +11,6 @@ export class SeedReviewContextController {
   ) {}
 
   @Get("seed")
-  @Header("Access-Control-Allow-Origin", "*")
   getSeedReviewContext(): SeedReviewContextDto {
     return this.seedReviewContextService.getSeedReviewContext();
   }

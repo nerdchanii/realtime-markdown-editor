@@ -1,4 +1,4 @@
-import { Body, Controller, Header, Inject, NotFoundException, Param, Post } from "@nestjs/common";
+import { Body, Controller, Inject, NotFoundException, Param, Post } from "@nestjs/common";
 import type { CreateMarkdownExportRequestDto, MarkdownExportResponseDto } from "@rme/contracts";
 
 import type { DocumentId } from "@/modules/documents/domain/document.js";
@@ -15,7 +15,6 @@ export class MarkdownExportController {
   ) {}
 
   @Post(":documentId/export")
-  @Header("Access-Control-Allow-Origin", "*")
   createMarkdownExport(
     @Param("documentId") documentId: string,
     @Body() body: CreateMarkdownExportRequestDto,

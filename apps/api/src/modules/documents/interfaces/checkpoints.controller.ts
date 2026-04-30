@@ -1,13 +1,4 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Header,
-  Inject,
-  NotFoundException,
-  Param,
-  Post,
-} from "@nestjs/common";
+import { Body, Controller, Get, Inject, NotFoundException, Param, Post } from "@nestjs/common";
 
 import type { CheckpointId } from "@/modules/documents/domain/checkpoint.js";
 import type { DocumentId } from "@/modules/documents/domain/document.js";
@@ -38,7 +29,6 @@ export class CheckpointsController {
   ) {}
 
   @Get(":documentId/checkpoints")
-  @Header("Access-Control-Allow-Origin", "*")
   async listDocumentCheckpoints(
     @Param("documentId") documentId: string,
   ): Promise<ListCheckpointsResponse> {
@@ -52,7 +42,6 @@ export class CheckpointsController {
   }
 
   @Post(":documentId/checkpoints")
-  @Header("Access-Control-Allow-Origin", "*")
   async createDocumentCheckpoint(
     @Param("documentId") documentId: string,
     @Body() body: CreateCheckpointRequestDto,
@@ -70,7 +59,6 @@ export class CheckpointsController {
   }
 
   @Get("checkpoints/:checkpointId/snapshot")
-  @Header("Access-Control-Allow-Origin", "*")
   async inspectSnapshot(
     @Param("checkpointId") checkpointId: string,
   ): Promise<InspectCheckpointSnapshotResponseDto> {

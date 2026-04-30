@@ -1,6 +1,6 @@
 ---
 title: TASK-073-api-runtime-validation-error-envelope-cors
-status: blocked
+status: archived
 phase: P10
 task_type: parallel-backend
 task_mode: blocking
@@ -145,6 +145,15 @@ Decision on 2026-04-30:
 - Created prerequisite `TASK-073A: Markdown Export Input Boundary`.
 - TASK-073 remains blocked until `TASK-073A` is archived.
 
+Resolved:
+
+- `TASK-073A` was archived and committed as `ad78480 fix(api): separate markdown export input boundary`.
+- TASK-073 returned to `active` for verification.
+- Final verification:
+  - `pnpm --filter @rme/api test`: passed, 7 tests.
+  - `pnpm --filter @rme/api typecheck`: passed.
+  - `pnpm lint`: passed.
+
 ## Review
 
 - Spec compliance review 필요 여부: 필요.
@@ -154,11 +163,11 @@ Decision on 2026-04-30:
 
 ## Archive Checklist
 
-- [ ] `status`를 `archived`로 변경했다.
-- [ ] 파일을 `tasks/archive/`로 이동했다.
-- [ ] 검증 결과를 이 문서에 기록했다.
-- [ ] 필요한 공식 문서 업데이트를 완료했다.
-- [ ] follow-up 또는 blocker를 기록했다.
+- [x] `status`를 `archived`로 변경했다.
+- [x] 파일을 `tasks/archive/`로 이동했다.
+- [x] 검증 결과를 이 문서에 기록했다.
+- [x] 필요한 공식 문서 업데이트를 완료했다.
+- [x] follow-up 또는 blocker를 기록했다.
 
 ## 메모
 
