@@ -18,9 +18,12 @@ test("CE-02: remote cursor and selection show workspace member identity", async 
   await bobPage.keyboard.press("ArrowRight");
   await bobPage.keyboard.up("Shift");
 
-  await expect(alicePage.getByTestId("presence-cursor-bob")).toBeVisible();
-  await expect(alicePage.getByTestId("presence-selection-bob")).toBeVisible();
-  await expect(alicePage.getByTestId("presence-cursor-bob")).toContainText("Bob");
+  const bobCursor = alicePage.getByTestId("presence-cursor-bob").first();
+  const bobSelection = alicePage.getByTestId("presence-selection-bob").first();
+
+  await expect(bobCursor).toBeVisible();
+  await expect(bobSelection).toBeVisible();
+  await expect(bobCursor).toContainText("Bob");
 
   await alice.close();
   await bob.close();

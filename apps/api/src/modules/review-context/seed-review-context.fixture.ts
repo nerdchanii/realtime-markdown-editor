@@ -23,8 +23,12 @@ const reviewPlanDocumentId = "document_review_plan" as DocumentId;
 const decisionsDocumentId = "document_decision_log" as DocumentId;
 const aliceUserId = "user_alice" as UserId;
 const bobUserId = "user_bob" as UserId;
+const carolUserId = "user_carol" as UserId;
+const danaUserId = "user_dana" as UserId;
 const aliceMembershipId = "member_alice" as WorkspaceMembershipId;
 const bobMembershipId = "member_bob" as WorkspaceMembershipId;
+const carolMembershipId = "member_carol" as WorkspaceMembershipId;
+const danaMembershipId = "member_dana" as WorkspaceMembershipId;
 const reviewRevisionId = "revision_review_plan_001" as RevisionId;
 const decisionsRevisionId = "revision_decision_log_001" as RevisionId;
 const reviewCheckpointId = "checkpoint_review_plan_001" as CheckpointId;
@@ -66,6 +70,24 @@ const bobMembership = {
   role: "editor",
 } as const;
 
+const carolMembership = {
+  id: carolMembershipId,
+  userId: carolUserId,
+  workspaceId,
+  displayName: "Carol",
+  color: "#8250df",
+  role: "editor",
+} as const;
+
+const danaMembership = {
+  id: danaMembershipId,
+  userId: danaUserId,
+  workspaceId,
+  displayName: "Dana",
+  color: "#bf3989",
+  role: "editor",
+} as const;
+
 const reviewPlanDocument = {
   id: reviewPlanDocumentId,
   folderId: notesFolderId,
@@ -103,6 +125,8 @@ export const seedReviewContext: SeedReviewContext = {
   users: [
     { id: aliceUserId, email: "alice@example.test", name: "Alice Kim" },
     { id: bobUserId, email: "bob@example.test", name: "Bob Park" },
+    { id: carolUserId, email: "carol@example.test", name: "Carol Lee" },
+    { id: danaUserId, email: "dana@example.test", name: "Dana Choi" },
   ],
   workspace: {
     id: workspaceId,
@@ -151,7 +175,7 @@ export const seedReviewContext: SeedReviewContext = {
   ],
   selectedDocument: reviewPlanDocument,
   documents: [reviewPlanDocument, decisionLogDocument],
-  members: [aliceMembership, bobMembership],
+  members: [aliceMembership, bobMembership, carolMembership, danaMembership],
   backlinks: [
     {
       sourceDocumentId: decisionsDocumentId,
@@ -166,7 +190,7 @@ export const seedReviewContext: SeedReviewContext = {
     documentKey: "workspace_review/document_review_plan",
     realtimeUrl: "ws://127.0.0.1:4000/collaboration/workspace_review/document_review_plan",
     currentMemberId: aliceMembershipId,
-    members: [aliceMembership, bobMembership],
+    members: [aliceMembership, bobMembership, carolMembership, danaMembership],
     sync: {
       status: "synced",
       pendingLocalEdits: 0,

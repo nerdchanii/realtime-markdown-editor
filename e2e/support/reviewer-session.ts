@@ -1,6 +1,6 @@
-import type { Page } from "@playwright/test";
+import type { Locator, Page } from "@playwright/test";
 
-export type ReviewerMember = "alice" | "bob";
+export type ReviewerMember = "alice" | "bob" | "carol" | "dana";
 
 export type ReviewerSession = Readonly<{
   member: ReviewerMember;
@@ -17,3 +17,8 @@ export async function openReviewerSession(page: Page, session: ReviewerSession) 
 }
 
 export const seededReviewDocumentId = "seed-review-plan";
+
+export async function appendMarkdownLine(page: Page, editor: Locator, line: string) {
+  await editor.click();
+  await page.keyboard.insertText(`\n${line}`);
+}

@@ -13,8 +13,12 @@ const seedWorkspaceId = "workspace_review" as CollaborationWorkspaceId;
 const seedDocumentId = "document_review_plan" as CollaborationDocumentId;
 const aliceUserId = "user_alice" as CollaborationUserId;
 const bobUserId = "user_bob" as CollaborationUserId;
+const carolUserId = "user_carol" as CollaborationUserId;
+const danaUserId = "user_dana" as CollaborationUserId;
 const aliceMembershipId = "member_alice" as CollaborationMembershipId;
 const bobMembershipId = "member_bob" as CollaborationMembershipId;
+const carolMembershipId = "member_carol" as CollaborationMembershipId;
+const danaMembershipId = "member_dana" as CollaborationMembershipId;
 const seedSyncedAt = new Date("2026-04-30T00:03:00.000Z");
 
 const seedMembers = [
@@ -31,6 +35,20 @@ const seedMembers = [
     workspaceId: seedWorkspaceId,
     displayName: "Bob",
     color: "#1a7f37",
+  },
+  {
+    id: carolMembershipId,
+    userId: carolUserId,
+    workspaceId: seedWorkspaceId,
+    displayName: "Carol",
+    color: "#8250df",
+  },
+  {
+    id: danaMembershipId,
+    userId: danaUserId,
+    workspaceId: seedWorkspaceId,
+    displayName: "Dana",
+    color: "#bf3989",
   },
 ] as const satisfies readonly CollaborationMember[];
 

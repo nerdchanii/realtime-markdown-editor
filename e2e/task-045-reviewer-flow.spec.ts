@@ -1,5 +1,7 @@
 import { expect, test } from "@playwright/test";
 
+import { appendMarkdownLine } from "./support/reviewer-session.js";
+
 test("TASK-045: reviewer workspace flow reaches product surfaces without hiding CE path", async ({
   page,
 }) => {
@@ -23,8 +25,7 @@ test("TASK-045: reviewer workspace flow reaches product surfaces without hiding 
   const editor = page.getByTestId("collaborative-markdown-editor");
   const reviewerLine = `TASK-045 reviewer flow ${Date.now()}`;
   await expect(editor).toBeVisible();
-  await editor.click();
-  await page.keyboard.type(`\n${reviewerLine}`);
+  await appendMarkdownLine(page, editor, reviewerLine);
 
   await page.getByRole("button", { name: "Rich" }).click();
   await expect(page.getByTestId("editor-rich-view")).toBeVisible();

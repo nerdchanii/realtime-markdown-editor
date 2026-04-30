@@ -22,10 +22,10 @@ export function createSeedCollaborationSessionClient(
 
 function createSeedSessionPayload(config: CollabRuntimeConfig): unknown {
   return {
-    documentId: "document_seed",
+    documentId: "document_review_plan",
     documentKey: config.seedDocumentKey,
     realtimeUrl: realtimeUrlForDocument(config, config.seedDocumentKey),
-    currentMemberId: "membership_alice",
+    currentMemberId: "member_alice",
     members: seedMembers,
     sync: {
       status: "connecting",
@@ -41,17 +41,31 @@ function realtimeUrlForDocument(config: CollabRuntimeConfig, documentKey: string
 
 const seedMembers = [
   {
-    id: "membership_alice",
+    id: "member_alice",
     userId: "user_alice",
-    workspaceId: "workspace_seed",
-    displayName: "Alice Kim",
+    workspaceId: "workspace_review",
+    displayName: "Alice",
     color: "#2563eb",
   },
   {
-    id: "membership_bob",
+    id: "member_bob",
     userId: "user_bob",
-    workspaceId: "workspace_seed",
-    displayName: "Bob Lee",
+    workspaceId: "workspace_review",
+    displayName: "Bob",
     color: "#059669",
+  },
+  {
+    id: "member_carol",
+    userId: "user_carol",
+    workspaceId: "workspace_review",
+    displayName: "Carol",
+    color: "#8250df",
+  },
+  {
+    id: "member_dana",
+    userId: "user_dana",
+    workspaceId: "workspace_review",
+    displayName: "Dana",
+    color: "#bf3989",
   },
 ] as const;

@@ -1,6 +1,10 @@
 import { expect, test } from "@playwright/test";
 
-import { openReviewerSession, seededReviewDocumentId } from "./support/reviewer-session.js";
+import {
+  appendMarkdownLine,
+  openReviewerSession,
+  seededReviewDocumentId,
+} from "./support/reviewer-session.js";
 
 test("CE-01: two members edit the same workspace document and converge without manual refresh", async ({
   browser,
@@ -19,13 +23,14 @@ test("CE-01: two members edit the same workspace document and converge without m
   await expect(aliceEditor).toBeVisible();
   await expect(bobEditor).toBeVisible();
 
-  await aliceEditor.click();
-  await alicePage.keyboard.type("\nAlice concurrent line");
-  await bobEditor.click();
-  await bobPage.keyboard.type("\nBob concurrent line");
+  const aliceLine = `Alice concurrent line ${Date.now()}`;
+  const bobLine = `Bob concurrent line ${Date.now()}`;
 
-  await expect(aliceEditor).toContainText("Bob concurrent line");
-  await expect(bobEditor).toContainText("Alice concurrent line");
+  await appendMarkdownLine(alicePage, aliceEditor, aliceLine);
+  await appendMarkdownLine(bobPage, bobEditor, bobLine);
+
+  await expect(aliceEditor).toContainText(bobLine);
+  await expect(bobEditor).toContainText(aliceLine);
 
   await alice.close();
   await bob.close();

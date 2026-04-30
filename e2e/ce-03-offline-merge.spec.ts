@@ -1,6 +1,10 @@
 import { expect, test } from "@playwright/test";
 
-import { openReviewerSession, seededReviewDocumentId } from "./support/reviewer-session.js";
+import {
+  appendMarkdownLine,
+  openReviewerSession,
+  seededReviewDocumentId,
+} from "./support/reviewer-session.js";
 
 test("CE-03: offline local edits merge with remote state after reconnect", async ({ browser }) => {
   const alice = await browser.newContext();
@@ -16,17 +20,17 @@ test("CE-03: offline local edits merge with remote state after reconnect", async
   await expect(aliceEditor).toBeVisible();
   await expect(bobEditor).toBeVisible();
 
-  await alice.setOffline(true);
-  await aliceEditor.click();
-  await alicePage.keyboard.type("\nAlice offline edit");
+  const aliceLine = `Alice offline edit ${Date.now()}`;
+  const bobLine = `Bob online edit ${Date.now()}`;
 
-  await bobEditor.click();
-  await bobPage.keyboard.type("\nBob online edit");
+  await alice.setOffline(true);
+  await appendMarkdownLine(alicePage, aliceEditor, aliceLine);
+  await appendMarkdownLine(bobPage, bobEditor, bobLine);
 
   await alice.setOffline(false);
 
-  await expect(aliceEditor).toContainText("Bob online edit");
-  await expect(bobEditor).toContainText("Alice offline edit");
+  await expect(aliceEditor).toContainText(bobLine);
+  await expect(bobEditor).toContainText(aliceLine);
 
   await alice.close();
   await bob.close();

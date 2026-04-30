@@ -1,6 +1,10 @@
 import { expect, test } from "@playwright/test";
 
-import { openReviewerSession, seededReviewDocumentId } from "./support/reviewer-session.js";
+import {
+  appendMarkdownLine,
+  openReviewerSession,
+  seededReviewDocumentId,
+} from "./support/reviewer-session.js";
 
 test("CE-04: reviewer can create and inspect a user-visible document revision", async ({
   page,
@@ -8,9 +12,9 @@ test("CE-04: reviewer can create and inspect a user-visible document revision", 
   await openReviewerSession(page, { member: "alice", documentId: seededReviewDocumentId });
 
   const editor = page.getByTestId("collaborative-markdown-editor");
+  const revisionText = `Revision candidate text ${Date.now()}`;
   await expect(editor).toBeVisible();
-  await editor.click();
-  await page.keyboard.type("\nRevision candidate text");
+  await appendMarkdownLine(page, editor, revisionText);
 
   await page.getByTestId("publish-revision-button").click();
   await page.getByTestId("revision-message-input").fill("Capture review plan draft");
@@ -23,7 +27,5 @@ test("CE-04: reviewer can create and inspect a user-visible document revision", 
     .getByTestId("revision-history-item")
     .filter({ hasText: "Capture review plan draft" })
     .click();
-  await expect(page.getByTestId("revision-snapshot-viewer")).toContainText(
-    "Revision candidate text",
-  );
+  await expect(page.getByTestId("revision-snapshot-viewer")).toContainText(revisionText);
 });
