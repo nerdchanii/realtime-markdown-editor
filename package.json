@@ -23,6 +23,7 @@
     "check": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm arch:check && pnpm test",
     "prepare": "husky",
     "reviewer:observe": "node scripts/open-reviewer-grid.mjs",
+    "worktree:create": "node scripts/worktree-create.mjs",
     "test:e2e": "playwright test"
   },
   "devDependencies": {
