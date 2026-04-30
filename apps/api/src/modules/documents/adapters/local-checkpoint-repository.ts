@@ -10,6 +10,7 @@ import type {
   CheckpointSnapshot,
 } from "@/modules/documents/ports/checkpoint-repository.js";
 import type { WorkspaceMembershipId } from "@/modules/documents/domain/references.js";
+import type { RevisionId } from "@rme/contracts";
 
 type ArtifactRecord = Readonly<{
   key: string;
@@ -19,6 +20,7 @@ type ArtifactRecord = Readonly<{
 type StoredCheckpointRecord = Readonly<{
   id: string;
   documentId: string;
+  revisionId: string;
   authorMembershipId: string;
   message: string;
   createdAt: string;
@@ -33,10 +35,12 @@ export class LocalCheckpointRepository implements CheckpointRepository {
 
   async createCheckpoint(input: CreateCheckpointInput): Promise<CheckpointSnapshot> {
     const checkpointId = `checkpoint_${randomUUID()}` as CheckpointId;
+    const revisionId = `revision_checkpoint_${randomUUID()}` as RevisionId;
     const artifact = this.createMarkdownArtifact(checkpointId, input.markdownSnapshot);
     const checkpoint: Checkpoint = {
       id: checkpointId,
       documentId: input.documentId,
+      revisionId,
       authorMembershipId: input.authorMembershipId,
       message: input.message,
       createdAt: new Date(),
@@ -152,6 +156,7 @@ function toStoredCheckpointRecord(checkpoint: Checkpoint): StoredCheckpointRecor
   return {
     id: checkpoint.id,
     documentId: checkpoint.documentId,
+    revisionId: checkpoint.revisionId,
     authorMembershipId: checkpoint.authorMembershipId,
     message: checkpoint.message,
     createdAt: checkpoint.createdAt.toISOString(),
@@ -166,6 +171,7 @@ function toCheckpoint(record: StoredCheckpointRecord): Checkpoint | null {
   return {
     id: record.id as CheckpointId,
     documentId: record.documentId as DocumentId,
+    revisionId: record.revisionId as RevisionId,
     authorMembershipId: record.authorMembershipId as WorkspaceMembershipId,
     message: record.message,
     createdAt,
@@ -176,15 +182,17 @@ function toCheckpoint(record: StoredCheckpointRecord): Checkpoint | null {
 function isStoredCheckpointRecord(value: unknown): value is StoredCheckpointRecord {
   if (typeof value !== "object" || value === null) return false;
   const record = value as Partial<Record<keyof StoredCheckpointRecord, unknown>>;
+  const fields = [
+    record.id,
+    record.documentId,
+    record.revisionId,
+    record.authorMembershipId,
+    record.message,
+    record.createdAt,
+    record.snapshotArtifactRef,
+  ];
 
-  return (
-    typeof record.id === "string" &&
-    typeof record.documentId === "string" &&
-    typeof record.authorMembershipId === "string" &&
-    typeof record.message === "string" &&
-    typeof record.createdAt === "string" &&
-    typeof record.snapshotArtifactRef === "string"
-  );
+  return fields.every((field) => typeof field === "string");
 }
 
 function isNodeError(error: unknown): error is NodeJS.ErrnoException {

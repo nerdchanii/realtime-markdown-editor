@@ -537,23 +537,6 @@ export const retiredHttpRoutes = [
       "Existing seed-backed route; product runtime should use the canonical documents route.",
     ],
   },
-  {
-    id: "retired.collaborationCreateCheckpoint",
-    method: "POST",
-    path: "/collaboration/documents/:documentId/checkpoints",
-    owner: "CollaborationModule",
-    audience: "retired",
-    requestDto: "CreateCheckpointRequestDto",
-    responseDto: "CreateCheckpointResponseDto",
-    schemas: {
-      params: "DocumentIdPathParams",
-      body: "CreateCheckpointRequest",
-      response: "CreateCheckpointResponse",
-    },
-    relatedRequirements: ["CE-04", "REQ-HISTORY-CHECKPOINTS"],
-    replaces: "POST /documents/:documentId/checkpoints",
-    notes: ["Collaboration routes do not own checkpoint creation."],
-  },
 ] as const satisfies readonly HttpRouteContract[];
 
 export const httpRouteInventory = [

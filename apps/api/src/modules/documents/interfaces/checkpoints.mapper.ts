@@ -6,14 +6,13 @@ import type {
   ArtifactReferenceDto,
   CheckpointDto,
   CheckpointSnapshotInspectDto,
-  RevisionId,
 } from "@rme/contracts";
 
 export function mapCheckpointToDto(checkpoint: Checkpoint, markdownBody: string): CheckpointDto {
   return {
     id: checkpoint.id,
     documentId: checkpoint.documentId,
-    revisionId: revisionIdForCheckpoint(checkpoint.id),
+    revisionId: checkpoint.revisionId,
     authorMembershipId: checkpoint.authorMembershipId,
     message: checkpoint.message,
     createdAt: checkpoint.createdAt.toISOString(),
@@ -27,7 +26,7 @@ export function mapCheckpointSnapshotToDto(
   return {
     checkpointId: snapshot.checkpoint.id,
     documentId: snapshot.checkpoint.documentId,
-    revisionId: revisionIdForCheckpoint(snapshot.checkpoint.id),
+    revisionId: snapshot.checkpoint.revisionId,
     markdownBody: snapshot.markdownBody,
     artifact: mapArtifact(snapshot.checkpoint.snapshotArtifactRef, snapshot.markdownBody),
   };
@@ -40,8 +39,4 @@ function mapArtifact(key: string, markdownBody: string): ArtifactReferenceDto {
     checksumSha256: createHash("sha256").update(markdownBody).digest("hex"),
     sizeBytes: Buffer.byteLength(markdownBody, "utf8"),
   };
-}
-
-function revisionIdForCheckpoint(checkpointId: string): RevisionId {
-  return checkpointId.replace(/^checkpoint_/, "revision_checkpoint_") as RevisionId;
 }
