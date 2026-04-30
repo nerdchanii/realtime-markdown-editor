@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  applyWorktreeEnvOverrides,
   buildPostgresBootstrapArgs,
   buildWorktreeEnv,
   databaseNameForSlug,
@@ -84,6 +85,26 @@ test("buildWorktreeEnv adds POSTGRES_HOST_PORT when DATABASE_URL uses a non-defa
     result,
     /^DATABASE_URL=postgresql:\/\/postgres:postgres@127\.0\.0\.1:55432\/rme_task_078_checkpoints$/m,
   );
+});
+
+test("applyWorktreeEnvOverrides lets callers choose a non-default database host port", () => {
+  const source = [
+    "POSTGRES_HOST_PORT=5432",
+    "DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5432/realtime_markdown_editor",
+    "API_PORT=4000",
+  ].join("\n");
+
+  const result = applyWorktreeEnvOverrides(source, {
+    POSTGRES_HOST_PORT: "55433",
+    DATABASE_URL: "postgresql://postgres:postgres@127.0.0.1:55433/realtime_markdown_editor",
+  });
+
+  assert.match(result, /^POSTGRES_HOST_PORT=55433$/m);
+  assert.match(
+    result,
+    /^DATABASE_URL=postgresql:\/\/postgres:postgres@127\.0\.0\.1:55433\/realtime_markdown_editor$/m,
+  );
+  assert.match(result, /^API_PORT=4000$/m);
 });
 
 test("redactEnvForSummary never returns secret values", () => {

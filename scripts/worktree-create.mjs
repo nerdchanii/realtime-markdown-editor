@@ -47,6 +47,12 @@ export function buildWorktreeEnv(sourceEnv, slug) {
   return `${rewritten.join("\n").replace(/\n+$/u, "")}\n`;
 }
 
+export function applyWorktreeEnvOverrides(sourceEnv, env = process.env) {
+  const overrides = worktreeSourceOverrides(env);
+  if (Object.keys(overrides).length === 0) return sourceEnv;
+  return upsertEnvValues(sourceEnv, overrides);
+}
+
 export function buildPostgresBootstrapArgs(envPath) {
   return ["scripts/db-bootstrap.mjs", "--env-file", envPath];
 }
@@ -142,6 +148,29 @@ function rewriteDatabaseUrl(rawValue, { databaseName, postgresHostPort }) {
   }
 }
 
+function worktreeSourceOverrides(env) {
+  return Object.fromEntries(
+    [
+      ["POSTGRES_HOST_PORT", env.POSTGRES_HOST_PORT],
+      ["DATABASE_URL", env.DATABASE_URL],
+    ].filter(([, value]) => typeof value === "string" && value.length > 0),
+  );
+}
+
+function upsertEnvValues(sourceEnv, overrides) {
+  const remaining = new Map(Object.entries(overrides));
+  const lines = sourceEnv.split(/\r?\n/).map((line) => {
+    const key = parseEnvKey(line);
+    if (!key || !remaining.has(key)) return line;
+    const value = remaining.get(key);
+    remaining.delete(key);
+    return `${key}=${value}`;
+  });
+
+  for (const [key, value] of remaining) lines.push(`${key}=${value}`);
+  return lines.join("\n");
+}
+
 function stripEnvQuotes(value) {
   if (
     (value.startsWith('"') && value.endsWith('"')) ||
@@ -208,7 +237,7 @@ function writeWorktreeEnv(worktreePath, slug) {
   }
 
   const targetEnvPath = join(worktreePath, ".env.local");
-  const sourceEnv = readFileSync(sourceEnvPath, "utf8");
+  const sourceEnv = applyWorktreeEnvOverrides(readFileSync(sourceEnvPath, "utf8"));
   const worktreeEnv = buildWorktreeEnv(sourceEnv, slug);
   writeFileSync(targetEnvPath, worktreeEnv, { mode: 0o600 });
 
