@@ -37,6 +37,59 @@ The first TypeScript monorepo keeps domain entities and values app-private under
 
 `packages/contracts` is for provider-neutral HTTP/realtime wire contracts, including API request/response DTOs shared by frontend and backend. It must not expose backend domain internals as frontend view models.
 
+## Product HTTP Route Ownership
+
+`packages/contracts/src/http/routes.ts` is the canonical product API inventory for P10
+implementation tasks. API controllers may split implementation by Nest module, but route
+ownership follows the table below.
+
+| Area | Canonical routes | Owner | Notes |
+| --- | --- | --- | --- |
+| Auth/session | `POST /auth/session`, `GET /auth/session`, `DELETE /auth/session` | `IdentityModule` | Current user and workspace membership come from the httpOnly session boundary. Product actions do not trust public `memberId` or `authorMembershipId` request fields. |
+| Workspace/project/folder | `/workspaces`, `/workspaces/:workspaceId/navigation`, `/workspaces/:workspaceId/projects`, `/projects/:projectId`, `/folders`, `/folders/:folderId/*` | `WorkspaceModule` | Preserves hidden workspace/project root folder policy and root immutability. |
+| Document metadata and properties | `/folders/:folderId/documents`, `/documents/:documentId`, `/documents/:documentId/move`, `/documents/:documentId/properties` | `DocumentsModule` | Every document has exactly one folder. Properties remain outside the Markdown body. |
+| Current Markdown projection | `GET /documents/:documentId/content`, `PUT /documents/:documentId/content` | `DocumentsModule` | Stores the server-resolved portable Markdown projection used by export and checkpoint creation. |
+| Links/backlinks | `GET /documents/:documentId/connections` | `DocumentsModule` | Projection read model derived from standard Markdown links. |
+| Checkpoints/history | `GET /documents/:documentId/checkpoints`, `POST /documents/:documentId/checkpoints`, `GET /documents/checkpoints/:checkpointId/snapshot` | `DocumentsModule` | `POST /documents/:documentId/checkpoints` is the canonical checkpoint creation route. The server resolves current author membership and current Markdown content. |
+| Markdown export | `POST /documents/:documentId/export` | `DocumentsModule` | The server resolves current Markdown body and properties, then returns frontmatter plus body as the portable file boundary. |
+| Image upload | `POST /documents/:documentId/images` | `DocumentsModule` | Returns an editor-insertable image reference without exposing object-storage provider internals. |
+| Collaboration session | `POST /documents/:documentId/collaboration-sessions` | `CollaborationModule` | Issues provider-neutral realtime session data. It must not create checkpoints or expose provider-specific Yjs/Hocuspocus state. |
+
+The following routes are explicitly dev-only bootstrap routes and must not be required by the
+normal product runtime path:
+
+- `GET /review-context/seed`
+- `GET /collaboration/sessions/seed`
+
+The following existing routes are retired from the product contract:
+
+- `GET /collaboration/documents/:documentId/session`, replaced by
+  `POST /documents/:documentId/collaboration-sessions`
+- `POST /collaboration/documents/:documentId/checkpoints`, replaced by
+  `POST /documents/:documentId/checkpoints`
+
+Collaboration route ownership does not include checkpoint creation. If a downstream task needs a
+different checkpoint route, it must stop and route the contract change back through `TASK-071` or
+the main orchestrator.
+
+## HTTP DTO And Runtime Schema Strategy
+
+`packages/contracts/src/http/index.ts` owns provider-neutral DTO names and shape. `packages/contracts/src/http/schemas.ts`
+owns the runtime schema descriptor catalog and strategy. `TASK-073` implements the Nest runtime
+validation, centralized CORS, and JSON error envelope from those descriptors.
+
+Contract rules:
+
+- DTOs are TypeScript wire contracts, not backend domain classes and not frontend view models.
+- Runtime validation covers route params, query, body, and multipart metadata before use-case execution.
+- Validation/auth/resource failures return `ApiErrorResponseDto` with stable `code`, `message`,
+  optional `details`, and optional `requestId`.
+- Public product request DTOs do not carry trusted `memberId` or `authorMembershipId` fields for
+  product actions. The API derives membership from the session.
+- Export and checkpoint creation do not accept arbitrary full-body client snapshots in the product
+  contract. They resolve current Markdown content server-side from the document content projection
+  and collaboration serialization boundary.
+
 ## Collaboration Runtime Topology
 
 `apps/collab` is a separate workspace package and process. It owns Hocuspocus/Yjs server

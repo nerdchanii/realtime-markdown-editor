@@ -8,7 +8,7 @@ purpose: long-run execution master plan
 
 ## Goal
 
-Implement an editor-first collaborative Markdown product skeleton that proves `CE-01` through `CE-05` inside a credible workspace product surface.
+Implement an editor-first collaborative Markdown product that proves `CE-01` through `CE-05` inside a credible workspace product surface, then move the completed skeleton into durable product infrastructure.
 
 This plan is not a replacement for task files. Each execution step still creates concrete `tasks/todo/TASK-...md` files using `tasks/_templates/TASK-TEMPLATE.md`, then moves them through `todo -> active -> archive`.
 
@@ -24,7 +24,7 @@ Included:
 - Remote cursor and selection presence for `CE-02`.
 - Open-page offline local edits and reconnect merge for `CE-03`.
 - Explicit checkpoint history with read-only snapshot inspection for `CE-04`.
-- Rich, Markdown source, rendered preview, and source/preview split for `CE-05`.
+- TipTap rich Markdown authoring surface for `CE-05`, with Markdown portability proven through export/history evidence.
 - Document properties outside Markdown body.
 - Standard Markdown links and backlinks.
 - Markdown export with frontmatter representation if it does not delay CE stabilization; otherwise it is the first polish task after backlinks/properties.
@@ -32,34 +32,42 @@ Included:
 Excluded from this long-run unless explicitly promoted:
 
 - Workflow hooks, workflow builder, external integrations, reverse hooks.
-- Publish/draft visibility policy, ownership-based visibility, RBAC/admin.
+- Publish/draft visibility policy, ownership-based visibility, editor/viewer/admin role expansion.
 - Restore, branching, merge requests, graph view, wikilinks.
-- Multi-document pane split. CE-05 split means source/preview split for one document.
-- PWA/Tauri/Electron, full offline workspace cache, production identity provider.
+- Raw Markdown source editor, source/preview split, and multi-document pane split unless explicitly promoted.
+- PWA/Tauri/Electron, full offline workspace cache, enterprise identity provider, billing/admin.
 
 ## Execution Documents
 
-Run these documents in order:
+Completed baseline documents:
 
 1. `tasks/exec-plan/01-foundation-shell.md`
 2. `tasks/exec-plan/02-collaboration-persistence.md`
 3. `tasks/exec-plan/03-product-surface-compliance.md`
+4. `tasks/exec-plan/04-editor-ux-recovery.md`
 
-Do not start a later document until the prior document exit criteria pass, except for explicitly marked documentation-only tasks with disjoint write sets.
+Next active execution document:
+
+1. `tasks/exec-plan/05-productization-platform.md`
+
+The completed documents are retained as historical context and traceability for archived tasks.
+Do not re-run them unless a later productization task explicitly reopens a scoped issue.
 
 ## Phase Map
 
-| Phase | Plan document                      | Purpose                                                                                |
-| ----- | ---------------------------------- | -------------------------------------------------------------------------------------- |
-| P0    | `01-foundation-shell.md`           | Preflight, ADR/storage decision, task graph, layout slots, workspace shell contract    |
-| P1    | `01-foundation-shell.md`           | Workspace-scoped editor shell and mock-backed product surface                          |
-| P2    | `02-collaboration-persistence.md`  | Collaboration runtime separation, API session contract, Yjs/Hocuspocus integration     |
-| P3    | `02-collaboration-persistence.md`  | DB-first metadata, live collaboration persistence boundary, revision artifact boundary |
-| P4    | `02-collaboration-persistence.md`  | Autosave, revision, publication term separation, checkpoint service                    |
-| P5    | `02-collaboration-persistence.md`  | Membership-based presence                                                              |
-| P6    | `03-product-surface-compliance.md` | Markdown source/rich/split/preview                                                     |
-| P7    | `03-product-surface-compliance.md` | History UI and read-only snapshot inspection                                           |
-| P8    | `03-product-surface-compliance.md` | Properties, backlinks, export, reviewer README, final evidence                         |
+| Phase | Status    | Plan document                      | Purpose                                                                                |
+| ----- | --------- | ---------------------------------- | -------------------------------------------------------------------------------------- |
+| P0    | completed | `01-foundation-shell.md`           | Preflight, ADR/storage decision, task graph, layout slots, workspace shell contract    |
+| P1    | completed | `01-foundation-shell.md`           | Workspace-scoped editor shell and mock-backed product surface                          |
+| P2    | completed | `02-collaboration-persistence.md`  | Collaboration runtime separation, API session contract, Yjs/Hocuspocus integration     |
+| P3    | completed | `02-collaboration-persistence.md`  | DB-first metadata, live collaboration persistence boundary, revision artifact boundary |
+| P4    | completed | `02-collaboration-persistence.md`  | Autosave, revision, publication term separation, checkpoint service                    |
+| P5    | completed | `02-collaboration-persistence.md`  | Membership-based presence                                                              |
+| P6    | completed | `03-product-surface-compliance.md` | Markdown rich authoring and portability evidence                                       |
+| P7    | completed | `03-product-surface-compliance.md` | History UI and read-only snapshot inspection                                           |
+| P8    | completed | `03-product-surface-compliance.md` | Properties, backlinks, export, reviewer README, final evidence                         |
+| P9    | completed | `04-editor-ux-recovery.md`         | Rich authoring surface, design recovery, reviewer UI recovery                          |
+| P10   | active    | `05-productization-platform.md`    | Postgres, auth, product APIs, artifact storage, collaboration persistence              |
 
 ## Global Guardrails
 
