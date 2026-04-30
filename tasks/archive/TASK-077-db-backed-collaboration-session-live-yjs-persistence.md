@@ -1,6 +1,6 @@
 ---
 title: TASK-077-db-backed-collaboration-session-live-yjs-persistence
-status: blocked
+status: archived
 phase: P10
 task_type: parallel-backend
 task_mode: parallel
@@ -38,8 +38,8 @@ Seed-backed collaboration runtime을 DB-backed product collaboration session과 
 
 - 공식 기준 문서: `subject.md`, `docs/compliance/subject-matrix.md`, `docs/requirements/registry.md`.
 - dependencies: `TASK-074`, `TASK-076`.
-- Current blocker: real local Postgres must be provisioned with `pnpm db:up`, migrations must pass
-  with `pnpm db:migrate`, and DB-backed reload proof must run before retrying implementation.
+- Docker Postgres was provisioned with `pnpm db:up`, migrations passed, and DB-backed reload proof
+  passed before archive.
 - `.note/**`는 scratch context이며 공식 요구사항 출처로 인용하지 않는다.
 
 ## 범위
@@ -109,19 +109,41 @@ Seed-backed collaboration runtime을 DB-backed product collaboration session과 
 
 ## 검증
 
+- 실행 전 버전: `node -v` -> `v24.15.0`; `pnpm -v` -> `10.28.2`.
 - 실행 명령: `pnpm db:up`
-- 기대 결과: Docker Postgres `postgres:16` starts on `${POSTGRES_HOST_PORT:-5432}:5432` and the
-  `DATABASE_URL` database exists. Use `.env.example` safe values when host port 5432 is occupied.
+- 결과: 통과. Docker Postgres `postgres:16` starts on `${POSTGRES_HOST_PORT:-5432}:5432` and the
+  `DATABASE_URL` database exists. Safe local verification used host port `55432`.
 - 실행 명령: `pnpm db:migrate`
-- 기대 결과: Prisma migrations apply to the current `DATABASE_URL` database.
+- 결과: 통과. Prisma migrations applied to the current `DATABASE_URL` database.
 - 실행 명령: `pnpm --filter @rme/collab typecheck`
-- 기대 결과: collab typecheck가 통과한다.
+- 결과: 통과.
 - 실행 명령: `pnpm --filter @rme/api typecheck`
-- 기대 결과: API typecheck가 통과한다.
+- 결과: 통과.
 - 실행 명령: `pnpm arch:check`
-- 기대 결과: architecture boundary check가 통과한다.
-- 실행 명령: `pnpm test:e2e e2e/ce-01-concurrent-editing.spec.ts e2e/ce-03-offline-merge.spec.ts`
-- 기대 결과: CE collaboration e2e pass.
+- 결과: 통과. `apps/collab`에서 API domain/use-case import 없음.
+- 추가 실행 명령:
+  `pnpm exec tsx --test apps/collab/src/config.spec.ts apps/collab/src/session/product-collaboration-session-client.spec.ts apps/collab/src/yjs-document-store.spec.ts`
+- 결과: 통과. Product defaults do not enable seed/memory fallback; fallback behavior is explicit
+  opt-in coverage only.
+- 추가 실행 명령:
+  `pnpm --filter @rme/api test -- src/modules/collaboration/collaboration.module.test.ts src/modules/collaboration/interfaces/internal-collaboration-runtime.controller.test.ts src/modules/collaboration/adapters/prisma-live-yjs-document-state-repository.test.ts src/modules/collaboration/use-cases/live-yjs-document-state-use-case.test.ts`
+- 결과: 통과. 전체 API test runner 기준 38개 통과. Nest-resolved collaboration module
+  smoke test covers Prisma repository DI for internal runtime store/load.
+- Real DB-backed proof:
+  - DB: `DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:55432/realtime_markdown_editor`.
+  - Fallback flags explicitly false:
+    `RME_COLLAB_ENABLE_LIVE_YJS_PERSISTENCE_FALLBACK=false`,
+    `RME_API_ENABLE_SEED_RUNTIME_SESSION_FALLBACK=false`.
+  - Minimal product rows seeded for
+    `workspace_task077_http/document_task077_http_yjs`.
+  - HTTP `api-postgres` proof stored a Yjs update through
+    `HttpLiveYjsPersistenceAdapter`, loaded it back, and loaded the provider-neutral runtime
+    session through `ProductCollaborationSessionClient`.
+  - Fresh API runtime restart then loaded the same Yjs state from Postgres:
+    `markdown="# TASK-077 persisted through api-postgres"`,
+    `documentKey=workspace_task077_http/document_task077_http_yjs`, `members=1`.
+  - Direct Prisma verification found `LiveCollaborationState` with
+    `syncStatus=synced`, `artifactKind=collaborationState`, and stored Yjs artifact bytes.
 
 ## Review
 
@@ -132,13 +154,23 @@ Seed-backed collaboration runtime을 DB-backed product collaboration session과 
 
 ## Archive Checklist
 
-- [ ] `status`를 `archived`로 변경했다.
-- [ ] 파일을 `tasks/archive/`로 이동했다.
-- [ ] 검증 결과를 이 문서에 기록했다.
-- [ ] 필요한 공식 문서 업데이트를 완료했다.
-- [ ] follow-up 또는 blocker를 기록했다.
+- [x] `status`를 `archived`로 변경했다.
+- [x] 파일을 `tasks/archive/`로 이동했다.
+- [x] 검증 결과를 이 문서에 기록했다.
+- [x] 필요한 공식 문서 업데이트를 완료했다.
+- [x] follow-up 또는 blocker를 기록했다.
 
 ## 메모
 
-- Start only after `TASK-074` and `TASK-076` are archived and the real local Postgres bootstrap,
-  migrations, and DB-backed reload proof are available.
+- Start only after `TASK-074` and `TASK-076` are archived.
+- Real local Postgres bootstrap, migrations, and DB-backed reload proof are required before archive.
+- Coordinator narrowed write set removed `packages/contracts/src/http/**` and
+  `e2e/ce-01-concurrent-editing.spec.ts` from editable ownership; neither was edited.
+- TASK-078 owns `apps/api/src/modules/collaboration/interfaces/collaboration-session.controller.ts`;
+  TASK-077 did not edit it.
+- Product/default runtime fails visibly on product session load or `api-postgres` live Yjs
+  persistence failure. Seed session and memory persistence fallbacks are explicit dev-only opt-ins:
+  `RME_API_ENABLE_SEED_RUNTIME_SESSION_FALLBACK=true` and
+  `RME_COLLAB_ENABLE_LIVE_YJS_PERSISTENCE_FALLBACK=true`.
+- Product `api-postgres` live Yjs persistence/reload was verified against Docker Postgres on
+  host port `55432`; no fallback persistence was used as acceptance evidence.
