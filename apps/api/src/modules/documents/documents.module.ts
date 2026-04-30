@@ -6,11 +6,16 @@ import {
   type PrismaDocumentContentPersistenceClient,
 } from "@/modules/documents/adapters/prisma-document-content-repository.js";
 import {
+  PrismaDocumentProductRepository,
+  type PrismaDocumentProductPersistenceClient,
+} from "@/modules/documents/adapters/prisma-document-product-repository.js";
+import {
   PrismaDocumentRepository,
   type PrismaDocumentPersistenceClient,
 } from "@/modules/documents/adapters/prisma-document-repository.js";
 import { LocalCheckpointRepository } from "@/modules/documents/adapters/local-checkpoint-repository.js";
 import { CheckpointsController } from "@/modules/documents/interfaces/checkpoints.controller.js";
+import { DocumentsProductController } from "@/modules/documents/interfaces/documents-product.controller.js";
 import { MarkdownExportController } from "@/modules/documents/interfaces/markdown-export.controller.js";
 import {
   CHECKPOINT_REPOSITORY,
@@ -22,16 +27,21 @@ import {
   type DocumentContentRepository,
 } from "@/modules/documents/ports/document-content-repository.js";
 import {
+  DOCUMENT_PRODUCT_REPOSITORY,
+  type DocumentProductRepository,
+} from "@/modules/documents/ports/document-product-repository.js";
+import {
   DOCUMENT_REPOSITORY,
   type DocumentRepository,
 } from "@/modules/documents/ports/document-repository.js";
 import { CreateCheckpointUseCase } from "@/modules/documents/use-cases/create-checkpoint-use-case.js";
+import { DocumentProductService } from "@/modules/documents/use-cases/document-product-service.js";
 import { InspectCheckpointSnapshotUseCase } from "@/modules/documents/use-cases/inspect-checkpoint-snapshot-use-case.js";
 import { ListCheckpointsUseCase } from "@/modules/documents/use-cases/list-checkpoints-use-case.js";
 import { ExportMarkdownUseCase } from "@/modules/documents/use-cases/export-markdown-use-case.js";
 
 @Module({
-  controllers: [CheckpointsController, MarkdownExportController],
+  controllers: [DocumentsProductController, CheckpointsController, MarkdownExportController],
   providers: [
     {
       provide: CHECKPOINT_REPOSITORY,
@@ -48,6 +58,14 @@ import { ExportMarkdownUseCase } from "@/modules/documents/use-cases/export-mark
       useFactory: (database: PrismaDatabaseService) =>
         new PrismaDocumentContentRepository(
           database as unknown as PrismaDocumentContentPersistenceClient,
+        ),
+      inject: [PrismaDatabaseService],
+    },
+    {
+      provide: DOCUMENT_PRODUCT_REPOSITORY,
+      useFactory: (database: PrismaDatabaseService) =>
+        new PrismaDocumentProductRepository(
+          database as unknown as PrismaDocumentProductPersistenceClient,
         ),
       inject: [PrismaDatabaseService],
     },
@@ -78,13 +96,20 @@ import { ExportMarkdownUseCase } from "@/modules/documents/use-cases/export-mark
         new ExportMarkdownUseCase(documents, content),
       inject: [DOCUMENT_REPOSITORY, DOCUMENT_CONTENT_REPOSITORY],
     },
+    {
+      provide: DocumentProductService,
+      useFactory: (repository: DocumentProductRepository) => new DocumentProductService(repository),
+      inject: [DOCUMENT_PRODUCT_REPOSITORY],
+    },
   ],
   exports: [
+    DocumentProductService,
     CreateDocumentUseCase,
     CreateCheckpointUseCase,
     InspectCheckpointSnapshotUseCase,
     ListCheckpointsUseCase,
     ExportMarkdownUseCase,
+    DOCUMENT_PRODUCT_REPOSITORY,
     DOCUMENT_CONTENT_REPOSITORY,
   ],
 })

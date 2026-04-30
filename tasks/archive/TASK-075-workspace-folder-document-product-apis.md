@@ -1,6 +1,6 @@
 ---
 title: TASK-075-workspace-folder-document-product-apis
-status: todo
+status: archived
 phase: P10
 task_type: parallel-backend
 task_mode: parallel
@@ -100,6 +100,15 @@ Durable workspace/project/folder/document CRUD product API를 추가한다.
 - 실행 명령: `pnpm arch:check`
 - 기대 결과: architecture boundary check가 통과한다.
 
+### 결과
+
+- `fnm use`: Node `v24.15.0` 선택 확인, `pnpm -v` `10.28.2`.
+- `pnpm exec tsc -b packages/contracts`: 통과.
+- `pnpm --filter @rme/api test`: 통과, 9 tests, 0 failures.
+- `pnpm --filter @rme/api typecheck`: 통과.
+- `pnpm arch:check`: 통과, dependency violations 0.
+- Reviewers: spec/scope, code quality, boundary/write-set read-only review 완료. Folder soft-delete subtree gap 지적을 반영해 non-empty folder delete 거부와 ancestor-aware folder validation을 적용했다.
+
 ## Review
 
 - Spec compliance review 필요 여부: 필요.
@@ -109,11 +118,16 @@ Durable workspace/project/folder/document CRUD product API를 추가한다.
 
 ## Archive Checklist
 
-- [ ] `status`를 `archived`로 변경했다.
-- [ ] 파일을 `tasks/archive/`로 이동했다.
-- [ ] 검증 결과를 이 문서에 기록했다.
-- [ ] 필요한 공식 문서 업데이트를 완료했다.
-- [ ] follow-up 또는 blocker를 기록했다.
+- [x] `status`를 `archived`로 변경했다.
+- [x] 파일을 `tasks/archive/`로 이동했다.
+- [x] 검증 결과를 이 문서에 기록했다.
+- [x] 필요한 공식 문서 업데이트를 완료했다.
+- [x] follow-up 또는 blocker를 기록했다.
+
+## Follow-up / Blocker
+
+- Blocker 없음.
+- Link/backlink endpoint는 기존 `LinkEdge` projection read API로 제공했다. Markdown parsing, Tiptap serialization, frontend migration, live collaboration persistence는 범위 밖으로 유지했다.
 
 ## 메모
 
