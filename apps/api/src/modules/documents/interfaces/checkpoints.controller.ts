@@ -1,4 +1,14 @@
-import { Body, Controller, Get, Inject, NotFoundException, Param, Post } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Get,
+  Headers,
+  Inject,
+  NotFoundException,
+  Param,
+  Post,
+  UnauthorizedException,
+} from "@nestjs/common";
 
 import type { CheckpointId } from "@/modules/documents/domain/checkpoint.js";
 import type { DocumentId } from "@/modules/documents/domain/document.js";
@@ -13,9 +23,16 @@ import {
   type InspectCheckpointSnapshotResponseDto,
   type ListCheckpointsResponse,
 } from "@/modules/documents/interfaces/checkpoints.dto.js";
-import { CreateCheckpointUseCase } from "@/modules/documents/use-cases/create-checkpoint-use-case.js";
+import {
+  CheckpointCurrentContentNotFoundError,
+  CreateCheckpointUseCase,
+} from "@/modules/documents/use-cases/create-checkpoint-use-case.js";
 import { InspectCheckpointSnapshotUseCase } from "@/modules/documents/use-cases/inspect-checkpoint-snapshot-use-case.js";
 import { ListCheckpointsUseCase } from "@/modules/documents/use-cases/list-checkpoints-use-case.js";
+import {
+  AuthSessionService,
+  currentMembershipId,
+} from "@/modules/identity/use-cases/auth-session-service.js";
 
 @Controller("documents")
 export class CheckpointsController {
@@ -26,6 +43,8 @@ export class CheckpointsController {
     private readonly inspectCheckpointSnapshot: InspectCheckpointSnapshotUseCase,
     @Inject(ListCheckpointsUseCase)
     private readonly listCheckpoints: ListCheckpointsUseCase,
+    @Inject(AuthSessionService)
+    private readonly authSessions: AuthSessionService,
   ) {}
 
   @Get(":documentId/checkpoints")
@@ -45,13 +64,14 @@ export class CheckpointsController {
   async createDocumentCheckpoint(
     @Param("documentId") documentId: string,
     @Body() body: CreateCheckpointRequestDto,
+    @Headers("cookie") cookieHeader?: string,
   ): Promise<CreateCheckpointResponseDto> {
-    const snapshot = await this.createCheckpoint.execute({
-      documentId: documentId as DocumentId,
-      authorMembershipId: body.authorMembershipId as WorkspaceMembershipId,
-      message: body.message,
-      markdownSnapshot: body.markdownSnapshot,
-    });
+    const authorMembershipId = await this.resolveAuthorMembershipId(cookieHeader);
+    const snapshot = await this.createCheckpointFromCurrentContent(
+      documentId as DocumentId,
+      authorMembershipId,
+      body.message,
+    );
 
     return {
       checkpoint: mapCheckpointToDto(snapshot.checkpoint, snapshot.markdownBody),
@@ -66,5 +86,34 @@ export class CheckpointsController {
     if (!snapshot) throw new NotFoundException("Checkpoint snapshot not found.");
 
     return mapCheckpointSnapshotToDto(snapshot);
+  }
+
+  private async createCheckpointFromCurrentContent(
+    documentId: DocumentId,
+    authorMembershipId: WorkspaceMembershipId,
+    message: string,
+  ) {
+    try {
+      return await this.createCheckpoint.execute({
+        documentId,
+        authorMembershipId,
+        message,
+        resolveCurrentContent: true,
+      });
+    } catch (error) {
+      if (error instanceof CheckpointCurrentContentNotFoundError) {
+        throw new NotFoundException("Current Markdown projection not found.");
+      }
+
+      throw error;
+    }
+  }
+
+  private async resolveAuthorMembershipId(cookieHeader: string | undefined) {
+    const session = await this.authSessions.resolveSession(cookieHeader);
+    const membershipId = session ? currentMembershipId(session) : null;
+    if (!membershipId) throw new UnauthorizedException("Authentication is required.");
+
+    return membershipId as WorkspaceMembershipId;
   }
 }

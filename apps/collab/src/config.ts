@@ -10,6 +10,7 @@ export type LiveYjsPersistenceConfig = Readonly<{
 export type CollabRuntimeConfig = {
   host: string;
   port: number;
+  apiBaseUrl: string;
   publicRealtimeUrl: string;
   seedDocumentKey: string;
   liveYjsPersistence: LiveYjsPersistenceConfig;
@@ -26,6 +27,7 @@ export function readCollabRuntimeConfig(env: NodeJS.ProcessEnv): CollabRuntimeCo
   return {
     host,
     port,
+    apiBaseUrl: readString(env.RME_API_BASE_URL, "http://127.0.0.1:4000"),
     publicRealtimeUrl: readString(env.RME_COLLAB_PUBLIC_URL, `ws://${host}:${port}`),
     seedDocumentKey: readString(
       env.RME_COLLAB_SEED_DOCUMENT_KEY,

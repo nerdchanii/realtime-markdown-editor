@@ -20,9 +20,18 @@ Markdown authoring은 TipTap 기반 rich editor surface에서 직접 이루어�
 ## 제품 범위
 
 - TipTap `EditorContent` 기반 Rich Markdown authoring surface를 제공한다.
+- The actual `EditorContent` instance is wired to the collaboration extensions when a live
+  collaboration session is active.
 - Markdown shortcut과 keyboard shortcut이 editable rich surface에서 동작한다.
-- 현재 document body는 `@tiptap/markdown`을 통해 Markdown으로 serialize/export될 수 있어야 한다.
+- 현재 document body는 `@tiptap/markdown` extension path를 통해 Markdown으로 serialize/export될 수 있어야 한다.
 - Revision snapshot은 현재 rich editor content를 inspectable Markdown body로 보존한다.
+
+## Source of Truth
+
+Live Yjs/Tiptap provider state is the source of truth while users actively collaborate. The database
+Markdown body is a derived portable projection used for export, checkpoint snapshots, and fallback
+bootstrap only when live Yjs state is absent or uninitialized. Reconnect merge uses live Yjs state,
+not the DB projection.
 
 ## 제외 범위
 

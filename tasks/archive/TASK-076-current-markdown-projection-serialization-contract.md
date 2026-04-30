@@ -1,6 +1,6 @@
 ---
 title: TASK-076-current-markdown-projection-serialization-contract
-status: todo
+status: archived
 phase: P10
 task_type: contract
 task_mode: blocking
@@ -106,10 +106,41 @@ checkpoint, fallback bootstrap을 위한 derived read model이다.
 
 - 실행 명령: `pnpm --filter @rme/web typecheck`
 - 기대 결과: web typecheck가 통과한다.
+- 결과: 통과 (`eval "$(fnm env)" && fnm use`, Node `v24.15.0`, pnpm `10.28.2`).
+- fallback bootstrap review 후 결과: 통과 (`eval "$(fnm env)" && fnm use`, Node `v24.15.0`, pnpm `10.28.2`).
+- code-quality review 후 결과: 통과 (`eval "$(fnm env)" && fnm use`, Node `v24.15.0`, pnpm `10.28.2`).
 - 실행 명령: `pnpm --filter @rme/api typecheck`
 - 기대 결과: API typecheck가 통과한다.
+- 결과: 통과 (`eval "$(fnm env)" && fnm use`, Node `v24.15.0`, pnpm `10.28.2`).
+- fallback bootstrap review 후 결과: 통과 (`eval "$(fnm env)" && fnm use`, Node `v24.15.0`, pnpm `10.28.2`).
+- code-quality review 후 결과: 통과 (`eval "$(fnm env)" && fnm use`, Node `v24.15.0`, pnpm `10.28.2`).
 - 실행 명령: `pnpm test:e2e e2e/ce-01-concurrent-editing.spec.ts e2e/ce-05-rich-preview.spec.ts`
 - 기대 결과: CE-01 and CE-05 e2e pass.
+- 결과: 통과, 3 passed (`eval "$(fnm env)" && fnm use`, Node `v24.15.0`, pnpm `10.28.2`).
+- fallback bootstrap review 후 결과: 통과, 3 passed (`eval "$(fnm env)" && fnm use`, Node `v24.15.0`, pnpm `10.28.2`).
+- code-quality review 후 결과: 통과, 3 passed (`eval "$(fnm env)" && fnm use`, Node `v24.15.0`, pnpm `10.28.2`).
+- lint refactor 후 결과: 통과, 3 passed (`eval "$(fnm env)" && fnm use`, Node `v24.15.0`, pnpm `10.28.2`).
+
+추가 확인:
+
+- 실행 명령: `pnpm --filter @rme/collab typecheck`
+- 결과: 통과 (`eval "$(fnm env)" && fnm use`, Node `v24.15.0`, pnpm `10.28.2`).
+- fallback bootstrap review 후 결과: 통과 (`eval "$(fnm env)" && fnm use`, Node `v24.15.0`, pnpm `10.28.2`).
+- code-quality review 후 결과: 통과 (`eval "$(fnm env)" && fnm use`, Node `v24.15.0`, pnpm `10.28.2`).
+- 실행 명령: `pnpm --filter @rme/web test`
+- code-quality review 후 결과: 통과, 0 tests (`eval "$(fnm env)" && fnm use`, Node `v24.15.0`, pnpm `10.28.2`).
+- 실행 명령: `pnpm --filter @rme/api test`
+- code-quality review 후 결과: 통과, 32 passed (`eval "$(fnm env)" && fnm use`, Node `v24.15.0`, pnpm `10.28.2`).
+- 실행 명령: `pnpm lint`
+- lint refactor 후 결과: 통과 (`eval "$(fnm env)" && fnm use`, Node `v24.15.0`, pnpm `10.28.2`).
+- 실행 명령: `pnpm --filter @rme/web typecheck`
+- lint refactor 후 결과: 통과 (`eval "$(fnm env)" && fnm use`, Node `v24.15.0`, pnpm `10.28.2`).
+- 실행 명령: `pnpm --filter @rme/api typecheck`
+- lint refactor 후 결과: 통과 (`eval "$(fnm env)" && fnm use`, Node `v24.15.0`, pnpm `10.28.2`).
+- 실행 명령: `pnpm --filter @rme/collab typecheck`
+- lint refactor 후 결과: 통과 (`eval "$(fnm env)" && fnm use`, Node `v24.15.0`, pnpm `10.28.2`).
+- 실행 명령: `pnpm --filter @rme/api test`
+- lint refactor 후 결과: 통과, 32 passed (`eval "$(fnm env)" && fnm use`, Node `v24.15.0`, pnpm `10.28.2`).
 
 ## Review
 
@@ -120,12 +151,22 @@ checkpoint, fallback bootstrap을 위한 derived read model이다.
 
 ## Archive Checklist
 
-- [ ] `status`를 `archived`로 변경했다.
-- [ ] 파일을 `tasks/archive/`로 이동했다.
-- [ ] 검증 결과를 이 문서에 기록했다.
-- [ ] 필요한 공식 문서 업데이트를 완료했다.
-- [ ] follow-up 또는 blocker를 기록했다.
+- [x] `status`를 `archived`로 변경했다.
+- [x] 파일을 `tasks/archive/`로 이동했다.
+- [x] 검증 결과를 이 문서에 기록했다.
+- [x] 필요한 공식 문서 업데이트를 완료했다.
+- [x] follow-up 또는 blocker를 기록했다.
 
 ## 메모
 
 - This is the blocking content/serialization contract before downstream collab/editor product work.
+- Fallback bootstrap review: DB fallback Markdown is exposed to the editor only after provider sync
+  and is applied once through the Tiptap Markdown path when the collaboration editor is still empty.
+- Code-quality review: deprecated collaboration checkpoint compatibility remains snapshot-backed only
+  when the product current-content resolution flag is not set; product checkpoint creation explicitly
+  resolves current content server-side.
+- Lint refactor: split editor route-session/runtime helpers and collab runtime/client/store helpers
+  without behavior changes.
+- Follow-up/residual risk: canonical checkpoint frontend wiring lives in `apps/web/src/features/history`
+  and `apps/web/src/lib/api-client`, outside this task write set, and should be aligned by a downstream
+  task before relying on the product checkpoint UI path.

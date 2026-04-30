@@ -1,6 +1,7 @@
 import { Module } from "@nestjs/common";
 
 import { PrismaDatabaseService } from "@/database/database.service.js";
+import { IdentityModule } from "@/modules/identity/identity.module.js";
 import {
   LocalDocumentImageArtifactStorage,
   type ImageArtifactPersistenceClient,
@@ -51,6 +52,7 @@ import { ExportMarkdownUseCase } from "@/modules/documents/use-cases/export-mark
 import { UploadDocumentImageUseCase } from "@/modules/documents/use-cases/upload-document-image-use-case.js";
 
 @Module({
+  imports: [IdentityModule],
   controllers: [
     DocumentsProductController,
     CheckpointsController,
@@ -99,8 +101,9 @@ import { UploadDocumentImageUseCase } from "@/modules/documents/use-cases/upload
     },
     {
       provide: CreateCheckpointUseCase,
-      useFactory: (repository: CheckpointRepository) => new CreateCheckpointUseCase(repository),
-      inject: [CHECKPOINT_REPOSITORY],
+      useFactory: (repository: CheckpointRepository, content: DocumentContentRepository) =>
+        new CreateCheckpointUseCase(repository, content),
+      inject: [CHECKPOINT_REPOSITORY, DOCUMENT_CONTENT_REPOSITORY],
     },
     {
       provide: InspectCheckpointSnapshotUseCase,

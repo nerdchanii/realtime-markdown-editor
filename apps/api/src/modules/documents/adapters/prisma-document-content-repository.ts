@@ -7,6 +7,11 @@ import type {
   DocumentContentSource,
   SaveDocumentContentInput,
 } from "@/modules/documents/ports/document-content-repository.js";
+import {
+  findLocalCurrentMarkdownProjection,
+  isLocalReviewDocumentId,
+  saveLocalCurrentMarkdownProjection,
+} from "@/modules/documents/adapters/local-current-markdown-projection.js";
 
 type DocumentContentRecord = Readonly<{
   id: string;
@@ -47,6 +52,10 @@ export class PrismaDocumentContentRepository implements DocumentContentRepositor
   constructor(private readonly client: PrismaDocumentContentPersistenceClient) {}
 
   async findCurrentContent(documentId: DocumentId): Promise<DocumentContentProjection | null> {
+    if (isLocalReviewDocumentId(documentId)) {
+      return findLocalCurrentMarkdownProjection(documentId);
+    }
+
     const record = await this.client.document.findUnique({
       where: { id: documentId },
       select: documentContentSelect,
@@ -57,6 +66,10 @@ export class PrismaDocumentContentRepository implements DocumentContentRepositor
   }
 
   async saveCurrentContent(input: SaveDocumentContentInput): Promise<DocumentContentProjection> {
+    if (isLocalReviewDocumentId(input.documentId)) {
+      return saveLocalCurrentMarkdownProjection(input);
+    }
+
     const record = await this.client.document.update({
       where: { id: input.documentId },
       data: {

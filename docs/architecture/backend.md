@@ -48,7 +48,7 @@ ownership follows the table below.
 | Auth/session | `POST /auth/session`, `GET /auth/session`, `DELETE /auth/session` | `IdentityModule` | Current user and workspace membership come from the httpOnly session boundary. Product actions do not trust public `memberId` or `authorMembershipId` request fields. |
 | Workspace/project/folder | `/workspaces`, `/workspaces/:workspaceId/navigation`, `/workspaces/:workspaceId/projects`, `/projects/:projectId`, `/folders`, `/folders/:folderId/*` | `WorkspaceModule` | Preserves hidden workspace/project root folder policy and root immutability. |
 | Document metadata and properties | `/folders/:folderId/documents`, `/documents/:documentId`, `/documents/:documentId/move`, `/documents/:documentId/properties` | `DocumentsModule` | Every document has exactly one folder. Properties remain outside the Markdown body. |
-| Current Markdown projection | `GET /documents/:documentId/content`, `PUT /documents/:documentId/content` | `DocumentsModule` | Stores the server-resolved portable Markdown projection used by export and checkpoint creation. |
+| Current Markdown projection | `GET /documents/:documentId/content`, `PUT /documents/:documentId/content` | `DocumentsModule` | Stores the server-resolved portable Markdown projection derived from the live collaboration document. It is used by export, checkpoint creation, and fallback bootstrap only when live Yjs state is absent or uninitialized. |
 | Links/backlinks | `GET /documents/:documentId/connections` | `DocumentsModule` | Projection read model derived from standard Markdown links. |
 | Checkpoints/history | `GET /documents/:documentId/checkpoints`, `POST /documents/:documentId/checkpoints`, `GET /documents/checkpoints/:checkpointId/snapshot` | `DocumentsModule` | `POST /documents/:documentId/checkpoints` is the canonical checkpoint creation route. The server resolves current author membership and current Markdown content. |
 | Markdown export | `POST /documents/:documentId/export` | `DocumentsModule` | The server resolves current Markdown body and properties, then returns frontmatter plus body as the portable file boundary. |
@@ -93,9 +93,18 @@ Contract rules:
 ## Collaboration Runtime Topology
 
 `apps/collab` is a separate workspace package and process. It owns Hocuspocus/Yjs server
-dependencies and runtime execution. `apps/api` remains the provider-neutral HTTP/domain process:
-it may issue session contracts, but it must not import Hocuspocus, Yjs, Tiptap, or ProseMirror
-types into domain files.
+dependencies and runtime execution. Live Yjs provider state is the authoritative state for active
+collaborative editing and reconnect merge. The current Markdown body in the database is a derived
+portable projection, not the live editing source of truth.
+
+The collab runtime stores live Yjs updates first. After a Yjs store event, it may update
+`PUT /documents/:documentId/content` with the latest Markdown projection serialized by the editor
+Markdown bridge. When a live Yjs snapshot exists, that snapshot wins. The DB Markdown body may
+bootstrap a collaboration document only when the live Yjs snapshot is absent or uninitialized.
+
+`apps/api` remains the provider-neutral HTTP/domain process: it may issue session contracts and
+store the derived projection, but it must not import Hocuspocus, Yjs, Tiptap, or ProseMirror types
+into document domain files.
 
 The root development entrypoint starts API, collab, and web together. Individual scripts keep each
 runtime startable for targeted debugging:

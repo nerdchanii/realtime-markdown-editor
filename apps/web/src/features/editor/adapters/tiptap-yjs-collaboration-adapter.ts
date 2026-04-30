@@ -1,25 +1,15 @@
-import { HocuspocusProvider } from "@hocuspocus/provider";
-import Collaboration from "@tiptap/extension-collaboration";
-import CollaborationCaret from "@tiptap/extension-collaboration-caret";
-import Link from "@tiptap/extension-link";
-import StarterKit from "@tiptap/starter-kit";
 import { useCallback, useEffect, useState } from "react";
-import * as Y from "yjs";
 
-import type { CollaborationSessionDto, RealtimeMemberDto } from "@rme/contracts";
-
-import { createMockApiClient, fetchCollaborationSession } from "@/lib/api-client";
+import type { CollaborationSessionDto } from "@rme/contracts";
 
 import type {
   CollaborationAdapter,
   CollaborationDocumentOptions,
   CollaborationDocumentState,
 } from "../ports/collaboration-adapter";
-import {
-  setAwarenessIdentity,
-  useAwarenessPresence,
-  useAwarenessSelectionUpdate,
-} from "./tiptap-yjs-awareness";
+import { useAwarenessPresence, useAwarenessSelectionUpdate } from "./tiptap-yjs-awareness";
+import { resolveRouteCollaborationSession } from "./tiptap-yjs-route-session";
+import { createRuntime, replaceYText, type TiptapYjsRuntime } from "./tiptap-yjs-runtime";
 import {
   createRealtimeSyncStatus,
   type RuntimeSyncSnapshot,
@@ -27,14 +17,6 @@ import {
 } from "./tiptap-yjs-sync-status";
 
 export const tiptapYjsCollaborationProviderName = "features.editor.collaboration.tiptap-yjs";
-
-type TiptapYjsRuntime = Readonly<{
-  document: Y.Doc;
-  markdown: Y.Text;
-  provider: HocuspocusProvider;
-  extensions: readonly unknown[];
-  destroy: () => void;
-}>;
 
 export function createTiptapYjsCollaborationAdapter(): CollaborationAdapter {
   return {
@@ -59,6 +41,8 @@ function useTiptapYjsDocument(options: CollaborationDocumentOptions): Collaborat
     markdown,
     updateMarkdown,
     updateSelection,
+    editorExtensions: runtime?.extensions,
+    bootstrapMarkdown: createBootstrapMarkdown(runtime, syncSnapshot, markdown),
     syncStatus: createSyncStatus(options, session, runtime, syncSnapshot),
     presence,
     providerName: tiptapYjsCollaborationProviderName,
@@ -90,8 +74,7 @@ async function resolveCollaborationSession(
   setSession: (session: CollaborationSessionDto | null) => void,
 ) {
   try {
-    const member = readRouteMember();
-    const session = await fetchCollaborationSession(createMockApiClient(), documentId, member);
+    const session = await resolveRouteCollaborationSession(documentId, initialSession);
     if (!signal.aborted) setSession(session);
   } catch {
     if (!signal.aborted) setSession(initialSession);
@@ -145,57 +128,6 @@ function useYTextUpdate(runtime: TiptapYjsRuntime | null, setMarkdown: (markdown
   );
 }
 
-function createRuntime(session: CollaborationSessionDto): TiptapYjsRuntime {
-  const document = new Y.Doc();
-  const markdown = document.getText("markdown");
-  const provider = createProvider(session, document);
-  const member = findCurrentMember(session);
-  setAwarenessIdentity(provider, member);
-  const extensions = createExtensions(document, provider, member);
-
-  return {
-    document,
-    markdown,
-    provider,
-    extensions,
-    destroy: () => destroyRuntime(provider, document),
-  };
-}
-
-function createProvider(session: CollaborationSessionDto, document: Y.Doc) {
-  return new HocuspocusProvider({
-    url: session.realtimeUrl,
-    name: session.documentKey,
-    document,
-  });
-}
-
-function createExtensions(
-  document: Y.Doc,
-  provider: HocuspocusProvider,
-  member: RealtimeMemberDto,
-) {
-  return [
-    StarterKit.configure({ undoRedo: false }),
-    Link.configure({ openOnClick: false }),
-    Collaboration.configure({ document }),
-    CollaborationCaret.configure({
-      provider,
-      user: { id: member.id, name: member.displayName, color: member.color },
-    }),
-  ];
-}
-
-function findCurrentMember(session: CollaborationSessionDto): RealtimeMemberDto {
-  const member = session.members.find((candidate) => candidate.id === session.currentMemberId);
-
-  if (!member) {
-    throw new Error("Collaboration session must include the current member");
-  }
-
-  return member;
-}
-
 function createSyncStatus(
   options: CollaborationDocumentOptions,
   session: CollaborationSessionDto | null,
@@ -209,44 +141,12 @@ function createSyncStatus(
   return createRealtimeSyncStatus(session.documentKey, runtime, syncSnapshot);
 }
 
-function replaceYText(markdown: Y.Text, nextMarkdown: string) {
-  const currentMarkdown = markdown.toString();
-  if (currentMarkdown === nextMarkdown) return;
-
-  const prefixLength = commonPrefixLength(currentMarkdown, nextMarkdown);
-  const suffixLength = commonSuffixLength(currentMarkdown, nextMarkdown, prefixLength);
-  const deleteLength = currentMarkdown.length - prefixLength - suffixLength;
-  const insertText = nextMarkdown.slice(prefixLength, nextMarkdown.length - suffixLength);
-
-  if (deleteLength > 0) markdown.delete(prefixLength, deleteLength);
-  if (insertText.length > 0) markdown.insert(prefixLength, insertText);
-}
-
-function commonPrefixLength(left: string, right: string): number {
-  const maxLength = Math.min(left.length, right.length);
-  let index = 0;
-  while (index < maxLength && left[index] === right[index]) index += 1;
-  return index;
-}
-
-function commonSuffixLength(left: string, right: string, prefixLength: number): number {
-  const maxLength = Math.min(left.length, right.length) - prefixLength;
-  let length = 0;
-  while (
-    length < maxLength &&
-    left[left.length - 1 - length] === right[right.length - 1 - length]
-  ) {
-    length += 1;
-  }
-  return length;
-}
-
-function readRouteMember(): string | null {
-  if (typeof window === "undefined") return null;
-  return new URLSearchParams(window.location.search).get("member");
-}
-
-function destroyRuntime(provider: HocuspocusProvider, document: Y.Doc) {
-  provider.destroy();
-  document.destroy();
+function createBootstrapMarkdown(
+  runtime: TiptapYjsRuntime | null,
+  syncSnapshot: RuntimeSyncSnapshot,
+  markdown: string,
+): string | undefined {
+  if (!runtime || !syncSnapshot.providerSynced) return undefined;
+  const bootstrapMarkdown = markdown.trim().length > 0 ? markdown : "";
+  return bootstrapMarkdown.length > 0 ? markdown : undefined;
 }
