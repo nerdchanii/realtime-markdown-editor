@@ -1,8 +1,36 @@
 export const toolbarStyle = {
   display: "grid",
-  gridTemplateColumns: "minmax(180px, 1fr) auto",
+  gridTemplateColumns: "minmax(180px, 1fr) auto auto",
   gap: "12px",
   alignItems: "center",
+};
+
+export const toolbarActionsStyle = {
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "flex-end",
+  gap: "8px",
+  flexWrap: "wrap" as const,
+  minWidth: 0,
+};
+
+export const toolbarGroupStyle = {
+  display: "inline-flex",
+  alignItems: "center",
+  gap: "2px",
+  padding: "2px",
+  border: "1px solid var(--color-border)",
+  borderRadius: "6px",
+  background: "var(--color-background)",
+};
+
+export const visuallyHiddenInputStyle = {
+  position: "absolute" as const,
+  width: "1px",
+  height: "1px",
+  overflow: "hidden",
+  clip: "rect(0 0 0 0)",
+  whiteSpace: "nowrap" as const,
 };
 
 export const syncStatusStyle = {

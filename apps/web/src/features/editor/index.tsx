@@ -1,4 +1,5 @@
-import { useCallback, useEffect, type ReactNode } from "react";
+import type { Editor } from "@tiptap/core";
+import { useCallback, useEffect, useRef, type ReactNode, type RefObject } from "react";
 
 import type { CollaborationSessionDto } from "@rme/contracts";
 
@@ -9,6 +10,11 @@ import { EditorWorkspaceBody } from "./EditorWorkspaceBody";
 import { PresenceLayer } from "./PresenceLayer";
 import { mockCollaborationAdapter } from "./adapters/mock-collaboration-adapter";
 import { createTiptapYjsCollaborationAdapter } from "./adapters/tiptap-yjs-collaboration-adapter";
+import {
+  fallbackMarkdown,
+  fallbackPresence,
+  fallbackSyncStatus,
+} from "./editor-workspace-fallbacks";
 import type {
   CollaborationAdapter,
   EditorSelectionSnapshot,
@@ -41,63 +47,77 @@ export type EditorWorkspaceSlotProps = Readonly<{
   collaborationAdapter?: CollaborationAdapter;
 }>;
 
-const fallbackMarkdown = `# Collaborative editor review plan
-
-This Markdown body is the portable CE evidence path.
-
-- CE-01 keeps concurrent edits in the central editor.
-- CE-04 exposes checkpoints in the history slot.
-- CE-05 uses the rich authoring surface as the rendered Markdown view.
-
-\`\`\`ts
-const editorSurface = "mock-backed";
-\`\`\`
-
-| Surface | Status |
-| --- | --- |
-| Properties | Outside body |
-| Backlinks | Visible |
-`;
-
-const fallbackSyncStatus: SyncStatusViewModel = {
-  label: "Synced",
-  detail: "Mock provider, 0 pending local edits",
-  pendingEdits: 0,
-};
-
-const fallbackPresence: readonly PresenceMember[] = [
-  { id: "alice", name: "Alice", color: "#0969da", range: "line 3" },
-  { id: "bob", name: "Bob", color: "#1a7f37", range: "table block" },
-];
-
 // The mock adapter remains the UI-test fallback until realtime integration.
 export function EditorWorkspaceSlot({
   viewModel,
   collaborationAdapter = mockCollaborationAdapter,
 }: EditorWorkspaceSlotProps) {
-  const {
-    markdown,
-    editorExtensions,
-    bootstrapMarkdown,
-    syncStatus,
-    presence,
-    handleMarkdownChange,
-    handleSelectionChange,
-  } = useEditorWorkspaceState(viewModel, collaborationAdapter);
+  const editorRef = useRef<Editor | null>(null);
+  const state = useEditorWorkspaceState(viewModel, collaborationAdapter);
 
   return (
     <EditorWorkspaceFrame>
-      <EditorToolbar label={viewModel.label} syncStatus={syncStatus} />
-      <ActiveEditorBody
-        markdown={markdown}
-        onMarkdownChange={handleMarkdownChange}
-        onSelectionChange={handleSelectionChange}
-        collaborationExtensions={editorExtensions}
-        bootstrapMarkdown={bootstrapMarkdown}
-      />
-      <CurrentMarkdownStore markdown={markdown} />
-      <PresenceLayer members={presence} />
+      <EditorWorkspaceContent editorRef={editorRef} viewModel={viewModel} state={state} />
     </EditorWorkspaceFrame>
+  );
+}
+
+function EditorWorkspaceContent({
+  editorRef,
+  viewModel,
+  state,
+}: Readonly<{
+  editorRef: RefObject<Editor | null>;
+  viewModel: EditorWorkspaceViewModel;
+  state: ReturnType<typeof useEditorWorkspaceState>;
+}>) {
+  return (
+    <>
+      <EditorToolbarSlot editorRef={editorRef} viewModel={viewModel} state={state} />
+      <EditorBodySlot editorRef={editorRef} state={state} />
+      <CurrentMarkdownStore markdown={state.markdown} />
+      <PresenceLayer members={state.presence} />
+    </>
+  );
+}
+
+function EditorToolbarSlot({
+  editorRef,
+  viewModel,
+  state,
+}: Readonly<{
+  editorRef: RefObject<Editor | null>;
+  viewModel: EditorWorkspaceViewModel;
+  state: ReturnType<typeof useEditorWorkspaceState>;
+}>) {
+  return (
+    <EditorToolbar
+      documentId={resolveActiveEditorDocumentId(viewModel.documentId)}
+      editorRef={editorRef}
+      label={viewModel.label}
+      syncStatus={state.syncStatus}
+    />
+  );
+}
+
+function EditorBodySlot({
+  editorRef,
+  state,
+}: Readonly<{
+  editorRef: RefObject<Editor | null>;
+  state: ReturnType<typeof useEditorWorkspaceState>;
+}>) {
+  return (
+    <ActiveEditorBody
+      markdown={state.markdown}
+      onMarkdownChange={state.handleMarkdownChange}
+      onSelectionChange={state.handleSelectionChange}
+      onEditorChange={(editor) => {
+        editorRef.current = editor;
+      }}
+      collaborationExtensions={state.editorExtensions}
+      bootstrapMarkdown={state.bootstrapMarkdown}
+    />
   );
 }
 
@@ -118,12 +138,14 @@ function ActiveEditorBody({
   markdown,
   onMarkdownChange,
   onSelectionChange,
+  onEditorChange,
   collaborationExtensions,
   bootstrapMarkdown,
 }: Readonly<{
   markdown: string;
   onMarkdownChange: (markdown: string) => void;
   onSelectionChange: (selection: EditorSelectionSnapshot) => void;
+  onEditorChange?: ((editor: Editor | null) => void) | undefined;
   collaborationExtensions?: ReturnType<CollaborationAdapter["useDocument"]>["editorExtensions"];
   bootstrapMarkdown?: ReturnType<CollaborationAdapter["useDocument"]>["bootstrapMarkdown"];
 }>) {
@@ -132,6 +154,7 @@ function ActiveEditorBody({
       markdown={markdown}
       onMarkdownChange={onMarkdownChange}
       onSelectionChange={onSelectionChange}
+      onEditorChange={onEditorChange}
       collaborationExtensions={collaborationExtensions}
       bootstrapMarkdown={bootstrapMarkdown}
     />

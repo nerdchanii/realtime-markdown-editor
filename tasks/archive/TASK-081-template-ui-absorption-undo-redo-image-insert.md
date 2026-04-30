@@ -1,6 +1,6 @@
 ---
 title: TASK-081-template-ui-absorption-undo-redo-image-insert
-status: todo
+status: archived
 phase: P10
 task_type: parallel-ui
 task_mode: parallel
@@ -102,9 +102,9 @@ Useful Tiptap template UI를 product state ownership 없이 흡수하고 collabo
 ## 검증
 
 - 실행 명령: `pnpm --filter @rme/web typecheck`
-- 기대 결과: web typecheck가 통과한다.
+- 결과: 통과. Node `v24.15.0`, pnpm `10.28.2`.
 - 실행 명령: `pnpm test:e2e e2e/ce-01-concurrent-editing.spec.ts e2e/ce-02-presence.spec.ts e2e/ce-05-rich-preview.spec.ts`
-- 기대 결과: CE collaboration/rich editor e2e pass.
+- 결과: 통과. 7 passed.
 
 ## Review
 
@@ -115,11 +115,22 @@ Useful Tiptap template UI를 product state ownership 없이 흡수하고 collabo
 
 ## Archive Checklist
 
-- [ ] `status`를 `archived`로 변경했다.
-- [ ] 파일을 `tasks/archive/`로 이동했다.
-- [ ] 검증 결과를 이 문서에 기록했다.
-- [ ] 필요한 공식 문서 업데이트를 완료했다.
-- [ ] follow-up 또는 blocker를 기록했다.
+- [x] `status`를 `archived`로 변경했다.
+- [x] 파일을 `tasks/archive/`로 이동했다.
+- [x] 검증 결과를 이 문서에 기록했다.
+- [x] 필요한 공식 문서 업데이트를 완료했다.
+- [x] follow-up 또는 blocker를 기록했다.
+
+## 완료 메모
+
+- Toolbar는 editor-first layout 안에서 rough functional dense controls로 흡수했다.
+- Undo/redo는 default local history extension이 꺼진 실제 collaboration editor command path를 사용한다.
+- Image insertion은 `POST /documents/:documentId/images` artifact upload API를 사용한다.
+- Image insertion e2e는 visible alt text뿐 아니라 Markdown export에 `rme-artifact://...` reference가 보존되는지 검증한다.
+- Undo/redo e2e는 marker attribute뿐 아니라 collaboration-backed routed editor에서 실제 edit -> undo -> redo content 변화를 검증한다.
+- Checkpoint API client는 retired collaboration checkpoint route 대신 canonical `POST /documents/:documentId/checkpoints`와 `credentials: "include"`를 사용한다.
+- 초기 구현에서 editor instance를 React state로 끌어올려 collaboration bootstrap 중 추가 render가 발생했고 CE-01 sync가 pending에 머무는 회귀가 있었다. 최종 구현은 ref bridge로 toolbar가 같은 editor instance를 참조하되 collaboration subtree를 재렌더하지 않는다.
+- Blocker 없음.
 
 ## 메모
 

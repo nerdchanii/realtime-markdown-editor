@@ -1,4 +1,4 @@
-import type { AnyExtension } from "@tiptap/core";
+import type { AnyExtension, Editor } from "@tiptap/core";
 
 import { RichEditorPane } from "./RichEditorPane";
 import type { EditorSelectionSnapshot } from "./ports/collaboration-adapter";
@@ -8,12 +8,14 @@ export function EditorWorkspaceBody({
   markdown,
   onMarkdownChange,
   onSelectionChange,
+  onEditorChange,
   collaborationExtensions,
   bootstrapMarkdown,
 }: {
   markdown: string;
   onMarkdownChange: (markdown: string) => void;
   onSelectionChange: (selection: EditorSelectionSnapshot) => void;
+  onEditorChange?: ((editor: Editor | null) => void) | undefined;
   collaborationExtensions?: readonly AnyExtension[] | undefined;
   bootstrapMarkdown?: string | undefined;
 }) {
@@ -23,6 +25,7 @@ export function EditorWorkspaceBody({
         markdown={markdown}
         onMarkdownChange={onMarkdownChange}
         onSelectionChange={onSelectionChange}
+        onEditorChange={onEditorChange}
         collaborationExtensions={collaborationExtensions}
         bootstrapMarkdown={bootstrapMarkdown}
       />
