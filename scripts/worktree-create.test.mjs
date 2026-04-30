@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  buildPostgresBootstrapArgs,
   buildWorktreeEnv,
   databaseNameForSlug,
   portsForSlug,
@@ -54,6 +55,37 @@ test("buildWorktreeEnv copies env content but rewrites runtime isolation keys", 
   );
 });
 
+test("buildWorktreeEnv preserves non-default Postgres host ports", () => {
+  const source = [
+    "POSTGRES_HOST_PORT=55432",
+    "DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:55432/realtime_markdown_editor",
+    "",
+  ].join("\n");
+
+  const result = buildWorktreeEnv(source, "task-080-frontend-api");
+
+  assert.match(result, /^POSTGRES_HOST_PORT=55432$/m);
+  assert.match(
+    result,
+    /^DATABASE_URL=postgresql:\/\/postgres:postgres@127\.0\.0\.1:55432\/rme_task_080_frontend_api$/m,
+  );
+});
+
+test("buildWorktreeEnv adds POSTGRES_HOST_PORT when DATABASE_URL uses a non-default port", () => {
+  const source = [
+    "DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:55432/realtime_markdown_editor",
+    "",
+  ].join("\n");
+
+  const result = buildWorktreeEnv(source, "task-078-checkpoints");
+
+  assert.match(result, /^POSTGRES_HOST_PORT=55432$/m);
+  assert.match(
+    result,
+    /^DATABASE_URL=postgresql:\/\/postgres:postgres@127\.0\.0\.1:55432\/rme_task_078_checkpoints$/m,
+  );
+});
+
 test("redactEnvForSummary never returns secret values", () => {
   const summary = redactEnvForSummary(
     [
@@ -75,4 +107,12 @@ test("redactEnvForSummary never returns secret values", () => {
   assert.ok(!summary.join("\n").includes("example-value"));
   assert.ok(!summary.join("\n").includes("postgres://"));
   assert.ok(!summary.join("\n").includes("EXTRA_SETTING"));
+});
+
+test("buildPostgresBootstrapArgs points bootstrap at the generated worktree env", () => {
+  assert.deepEqual(buildPostgresBootstrapArgs("/repo/.worktrees/task/.env.local"), [
+    "scripts/db-bootstrap.mjs",
+    "--env-file",
+    "/repo/.worktrees/task/.env.local",
+  ]);
 });

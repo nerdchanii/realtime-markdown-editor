@@ -7,7 +7,7 @@ task_mode: parallel
 owner: unassigned
 depends_on:
   - TASK-075
-  - TASK-078
+  - TASK-078 backend-ready canonical checkpoint contract
 write_set:
   - apps/web/src/lib/api-client/**
   - apps/web/src/app/**
@@ -36,7 +36,9 @@ Workspace/document/history UI를 seed/local-only state에서 canonical product A
 
 - 공식 기준 문서: `subject.md`, `docs/compliance/subject-matrix.md`, `docs/requirements/registry.md`.
 - UI 기준: `DESIGN.md`.
-- dependencies: `TASK-075`, `TASK-078`.
+- dependencies: `TASK-075`, plus `TASK-078` backend-ready canonical checkpoint contract. This task
+  may start before `TASK-078` archives because CE-04 product-path verification is blocked on
+  product auth/API-client/UI migration.
 - `.note/**`는 scratch context이며 공식 요구사항 출처로 인용하지 않는다.
 
 ## 범위
@@ -59,9 +61,9 @@ Workspace/document/history UI를 seed/local-only state에서 canonical product A
 
 ## 계약과 의존성
 
-| Task       | Mode       | Depends on             | Unlocks    | Notes                     |
-| ---------- | ---------- | ---------------------- | ---------- | ------------------------- |
-| `TASK-080` | `parallel` | `TASK-075`, `TASK-078` | `TASK-082` | frontend product API path |
+| Task       | Mode       | Depends on                         | Unlocks    | Notes                     |
+| ---------- | ---------- | ---------------------------------- | ---------- | ------------------------- |
+| `TASK-080` | `parallel` | `TASK-075`, TASK-078 backend-ready | `TASK-082` | frontend product API path |
 
 - 안정 contract: product APIs and checkpoint route from backend tasks.
 - Canonical route source: `packages/contracts/src/http/routes.ts`.
@@ -69,6 +71,9 @@ Workspace/document/history UI를 seed/local-only state에서 canonical product A
   route is not a frontend product dependency.
 - CE-01 through CE-05 are first product validation stories, not user-facing navigation labels,
   badges, or checklist panels.
+- Product framing guardrail: do not claim acceptance when the path depends on
+  `/review-context/seed`, URL member spoofing, fabricated document ids, retired checkpoint routes,
+  local React-only state, fallback persistence, or label/button-only assertions.
 - mock 허용 여부: UI tests may use explicit test bootstrap only.
 - Contract changes stop work and return to main orchestrator.
 

@@ -1,6 +1,6 @@
 ---
 title: TASK-077-db-backed-collaboration-session-live-yjs-persistence
-status: todo
+status: blocked
 phase: P10
 task_type: parallel-backend
 task_mode: parallel
@@ -8,6 +8,7 @@ owner: unassigned
 depends_on:
   - TASK-074
   - TASK-076
+  - local Docker Postgres bootstrap and migrations
 write_set:
   - apps/api/src/modules/collaboration/**
   - apps/collab/src/**
@@ -37,6 +38,8 @@ Seed-backed collaboration runtime을 DB-backed product collaboration session과 
 
 - 공식 기준 문서: `subject.md`, `docs/compliance/subject-matrix.md`, `docs/requirements/registry.md`.
 - dependencies: `TASK-074`, `TASK-076`.
+- Current blocker: real local Postgres must be provisioned with `pnpm db:up`, migrations must pass
+  with `pnpm db:migrate`, and DB-backed reload proof must run before retrying implementation.
 - `.note/**`는 scratch context이며 공식 요구사항 출처로 인용하지 않는다.
 
 ## 범위
@@ -69,6 +72,10 @@ Seed-backed collaboration runtime을 DB-backed product collaboration session과 
 - Live Yjs persistence is provider state for active collaboration rehydration. It must not be
   merged with checkpoint Markdown snapshot artifacts or export file representations.
 - Retired route guardrail: do not revive `POST /collaboration/documents/:documentId/checkpoints`.
+- Product framing guardrail: CE-01 through CE-03 acceptance must exercise normal product
+  collaboration behavior. Do not claim acceptance from `/review-context/seed`, URL member spoofing,
+  fabricated document ids, local React-only state, fallback persistence, or label/button-only
+  assertions.
 - mock 허용 여부: collab tests may use explicit test fixtures only.
 - If checkpoint ownership is needed, stop and route to `TASK-078`/main orchestrator.
 
@@ -102,6 +109,11 @@ Seed-backed collaboration runtime을 DB-backed product collaboration session과 
 
 ## 검증
 
+- 실행 명령: `pnpm db:up`
+- 기대 결과: Docker Postgres `postgres:16` starts on `${POSTGRES_HOST_PORT:-5432}:5432` and the
+  `DATABASE_URL` database exists. Use `.env.example` safe values when host port 5432 is occupied.
+- 실행 명령: `pnpm db:migrate`
+- 기대 결과: Prisma migrations apply to the current `DATABASE_URL` database.
 - 실행 명령: `pnpm --filter @rme/collab typecheck`
 - 기대 결과: collab typecheck가 통과한다.
 - 실행 명령: `pnpm --filter @rme/api typecheck`
@@ -128,4 +140,5 @@ Seed-backed collaboration runtime을 DB-backed product collaboration session과 
 
 ## 메모
 
-- Start only after `TASK-074` and `TASK-076` are archived.
+- Start only after `TASK-074` and `TASK-076` are archived and the real local Postgres bootstrap,
+  migrations, and DB-backed reload proof are available.

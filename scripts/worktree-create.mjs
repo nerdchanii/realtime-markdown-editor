@@ -33,25 +33,22 @@ export function buildWorktreeEnv(sourceEnv, slug) {
   const databaseName = databaseNameForSlug(slug);
   const lines = sourceEnv.split(/\r?\n/);
   const seen = new Set();
-  const rewritten = lines.map((line) => {
-    const key = parseEnvKey(line);
-    if (!key) return line;
-    seen.add(key);
-
-    if (key === "API_PORT") return `API_PORT=${ports.API_PORT}`;
-    if (key === "WEB_PORT") return `WEB_PORT=${ports.WEB_PORT}`;
-    if (key === "COLLAB_PORT") return `COLLAB_PORT=${ports.COLLAB_PORT}`;
-    if (key === "DATABASE_URL")
-      return `DATABASE_URL=${rewriteDatabaseUrl(readEnvValue(line), databaseName)}`;
-
-    return line;
-  });
+  const postgresHostPort = postgresHostPortForEnv(sourceEnv);
+  const context = { databaseName, ports, postgresHostPort, seen };
+  const rewritten = lines.map((line) => rewriteWorktreeEnvLine(line, context));
 
   for (const [key, value] of Object.entries(ports)) {
     if (!seen.has(key)) rewritten.push(`${key}=${value}`);
   }
+  if (!seen.has("POSTGRES_HOST_PORT") && postgresHostPort !== "5432") {
+    rewritten.push(`POSTGRES_HOST_PORT=${postgresHostPort}`);
+  }
 
   return `${rewritten.join("\n").replace(/\n+$/u, "")}\n`;
+}
+
+export function buildPostgresBootstrapArgs(envPath) {
+  return ["scripts/db-bootstrap.mjs", "--env-file", envPath];
 }
 
 export function redactEnvForSummary(envContent) {
@@ -90,10 +87,55 @@ function readEnvValue(line) {
   return separator === -1 ? "" : line.slice(separator + 1).trim();
 }
 
-function rewriteDatabaseUrl(rawValue, databaseName) {
+function rewriteWorktreeEnvLine(line, context) {
+  const key = parseEnvKey(line);
+  if (!key) return line;
+  context.seen.add(key);
+
+  return rewritePortLine(key, context.ports) ?? rewritePostgresLine(key, line, context) ?? line;
+}
+
+function rewritePortLine(key, ports) {
+  if (key === "API_PORT") return `API_PORT=${ports.API_PORT}`;
+  if (key === "WEB_PORT") return `WEB_PORT=${ports.WEB_PORT}`;
+  if (key === "COLLAB_PORT") return `COLLAB_PORT=${ports.COLLAB_PORT}`;
+  return null;
+}
+
+function rewritePostgresLine(key, line, { databaseName, postgresHostPort }) {
+  if (key === "POSTGRES_HOST_PORT") return `POSTGRES_HOST_PORT=${postgresHostPort}`;
+  if (key !== "DATABASE_URL") return null;
+  return `DATABASE_URL=${rewriteDatabaseUrl(readEnvValue(line), {
+    databaseName,
+    postgresHostPort,
+  })}`;
+}
+
+function postgresHostPortForEnv(sourceEnv) {
+  const lines = sourceEnv.split(/\r?\n/u);
+  return explicitPostgresHostPort(lines) ?? databaseUrlPort(lines) ?? "5432";
+}
+
+function explicitPostgresHostPort(lines) {
+  const line = lines.find((candidate) => parseEnvKey(candidate) === "POSTGRES_HOST_PORT");
+  return line ? stripEnvQuotes(readEnvValue(line)) : null;
+}
+
+function databaseUrlPort(lines) {
+  const line = lines.find((candidate) => parseEnvKey(candidate) === "DATABASE_URL");
+  if (!line) return null;
+  try {
+    return new URL(stripEnvQuotes(readEnvValue(line))).port || null;
+  } catch {
+    return null;
+  }
+}
+
+function rewriteDatabaseUrl(rawValue, { databaseName, postgresHostPort }) {
   try {
     const url = new URL(stripEnvQuotes(rawValue));
     url.pathname = `/${databaseName}`;
+    url.port = postgresHostPort;
     return restoreEnvQuotes(rawValue, url.toString());
   } catch {
     return rawValue;
@@ -129,6 +171,7 @@ function main() {
   }
 
   const { targetEnvPath, worktreeEnv } = writeWorktreeEnv(worktreePath, options.slug);
+  ensureWorktreeDatabase(targetEnvPath);
 
   console.log(`Worktree ready: ${relativeToRepo(worktreePath)}`);
   console.log(`Generated local env: ${relativeToRepo(targetEnvPath)}`);
@@ -170,6 +213,13 @@ function writeWorktreeEnv(worktreePath, slug) {
   writeFileSync(targetEnvPath, worktreeEnv, { mode: 0o600 });
 
   return { targetEnvPath, worktreeEnv };
+}
+
+function ensureWorktreeDatabase(targetEnvPath) {
+  execFileSync("node", buildPostgresBootstrapArgs(targetEnvPath), {
+    cwd: repoRoot,
+    stdio: "inherit",
+  });
 }
 
 function assertIgnored(path) {
