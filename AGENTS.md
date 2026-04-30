@@ -27,6 +27,15 @@ purpose: AI agent용 저장소 안내
 - domain model 변경은 plan과 관련 domain 문서 업데이트를 동반해야 한다.
 - `tasks/todo/` 문서를 기준으로 작업했다면 완료 시 해당 문서의 `status`를 `archived`로 변경하고 `tasks/archive/`로 이동한다.
 
+## 로컬 실행 도구
+
+- Node/pnpm 검증 명령은 `scripts/with-node.sh <command>`로 실행한다. 예:
+  `scripts/with-node.sh pnpm --filter @rme/api typecheck`. 이 스크립트는 `fnm`을 조용히 초기화해 반복적인 `eval "$(fnm env)" && fnm use` 접두어와 sandbox state 충돌을 줄인다.
+- 병렬 worktree 작업은 `pnpm worktree:create <task-name>` 또는
+  `node scripts/worktree-create.mjs <task-name>`로 생성한다. 스크립트는 `.worktrees/<task-name>/`을 만들고 root `.env`를 worktree-local `.env.local`로 복사하되, 포트와 DB 이름을 worktree별로 분리한다.
+- `.env`, `.env.local`, worktree별 `.env.local`은 커밋하지 않는다. 스크립트나 작업 로그는 실제 env 값을 출력하지 않아야 한다.
+- 병렬 작업에서 포트나 DB가 충돌하면 `.env.local`을 직접 공유 수정하지 말고 worktree-local env 또는 명령 실행 시 env override를 사용한다.
+
 ## 문서 역할
 
 - `docs/product/`: 사용자에게 보이는 product surface와 capability.
