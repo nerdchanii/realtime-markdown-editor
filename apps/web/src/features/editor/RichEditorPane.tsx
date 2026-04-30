@@ -21,12 +21,14 @@ export function RichEditorPane({
   markdown,
   onMarkdownChange,
   onSelectionChange,
+  onEditorChange,
   collaborationExtensions,
   bootstrapMarkdown,
 }: Readonly<{
   markdown: string;
   onMarkdownChange: (markdown: string) => void;
   onSelectionChange: (selection: EditorSelectionSnapshot) => void;
+  onEditorChange?: ((editor: Editor | null) => void) | undefined;
   collaborationExtensions?: readonly AnyExtension[] | undefined;
   bootstrapMarkdown?: string | undefined;
 }>) {
@@ -34,6 +36,7 @@ export function RichEditorPane({
     markdown,
     onMarkdownChange,
     onSelectionChange,
+    onEditorChange,
     collaborationExtensions,
     bootstrapMarkdown,
   });
@@ -49,6 +52,7 @@ function useRichMarkdownEditor({
   markdown,
   onMarkdownChange,
   onSelectionChange,
+  onEditorChange,
   collaborationExtensions,
   bootstrapMarkdown,
 }: RichMarkdownEditorOptions) {
@@ -69,6 +73,7 @@ function useRichMarkdownEditor({
     collaborationExtensions,
     bootstrappedMarkdownRef,
   );
+  usePublishEditorInstance(editor, onEditorChange);
 
   return editor;
 }
@@ -77,6 +82,7 @@ type RichMarkdownEditorOptions = Readonly<{
   markdown: string;
   onMarkdownChange: (markdown: string) => void;
   onSelectionChange: (selection: EditorSelectionSnapshot) => void;
+  onEditorChange?: ((editor: Editor | null) => void) | undefined;
   collaborationExtensions?: readonly AnyExtension[] | undefined;
   bootstrapMarkdown?: string | undefined;
 }>;
@@ -109,6 +115,16 @@ function useCollaborationBootstrap(
     bootstrappedMarkdownRef.current = bootstrap;
     writeEditorMarkdownWithUpdate(editor, bootstrap, true);
   }, [bootstrapMarkdown, bootstrappedMarkdownRef, collaborationExtensions, editor]);
+}
+
+function usePublishEditorInstance(
+  editor: Editor | null,
+  onEditorChange: ((editor: Editor | null) => void) | undefined,
+) {
+  useEffect(() => {
+    onEditorChange?.(editor);
+    return () => onEditorChange?.(null);
+  }, [editor, onEditorChange]);
 }
 
 function shouldBootstrapEditor(

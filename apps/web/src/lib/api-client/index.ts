@@ -6,8 +6,10 @@ import type {
   CreateCheckpointRequestDto,
   CreateCheckpointResponseDto,
   CreateMarkdownExportRequestDto,
+  ImageUploadResponseDto,
   MarkdownExportResponseDto,
   SeedReviewContextDto,
+  UploadedDocumentImageDto,
   WorkspaceMembershipId,
 } from "@rme/contracts";
 
@@ -66,9 +68,10 @@ export async function createCollaborationCheckpoint(
     message: request.message,
   });
   const response = await fetch(
-    `${client.baseUrl}/collaboration/documents/${encodeURIComponent(documentId)}/checkpoints`,
+    `${client.baseUrl}/documents/${encodeURIComponent(documentId)}/checkpoints`,
     {
       method: "POST",
+      credentials: "include",
       body,
     },
   );
@@ -116,6 +119,31 @@ export async function createMarkdownExport(
   }
 
   return (await response.json()) as MarkdownExportResponseDto;
+}
+
+export async function uploadDocumentImage(
+  client: ApiClient,
+  documentId: string,
+  request: Readonly<{ file: File; altText?: string | undefined }>,
+): Promise<UploadedDocumentImageDto> {
+  const body = new FormData();
+  body.set("file", request.file);
+  if (request.altText !== undefined) body.set("altText", request.altText);
+
+  const response = await fetch(
+    `${client.baseUrl}/documents/${encodeURIComponent(documentId)}/images`,
+    {
+      method: "POST",
+      body,
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(`Image upload request failed with ${response.status}`);
+  }
+
+  const payload = (await response.json()) as ImageUploadResponseDto;
+  return payload.image;
 }
 
 function mapCollaborationSessionResponse(

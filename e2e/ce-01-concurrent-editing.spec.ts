@@ -24,6 +24,14 @@ test("CE-01: two members edit the same workspace document and converge without m
 
   await expect(aliceEditor).toBeVisible();
   await expect(bobEditor).toBeVisible();
+  await expect(alicePage.getByTestId("sync-status")).toContainText("synced", {
+    ignoreCase: true,
+    timeout: 10_000,
+  });
+  await expect(bobPage.getByTestId("sync-status")).toContainText("synced", {
+    ignoreCase: true,
+    timeout: 10_000,
+  });
 
   const aliceLine = `Alice concurrent line ${Date.now()}`;
   const bobLine = `Bob concurrent line ${Date.now()}`;
@@ -31,8 +39,8 @@ test("CE-01: two members edit the same workspace document and converge without m
   await appendRichEditorLine(alicePage, aliceEditor, aliceLine);
   await appendRichEditorLine(bobPage, bobEditor, bobLine);
 
-  await expect(aliceEditor).toContainText(bobLine);
-  await expect(bobEditor).toContainText(aliceLine);
+  await expect(aliceEditor).toContainText(bobLine, { timeout: 10_000 });
+  await expect(bobEditor).toContainText(aliceLine, { timeout: 10_000 });
 
   await alice.close();
   await bob.close();

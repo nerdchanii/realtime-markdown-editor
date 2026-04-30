@@ -18,17 +18,26 @@ test("CE-02: remote cursor and selection show workspace member identity", async 
 
   const bobEditor = richMarkdownEditor(bobPage);
   await expect(bobEditor).toBeVisible();
+  await expect(alicePage.getByTestId("sync-status")).toContainText("synced", {
+    ignoreCase: true,
+    timeout: 10_000,
+  });
+  await expect(bobPage.getByTestId("sync-status")).toContainText("synced", {
+    ignoreCase: true,
+    timeout: 10_000,
+  });
   await bobEditor.click();
+  await bobPage.keyboard.insertText("presence");
   await bobPage.keyboard.down("Shift");
-  await bobPage.keyboard.press("ArrowRight");
+  await bobPage.keyboard.press("ArrowLeft");
   await bobPage.keyboard.up("Shift");
 
   const bobCursor = alicePage.getByTestId("presence-cursor-bob").first();
   const bobSelection = alicePage.getByTestId("presence-selection-bob").first();
 
-  await expect(bobCursor).toBeVisible();
-  await expect(bobSelection).toBeVisible();
-  await expect(bobCursor).toContainText("Bob");
+  await expect(bobCursor).toBeVisible({ timeout: 10_000 });
+  await expect(bobSelection).toBeVisible({ timeout: 10_000 });
+  await expect(bobCursor).toContainText("Bob", { timeout: 10_000 });
 
   await alice.close();
   await bob.close();
