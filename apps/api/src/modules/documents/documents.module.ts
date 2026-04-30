@@ -17,7 +17,10 @@ import {
   type CheckpointRepository,
 } from "@/modules/documents/ports/checkpoint-repository.js";
 import { CreateDocumentUseCase } from "@/modules/documents/use-cases/create-document-use-case.js";
-import { DOCUMENT_CONTENT_REPOSITORY } from "@/modules/documents/ports/document-content-repository.js";
+import {
+  DOCUMENT_CONTENT_REPOSITORY,
+  type DocumentContentRepository,
+} from "@/modules/documents/ports/document-content-repository.js";
 import {
   DOCUMENT_REPOSITORY,
   type DocumentRepository,
@@ -69,7 +72,12 @@ import { ExportMarkdownUseCase } from "@/modules/documents/use-cases/export-mark
       useFactory: (repository: CheckpointRepository) => new ListCheckpointsUseCase(repository),
       inject: [CHECKPOINT_REPOSITORY],
     },
-    ExportMarkdownUseCase,
+    {
+      provide: ExportMarkdownUseCase,
+      useFactory: (documents: DocumentRepository, content: DocumentContentRepository) =>
+        new ExportMarkdownUseCase(documents, content),
+      inject: [DOCUMENT_REPOSITORY, DOCUMENT_CONTENT_REPOSITORY],
+    },
   ],
   exports: [
     CreateDocumentUseCase,

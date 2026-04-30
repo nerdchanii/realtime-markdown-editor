@@ -1,13 +1,11 @@
-import { Body, Controller, Header, Inject, Param, Post } from "@nestjs/common";
+import { Body, Controller, Header, Inject, NotFoundException, Param, Post } from "@nestjs/common";
 import type { CreateMarkdownExportRequestDto, MarkdownExportResponseDto } from "@rme/contracts";
 
-import { ExportMarkdownUseCase } from "@/modules/documents/use-cases/export-markdown-use-case.js";
 import type { DocumentId } from "@/modules/documents/domain/document.js";
-
-type MarkdownExportRequestBody = Omit<CreateMarkdownExportRequestDto, "properties"> &
-  Readonly<{
-    properties: CreateMarkdownExportRequestDto["properties"] | string;
-  }>;
+import {
+  ExportMarkdownUseCase,
+  MarkdownExportSourceNotFoundError,
+} from "@/modules/documents/use-cases/export-markdown-use-case.js";
 
 @Controller("documents")
 export class MarkdownExportController {
@@ -20,18 +18,18 @@ export class MarkdownExportController {
   @Header("Access-Control-Allow-Origin", "*")
   createMarkdownExport(
     @Param("documentId") documentId: string,
-    @Body() body: MarkdownExportRequestBody,
-  ): MarkdownExportResponseDto {
-    return this.exportMarkdown.execute({
-      documentId: documentId as DocumentId,
-      filename: body.filename,
-      properties: parseProperties(body.properties),
-      markdownBody: body.markdownBody,
+    @Body() body: CreateMarkdownExportRequestDto,
+  ): Promise<MarkdownExportResponseDto> {
+    const input =
+      body.filename === undefined
+        ? { documentId: documentId as DocumentId }
+        : { documentId: documentId as DocumentId, filename: body.filename };
+
+    return this.exportMarkdown.execute(input).catch((error: unknown) => {
+      if (error instanceof MarkdownExportSourceNotFoundError) {
+        throw new NotFoundException("Markdown export source not found.");
+      }
+      throw error;
     });
   }
-}
-
-function parseProperties(properties: MarkdownExportRequestBody["properties"]) {
-  if (typeof properties !== "string") return properties;
-  return JSON.parse(properties) as CreateMarkdownExportRequestDto["properties"];
 }

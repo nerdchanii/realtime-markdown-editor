@@ -1,28 +1,54 @@
 import type {
-  CreateMarkdownExportRequestDto,
   DocumentPropertyDto,
   MarkdownExportDto,
   MarkdownExportFrontmatterDto,
   MarkdownExportFrontmatterValueDto,
 } from "@rme/contracts";
 
+import type { DocumentId } from "@/modules/documents/domain/document.js";
+import type { DocumentContentRepository } from "@/modules/documents/ports/document-content-repository.js";
+import type { DocumentRepository } from "@/modules/documents/ports/document-repository.js";
+
+export type ExportMarkdownInput = Readonly<{
+  documentId: DocumentId;
+  filename?: string;
+}>;
+
+export class MarkdownExportSourceNotFoundError extends Error {
+  constructor(documentId: DocumentId) {
+    super(`Markdown export source not found for document ${documentId}.`);
+    this.name = "MarkdownExportSourceNotFoundError";
+  }
+}
+
 export class ExportMarkdownUseCase {
-  execute(input: CreateMarkdownExportRequestDto): MarkdownExportDto {
-    const frontmatter = createFrontmatter(input.properties);
+  constructor(
+    private readonly documents: DocumentRepository,
+    private readonly content: DocumentContentRepository,
+  ) {}
+
+  async execute(input: ExportMarkdownInput): Promise<MarkdownExportDto> {
+    const [document, content] = await Promise.all([
+      this.documents.findById(input.documentId),
+      this.content.findCurrentContent(input.documentId),
+    ]);
+    if (!document || !content) throw new MarkdownExportSourceNotFoundError(input.documentId);
+
+    const frontmatter = createFrontmatter(document.properties);
 
     return {
       documentId: input.documentId,
       filename: normalizeFilename(input.filename),
       contentType: "text/markdown; charset=utf-8",
       frontmatter,
-      markdownBody: input.markdownBody,
-      fileContents: createFileContents(frontmatter, input.markdownBody),
+      markdownBody: content.markdownBody,
+      fileContents: createFileContents(frontmatter, content.markdownBody),
     };
   }
 }
 
 function createFrontmatter(
-  properties: readonly DocumentPropertyDto[],
+  properties: readonly Pick<DocumentPropertyDto, "key" | "value">[],
 ): MarkdownExportFrontmatterDto {
   return Object.fromEntries(
     properties.map((property) => [property.key, propertyValueToFrontmatter(property)]),
@@ -30,7 +56,7 @@ function createFrontmatter(
 }
 
 function propertyValueToFrontmatter(
-  property: DocumentPropertyDto,
+  property: Pick<DocumentPropertyDto, "value">,
 ): MarkdownExportFrontmatterValueDto {
   const { value } = property;
   if (value.type === "checkbox") return value.value;
@@ -52,7 +78,8 @@ function formatYamlScalar(value: MarkdownExportFrontmatterValueDto) {
   return JSON.stringify(value);
 }
 
-function normalizeFilename(filename: string) {
+function normalizeFilename(filename: string | undefined) {
+  if (filename === undefined) return "document.md";
   const trimmed = filename.trim();
   if (!trimmed) return "document.md";
   return trimmed.endsWith(".md") ? trimmed : `${trimmed}.md`;
