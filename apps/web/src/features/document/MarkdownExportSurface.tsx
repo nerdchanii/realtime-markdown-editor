@@ -8,6 +8,7 @@ import type {
 } from "@rme/contracts";
 
 import { createMarkdownExport, createMockApiClient } from "@/lib/api-client";
+import { readCurrentEditorMarkdown } from "@/lib/current-editor-markdown";
 
 import type { DocumentProperty } from "./types";
 
@@ -127,14 +128,7 @@ function memberIdForProperty(value: string): WorkspaceMembershipId {
 }
 
 function readCurrentMarkdown() {
-  if (typeof document === "undefined") return "";
-
-  return (
-    document.querySelector<HTMLTextAreaElement>('[data-testid="current-markdown-body"]')?.value ??
-    document.querySelector<HTMLTextAreaElement>('[data-testid="collaborative-markdown-editor"]')
-      ?.value ??
-    ""
-  );
+  return readCurrentEditorMarkdown();
 }
 
 function readDocumentId() {

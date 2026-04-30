@@ -24,7 +24,7 @@ canonical_subject_ids:
 | `CE-02-PRESENCE` | 타 사용자의 cursor 위치와 selection range가 realtime으로 보여야 한다. | member identity가 붙은 remote awareness를 증명한다. | `e2e/ce-02-presence.spec.ts`가 Bob의 cursor/selection을 Alice 화면의 workspace member label과 함께 확인한다. | `docs/product/editor/presence.md` | `REQ-PRESENCE-MEMBER-AWARENESS`, `REQ-IDENTITY-MEMBERSHIP` | ADR-0001, ADR-0005 |
 | `CE-03-OFFLINE-MERGE` | network 단절 후 reconnect 시 local edits와 server state가 자동 병합되어야 한다. | 열린 editor에서 offline edit 후 reconnect convergence를 증명한다. | `e2e/ce-03-offline-merge.spec.ts`가 한 client의 offline edit와 다른 client의 online edit가 reconnect 후 모두 남는지 확인한다. | `docs/product/editor/offline-merge.md` | `REQ-OFFLINE-LOCAL-PERSISTENCE`, `REQ-OFFLINE-RECONNECT-MERGE` | ADR-0002, ADR-0003 |
 | `CE-04-REVISION-HISTORY` | 문서 revision history를 조회할 수 있어야 한다. | autosave와 구분되는 읽을 수 있는 history를 증명한다. | `e2e/ce-04-history.spec.ts`가 checkpoint를 만들고 history 목록에서 선택한 뒤 read-only Markdown snapshot을 확인한다. | `docs/product/editor/history.md` | `REQ-HISTORY-CHECKPOINTS`, `REQ-HISTORY-AUTOSAVE-SEPARATION` | ADR-0003, ADR-0004 |
-| `CE-05-RICH-PREVIEW` | Markdown rich preview를 제공해야 한다. | Markdown을 작성하고 제품 안에서 rendering할 수 있음을 증명한다. | `e2e/ce-05-rich-preview.spec.ts`가 Split view에서 heading, list, link, inline code를 rendering하고 source content 보존을 확인한다. | `docs/product/editor/rich-preview.md` | `REQ-EDITOR-RICH-SOURCE-SPLIT`, `REQ-MARKDOWN-PORTABILITY` | ADR-0002, ADR-0005 |
+| `CE-05-RICH-PREVIEW` | Markdown rich preview를 제공해야 한다. | Markdown 문서를 rich-rendered editor surface에서 직접 작성할 수 있음을 증명한다. | `e2e/ce-05-rich-preview.spec.ts`가 TipTap rich editor에서 heading, list, inline code를 rendering하고 Markdown export path가 같은 body를 보존하는지 확인한다. | `docs/product/editor/rich-preview.md` | `REQ-EDITOR-RICH-AUTHORING-SURFACE`, `REQ-MARKDOWN-PORTABILITY` | ADR-0002, ADR-0005, ADR-0007 |
 
 ## 산출물 충족 지도
 
@@ -37,7 +37,7 @@ canonical_subject_ids:
 ## 통합 reviewer flow 증거
 
 `e2e/task-045-reviewer-flow.spec.ts`는 workspace navigation에서 seeded document를 열고,
-properties/backlinks, mode switcher, checkpoint snapshot, Markdown export를 한 reviewer path에서
+properties/backlinks, TipTap rich editor, checkpoint snapshot, Markdown export를 한 reviewer path에서
 확인한다. 이 통합 spec은 CE-01부터 CE-05의 개별 acceptance를 대체하지 않고, 제품 확장 surface가 CE
 검증 경로를 숨기지 않는다는 보조 증거다.
 

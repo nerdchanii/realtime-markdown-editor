@@ -1,6 +1,10 @@
 import { expect, test } from "@playwright/test";
 
-import { openReviewerSession, seededReviewDocumentId } from "./support/reviewer-session.js";
+import {
+  openReviewerSession,
+  richMarkdownEditor,
+  seededReviewDocumentId,
+} from "./support/reviewer-session.js";
 
 test("Product: reviewer can create a local Markdown document and open it", async ({ page }) => {
   await openReviewerSession(page, { member: "alice", documentId: seededReviewDocumentId });
@@ -14,5 +18,5 @@ test("Product: reviewer can create a local Markdown document and open it", async
     "aria-current",
     "page",
   );
-  await expect(page.getByTestId("collaborative-markdown-editor")).toContainText(`# ${title}`);
+  await expect(richMarkdownEditor(page).getByRole("heading", { name: title })).toBeVisible();
 });

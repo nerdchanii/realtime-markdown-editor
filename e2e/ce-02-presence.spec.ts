@@ -1,17 +1,22 @@
 import { expect, test } from "@playwright/test";
 
-import { openReviewerSession, seededReviewDocumentId } from "./support/reviewer-session.js";
+import {
+  openReviewerSession,
+  richMarkdownEditor,
+  uniqueReviewDocumentId,
+} from "./support/reviewer-session.js";
 
 test("CE-02: remote cursor and selection show workspace member identity", async ({ browser }) => {
   const alice = await browser.newContext();
   const bob = await browser.newContext();
   const alicePage = await alice.newPage();
   const bobPage = await bob.newPage();
+  const documentId = uniqueReviewDocumentId("ce-02");
 
-  await openReviewerSession(alicePage, { member: "alice", documentId: seededReviewDocumentId });
-  await openReviewerSession(bobPage, { member: "bob", documentId: seededReviewDocumentId });
+  await openReviewerSession(alicePage, { member: "alice", documentId });
+  await openReviewerSession(bobPage, { member: "bob", documentId });
 
-  const bobEditor = bobPage.getByTestId("collaborative-markdown-editor");
+  const bobEditor = richMarkdownEditor(bobPage);
   await expect(bobEditor).toBeVisible();
   await bobEditor.click();
   await bobPage.keyboard.down("Shift");

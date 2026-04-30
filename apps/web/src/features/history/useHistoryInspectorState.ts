@@ -13,6 +13,7 @@ import {
   createMockApiClient,
   inspectCheckpointSnapshot,
 } from "@/lib/api-client";
+import { readCurrentEditorMarkdown as readCurrentEditorMarkdownSnapshot } from "@/lib/current-editor-markdown";
 
 import type { HistoryCheckpoint, HistoryInspectorViewModel } from "./types";
 
@@ -182,14 +183,7 @@ function mapSnapshot(snapshot: CheckpointSnapshotInspectDto) {
 }
 
 function readCurrentEditorMarkdown() {
-  if (typeof document === "undefined") return "";
-
-  return (
-    document.querySelector<HTMLTextAreaElement>('[data-testid="current-markdown-body"]')?.value ??
-    document.querySelector<HTMLTextAreaElement>('[data-testid="collaborative-markdown-editor"]')
-      ?.value ??
-    ""
-  );
+  return readCurrentEditorMarkdownSnapshot();
 }
 
 function readRouteDocumentId(): DocumentId {

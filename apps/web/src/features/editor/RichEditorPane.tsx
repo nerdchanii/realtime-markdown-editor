@@ -70,6 +70,7 @@ function createRichEditorOptions(
   return {
     extensions: createRichEditorExtensions(),
     content: markdown,
+    contentType: "markdown" as const,
     immediatelyRender: false,
     editorProps: { attributes: createRichEditorAttributes() },
     onUpdate: ({ editor }: { editor: Editor }) => publishRichMarkdown(editor, handlers),

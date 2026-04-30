@@ -28,8 +28,8 @@ colors:
     - "#0a7ea4"
 typography:
   ui_family: "Inter, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif"
-  editor_family: "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
-  preview_family: "Inter, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif"
+  editor_family: "Inter, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif"
+  code_family: "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
   body_size: "14px"
   editor_size: "14px"
   metadata_size: "12px"
@@ -49,12 +49,18 @@ layout:
   shell: "full-height three-panel workspace"
   sidebar_width: "260px"
   inspector_width: "320px"
+  tab_height: "44px"
   toolbar_height: "52px"
+  status_bar_height: "24px"
+  editor_measure: "760px"
 components:
-  toolbar: "compact, icon-led, with segmented mode controls"
-  editor: "monospace Markdown source with active-line and presence overlays"
-  preview: "rendered Markdown pane with document typography"
-  inspector: "tabbed comments, tasks, activity, and document context"
+  tab_strip: "open document tabs above the editor surface"
+  toolbar: "compact editor toolbar with sync and document actions"
+  document_header: "title, save state, collaborators, workflow state, and editor actions"
+  editor: "TipTap rich Markdown authoring surface with keyboard shortcuts and presence overlays"
+  preview: "deferred; rich editor surface serves first-submission preview need"
+  inspector: "right-side contextual inspector with history timeline first"
+  status_bar: "bottom sync, cursor, encoding, editor mode, and error count strip"
   status_badge: "compact semantic badge, never decorative"
 motion:
   duration_fast: "120ms"
@@ -77,14 +83,14 @@ This product should feel like a serious writing and review tool that software te
 
 - Editor first: navigation and inspector surfaces support the document.
 - Collaboration is visible but transient: presence, selection, and sync state must not become document content.
-- Markdown stays portable: rich editing must not hide or break source/export behavior.
+- Markdown stays portable: rich editing must preserve export and revision snapshot behavior.
 - Review context stays compact: history, comments, tasks, and status signals live near the document without overpowering the editor.
 - Offline state is explicit: reconnecting and pending local edits should be visible, but must not look like a red danger state unless data loss is likely.
 - Workspace context remains present: the product must not feel like a single-document demo.
 
 ## Visual Direction
 
-Use restrained neutral surfaces, clear borders, dense spacing, and strong content hierarchy. Avoid decorative gradients, overly rounded cards, beige note-app styling, nested cards, and marketing-page composition. Cards are only for repeated items or modals.
+Use restrained neutral surfaces, clear borders, dense spacing, and strong content hierarchy. The target feel is a professional documentation workspace: left project files, document tabs, a centered rich editing measure, right-side history context, and a persistent bottom status bar. Avoid decorative gradients, overly rounded cards, beige note-app styling, nested cards, and marketing-page composition. Cards are only for repeated items, anchored popovers, or modals.
 
 ## Color System
 
@@ -94,14 +100,17 @@ Selection and remote selection colors must be transparent enough to preserve Mar
 
 ## Typography
 
-Shell, navigation, inspector, and preview prose use the UI font. Markdown source editing and code blocks use a monospace font. Metadata, timestamps, badges, and secondary labels use smaller text while preserving contrast.
+Shell, navigation, inspector, and rich editor prose use the UI font. Code blocks, inline code, cursor metadata, and low-level status text may use a monospace font. Metadata, timestamps, badges, and secondary labels use smaller text while preserving contrast.
 
-Editor text should be comfortable for long writing sessions. Use 14px or 15px text with roughly 1.55 line height. Do not use viewport-based font scaling or negative letter spacing. Preview headings should be clear but never hero-sized.
+Editor text should be comfortable for long writing sessions. Use 14px or 15px text with roughly 1.55 line height. Do not use viewport-based font scaling or negative letter spacing. Rich editor headings should be clear but never hero-sized.
 
 ## Layout System
 
-- Desktop uses left workspace navigation, center editor/preview, and right inspector.
-- Split mode presents Markdown source and rendered preview as a connected but visually distinct experience.
+- Desktop uses left workspace navigation, center editor, and right inspector.
+- Open documents appear as a compact tab strip above the editor header.
+- First-submission editing uses one TipTap rich authoring surface; raw source and split preview are deferred.
+- The editor body uses a comfortable centered text measure inside the center work area, not a card.
+- A persistent bottom status bar shows sync state, cursor position, encoding, editor mode, and error count.
 - Side panels may collapse, but the center editor remains the primary work surface.
 - Mobile layout may be deferred, but document state must not depend on desktop-only hidden state.
 - Panel collapse must not reset editor focus, draft content, current mode, or sync status.
@@ -110,20 +119,21 @@ Editor text should be comfortable for long writing sessions. Use 14px or 15px te
 ## Core Screens
 
 - Workspace/document list: dense list with document state and recent activity.
-- Collaborative editor: Markdown writing, presence, sync state, and mode switcher.
-- Preview: rendered Markdown with heading, table, task, code, and quote styling.
-- History: checkpoint list with author, time, message, and snapshot access.
-- Inspector: comments, tasks, decisions, risks, activity, and document metadata.
+- Collaborative editor: rich Markdown writing, presence, and sync state.
+- Rich authoring: rendered Markdown editing with heading, table, task, code, and quote styling.
+- History: right inspector timeline with author, time, message, and snapshot access.
+- Inspector: history first, then comments, tasks, decisions, risks, activity, and document metadata as product scope expands.
 - Offline/reconnect: subtle status surface that can show pending local edit count.
 - Workflow foundation: `DocumentState` may appear as a small status, but hook builder UI is deferred.
 
 ## Component Rules
 
 - Buttons use icon-only or icon-plus-text treatments for clear commands.
-- Mode controls use a segmented control for Rich, Markdown, Split, and Preview.
+- Raw Markdown source and split preview controls are deferred until the source editor stack is intentionally selected.
 - Status badges are compact and semantic: Draft, Review, Saved, Synced, Pending, and Offline should be short labels.
 - Presence avatars use stable member colors from workspace membership.
 - Remote cursor labels must not cover editable text for long.
+- Presence selection may use a small anchored popover when it clarifies who is editing without taking focus from the text.
 - Comment markers attach to document locations but must not mutate the Markdown body.
 - Properties live near the document title and must not look like Markdown body content.
 - Links/backlinks should feel like document context, not a social graph dashboard.

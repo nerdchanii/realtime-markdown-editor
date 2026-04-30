@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-import { appendMarkdownLine } from "./support/reviewer-session.js";
+import { appendRichEditorLine, richMarkdownEditor } from "./support/reviewer-session.js";
 
 test("TASK-045: reviewer workspace flow reaches product surfaces without hiding CE path", async ({
   page,
@@ -22,17 +22,10 @@ test("TASK-045: reviewer workspace flow reaches product surfaces without hiding 
   await expect(page.getByTestId("document-properties").getByLabel("Owner")).toHaveValue("Alice");
   await expect(page.getByTestId("document-backlinks")).toContainText("Decision Log");
 
-  const editor = page.getByTestId("collaborative-markdown-editor");
+  const editor = richMarkdownEditor(page);
   const reviewerLine = `TASK-045 reviewer flow ${Date.now()}`;
   await expect(editor).toBeVisible();
-  await appendMarkdownLine(page, editor, reviewerLine);
-
-  await page.getByRole("button", { name: "Rich" }).click();
-  await expect(page.getByTestId("editor-rich-view")).toBeVisible();
-  await page.getByRole("button", { name: "Preview" }).click();
-  await expect(page.getByTestId("editor-preview-view")).toContainText(reviewerLine);
-  await page.getByRole("button", { name: "Split" }).click();
-  await expect(page.getByTestId("editor-split-view")).toBeVisible();
+  await appendRichEditorLine(page, editor, reviewerLine);
   await expect(editor).toContainText(reviewerLine);
 
   await page.getByTestId("publish-revision-button").click();

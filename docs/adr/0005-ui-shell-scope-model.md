@@ -16,6 +16,7 @@ related_requirements:
   - CE-02-PRESENCE
   - CE-04-REVISION-HISTORY
   - CE-05-RICH-PREVIEW
+  - REQ-EDITOR-RICH-AUTHORING-SURFACE
   - REQ-EDITOR-RICH-SOURCE-SPLIT
   - REQ-PROPERTIES-OUTSIDE-BODY
   - REQ-MARKDOWN-EXPORT-FRONTMATTER
@@ -27,6 +28,7 @@ related_documents:
   - DESIGN.md
   - docs/product/README.md
   - docs/domain/README.md
+  - docs/adr/0007-rich-markdown-authoring-surface.md
 supersedes: []
 superseded_by: null
 ---
@@ -48,7 +50,7 @@ UI shell은 다음 scope를 분리한다.
 
 기본 화면은 left workspace panel, center editor/preview, right inspector를 가진다. Properties는 title 근처에 두며, Markdown export는 frontmatter representation을 사용한다.
 
-CE-05의 Split mode는 하나의 document 안에서 Markdown source와 rendered preview를 나누어 보는 범위다. 여러 workspace document를 center editor area에서 split/tab으로 동시에 여는 IDE-style multi-pane workspace는 향후 확장 가능성을 남기되 first subject skeleton에는 포함하지 않는다.
+ADR-0007 이후 CE-05의 first submission surface는 TipTap 기반 Rich Markdown authoring이다. Raw Markdown source editor와 source/preview Split mode는 보류한다. 여러 workspace document를 center editor area에서 split/tab으로 동시에 여는 IDE-style multi-pane workspace는 향후 확장 가능성을 남기되 first subject skeleton에는 포함하지 않는다.
 
 Workflow/dashboard 중심 화면은 deferred다. `DocumentState`는 editor-first shell 안에서 직접 변경 가능한 foundation으로 노출할 수 있지만, workflow executor, transition guard, publish/draft visibility, ownership-based visibility는 workflow capability가 승격될 때 결정한다.
 
@@ -115,3 +117,4 @@ UI는 CE walking skeleton을 먼저 증명해야 한다. Workspace와 workflow f
 | 2026-04-28 | 최초 작성 | nerdchanii |
 | 2026-04-28 | editor-first shell, frontmatter export, DocumentState foundation에 맞게 정리 | nerdchanii |
 | 2026-04-29 | TF architecture review에 따라 accepted로 승격하고 workflow/dashboard deferred 원칙 명시 | nerdchanii |
+| 2026-04-30 | ADR-0007에 맞춰 CE-05 source/split policy를 rich authoring surface 중심으로 갱신 | nerdchanii |

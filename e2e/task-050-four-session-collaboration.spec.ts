@@ -1,9 +1,10 @@
 import { expect, test, type Browser, type Page } from "@playwright/test";
 
 import {
-  appendMarkdownLine,
+  appendRichEditorLine,
   openReviewerSession,
-  seededReviewDocumentId,
+  richMarkdownEditor,
+  uniqueReviewDocumentId,
   type ReviewerMember,
 } from "./support/reviewer-session.js";
 
@@ -15,10 +16,11 @@ type FourSession = Readonly<{
 test("TASK-050: four reviewer sessions converge on all collaborative edits", async ({
   browser,
 }, testInfo) => {
-  const sessions = await openFourSessions(browser);
   const runId = `${testInfo.workerIndex}-${Date.now()}`;
+  const documentId = uniqueReviewDocumentId("task-050");
+  const sessions = await openFourSessions(browser, documentId);
   const edits = sessions.map((session, index) => ({
-    editor: session.page.getByTestId("collaborative-markdown-editor"),
+    editor: richMarkdownEditor(session.page),
     line: `${session.member} four-session edit ${runId}-${index}`,
     page: session.page,
   }));
@@ -28,7 +30,7 @@ test("TASK-050: four reviewer sessions converge on all collaborative edits", asy
       await expect(edit.editor).toBeVisible();
     }
 
-    await Promise.all(edits.map((edit) => appendMarkdownLine(edit.page, edit.editor, edit.line)));
+    await Promise.all(edits.map((edit) => appendRichEditorLine(edit.page, edit.editor, edit.line)));
 
     for (const edit of edits) {
       for (const expected of edits) {
@@ -40,12 +42,15 @@ test("TASK-050: four reviewer sessions converge on all collaborative edits", asy
   }
 });
 
-async function openFourSessions(browser: Browser): Promise<readonly FourSession[]> {
+async function openFourSessions(
+  browser: Browser,
+  documentId: string,
+): Promise<readonly FourSession[]> {
   return Promise.all(
     (["alice", "bob", "carol", "dana"] as const).map(async (member) => {
       const context = await browser.newContext();
       const page = await context.newPage();
-      await openReviewerSession(page, { member, documentId: seededReviewDocumentId });
+      await openReviewerSession(page, { member, documentId });
 
       return { member, page };
     }),

@@ -21,6 +21,7 @@ related_requirements:
   - CE-05-RICH-PREVIEW
   - REQ-RESEARCH-COLLAB-ENGINE-POC
   - REQ-OFFLINE-RECONNECT-MERGE
+  - REQ-EDITOR-RICH-AUTHORING-SURFACE
   - REQ-EDITOR-RICH-SOURCE-SPLIT
 related_documents:
   - subject.md
@@ -38,7 +39,7 @@ superseded_by: null
 
 ## 맥락
 
-과제는 동기화 방식으로 CRDT, OT, 자체 구현 등을 허용한다. CE-01~CE-03은 협업 엔진의 수렴성과 reconnect merge 품질에 직접 의존하고, CE-05의 rich/source/split 편집 경험도 editor stack과 강하게 연결된다.
+과제는 동기화 방식으로 CRDT, OT, 자체 구현 등을 허용한다. CE-01~CE-03은 협업 엔진의 수렴성과 reconnect merge 품질에 직접 의존하고, CE-05의 rich Markdown authoring 경험도 editor stack과 강하게 연결된다.
 
 ADR-0001은 협업 provider를 domain model 밖의 adapter 경계 뒤에 둔다고 결정했다. 따라서 최종 엔진을 선택하더라도 Yjs, Hocuspocus, Tiptap 타입은 domain/product API로 새면 안 된다.
 
@@ -67,7 +68,7 @@ POC-001은 `docs/research/poc-001-collaboration-engine/` 아래에서 Tiptap + Y
 
 - 장점: POC에서 memory, measured payload, sync-server RSS 수치가 낮았다.
 - POC 결과: offline reconnect E2E는 통과했고, rich editing은 CommonMark schema 범위 안에서 확인됐다. Local setup은 Yorkie server 준비가 필요했다.
-- 제외 이유: B2B 협업 제품의 핵심 고객 가치는 팀 문서 작성 흐름을 끊지 않고, 네트워크 변동 후에도 local/remote edits를 손실 없이 합치는 것이다. 이번 walking skeleton에서는 reconnect 검증과 rich/source/split 편집 경험을 한 흐름으로 빠르게 묶을 수 있는 Tiptap/Yjs 조합을 먼저 채택한다.
+- 제외 이유: B2B 협업 제품의 핵심 고객 가치는 팀 문서 작성 흐름을 끊지 않고, 네트워크 변동 후에도 local/remote edits를 손실 없이 합치는 것이다. 이번 walking skeleton에서는 reconnect 검증과 rich Markdown authoring 경험을 한 흐름으로 빠르게 묶을 수 있는 Tiptap/Yjs 조합을 먼저 채택한다.
 - 재검토 조건: browser heap, network payload, sync-server RSS 상한이 제품의 최우선 제약으로 바뀌면 다시 비교한다.
 
 ### 3. 자체 WebSocket/OT 구현
@@ -85,12 +86,12 @@ POC-001의 최종 browser/editor stack benchmark는 3회 반복 median이며, �
 | Reconnect convergence | 11 ms | 215.5 ms | 이번 skeleton의 핵심 리스크를 줄이는 근거 |
 | Peer-visible edit latency | 11.2 ms | 115.2 ms | 공동 편집 feedback loop에 긍정적 |
 | Large-document local edit | 14.9 ms | 63.3 ms | 긴 문서 작성 흐름에 긍정적 |
-| Rich/source/split suitability | pass | partial | Markdown authoring flow에 긍정적 |
+| Rich Markdown authoring suitability | pass | partial | Markdown authoring flow에 긍정적 |
 | Browser heap after large document | 21.19 MB | 10.83 MB | Yorkie의 강점, 운영 리스크 검토 기준 |
 | Measured network payload | 12.01 MB | 8.01 MB | Yorkie의 강점, 재검토 기준 |
 | Sync server peak RSS | 110.98 MB | 41.73 MB | Yorkie의 강점, 재검토 기준 |
 
-Headless CRDT-only benchmark에서는 두 후보 모두 충분히 빠르다. 현재 결정은 CRDT algorithm의 우열이 아니라, 이번 제품 skeleton에서 reconnect 검증, live editing feedback, rich/source/split authoring flow를 가장 빠르게 묶어낼 수 있는 stack을 고르는 결정이다.
+Headless CRDT-only benchmark에서는 두 후보 모두 충분히 빠르다. 현재 결정은 CRDT algorithm의 우열이 아니라, 이번 제품 skeleton에서 reconnect 검증, live editing feedback, rich Markdown authoring flow를 가장 빠르게 묶어낼 수 있는 stack을 고르는 결정이다.
 
 ## 결과
 

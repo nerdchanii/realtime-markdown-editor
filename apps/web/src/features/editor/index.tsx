@@ -1,6 +1,8 @@
-import { useCallback, useState, type ReactNode } from "react";
+import { useCallback, useEffect, type ReactNode } from "react";
 
 import type { CollaborationSessionDto } from "@rme/contracts";
+
+import { writeCurrentEditorMarkdown } from "@/lib/current-editor-markdown";
 
 import { EditorToolbar } from "./EditorToolbar";
 import { EditorWorkspaceBody } from "./EditorWorkspaceBody";
@@ -10,7 +12,6 @@ import { createTiptapYjsCollaborationAdapter } from "./adapters/tiptap-yjs-colla
 import type {
   CollaborationAdapter,
   EditorSelectionSnapshot,
-  EditorMode,
   PresenceMember,
   SyncStatusViewModel,
 } from "./ports/collaboration-adapter";
@@ -23,18 +24,11 @@ export {
   mockCollaborationProviderName,
 } from "./adapters/mock-collaboration-adapter";
 export { createTiptapYjsCollaborationAdapter } from "./adapters/tiptap-yjs-collaboration-adapter";
-export type {
-  CollaborationAdapter,
-  EditorMode,
-  EditorSelectionSnapshot,
-  PresenceMember,
-  SyncStatusViewModel,
-};
+export type { CollaborationAdapter, EditorSelectionSnapshot, PresenceMember, SyncStatusViewModel };
 
 export type EditorWorkspaceViewModel = Readonly<{
   replacementPoint: string;
   label: string;
-  mode?: EditorMode;
   markdown?: string;
   documentId?: string;
   syncStatus?: SyncStatusViewModel;
@@ -53,7 +47,7 @@ This Markdown body is the portable CE evidence path.
 
 - CE-01 keeps concurrent edits in the central editor.
 - CE-04 exposes checkpoints in the history slot.
-- CE-05 keeps source and preview visible in split mode.
+- CE-05 uses the rich authoring surface as the rendered Markdown view.
 
 \`\`\`ts
 const editorSurface = "mock-backed";
@@ -81,21 +75,14 @@ export function EditorWorkspaceSlot({
   viewModel,
   collaborationAdapter = mockCollaborationAdapter,
 }: EditorWorkspaceSlotProps) {
-  const { markdown, mode, syncStatus, presence, handleMarkdownChange, handleSelectionChange } =
+  const { markdown, syncStatus, presence, handleMarkdownChange, handleSelectionChange } =
     useEditorWorkspaceState(viewModel, collaborationAdapter);
-  const [selectedMode, setSelectedMode] = useState(mode);
 
   return (
     <EditorWorkspaceFrame>
-      <EditorToolbar
-        label={viewModel.label}
-        mode={selectedMode}
-        syncStatus={syncStatus}
-        onModeChange={setSelectedMode}
-      />
+      <EditorToolbar label={viewModel.label} syncStatus={syncStatus} />
       <ActiveEditorBody
         markdown={markdown}
-        mode={selectedMode}
         onMarkdownChange={handleMarkdownChange}
         onSelectionChange={handleSelectionChange}
       />
@@ -109,7 +96,7 @@ function EditorWorkspaceFrame({ children }: Readonly<{ children: ReactNode }>) {
   return (
     <div
       className="editor-workspace"
-      aria-label="Editor and rich preview"
+      aria-label="Collaborative rich Markdown editor"
       data-testid="editor-workspace"
       style={{ position: "relative" }}
     >
@@ -120,19 +107,16 @@ function EditorWorkspaceFrame({ children }: Readonly<{ children: ReactNode }>) {
 
 function ActiveEditorBody({
   markdown,
-  mode,
   onMarkdownChange,
   onSelectionChange,
 }: Readonly<{
   markdown: string;
-  mode: EditorMode;
   onMarkdownChange: (markdown: string) => void;
   onSelectionChange: (selection: EditorSelectionSnapshot) => void;
 }>) {
   return (
     <EditorWorkspaceBody
       markdown={markdown}
-      mode={mode}
       onMarkdownChange={onMarkdownChange}
       onSelectionChange={onSelectionChange}
     />
@@ -140,15 +124,9 @@ function ActiveEditorBody({
 }
 
 function CurrentMarkdownStore({ markdown }: Readonly<{ markdown: string }>) {
-  return (
-    <textarea
-      aria-hidden="true"
-      data-testid="current-markdown-body"
-      readOnly
-      hidden
-      value={markdown}
-    />
-  );
+  useEffect(() => writeCurrentEditorMarkdown(markdown), [markdown]);
+
+  return null;
 }
 
 function useEditorWorkspaceState(
@@ -158,10 +136,10 @@ function useEditorWorkspaceState(
   const activeAdapter = selectCollaborationAdapter(viewModel, collaborationAdapter);
   const { markdown, updateMarkdown, updateSelection, syncStatus, presence } =
     activeAdapter.useDocument(createCollaborationOptions(viewModel));
-  const mode = viewModel.mode ?? "split";
   const handleMarkdownChange = useCallback(
     (nextMarkdown: string) => {
       updateMarkdown(nextMarkdown);
+      writeCurrentEditorMarkdown(nextMarkdown);
     },
     [updateMarkdown],
   );
@@ -174,7 +152,6 @@ function useEditorWorkspaceState(
 
   return {
     markdown,
-    mode,
     syncStatus,
     presence,
     handleMarkdownChange,

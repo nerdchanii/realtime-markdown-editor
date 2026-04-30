@@ -1,9 +1,10 @@
 import { expect, test } from "@playwright/test";
 
 import {
-  appendMarkdownLine,
+  appendRichEditorLine,
   openReviewerSession,
-  seededReviewDocumentId,
+  richMarkdownEditor,
+  uniqueReviewDocumentId,
 } from "./support/reviewer-session.js";
 
 test("CE-01: two members edit the same workspace document and converge without manual refresh", async ({
@@ -13,12 +14,13 @@ test("CE-01: two members edit the same workspace document and converge without m
   const bob = await browser.newContext();
   const alicePage = await alice.newPage();
   const bobPage = await bob.newPage();
+  const documentId = uniqueReviewDocumentId("ce-01");
 
-  await openReviewerSession(alicePage, { member: "alice", documentId: seededReviewDocumentId });
-  await openReviewerSession(bobPage, { member: "bob", documentId: seededReviewDocumentId });
+  await openReviewerSession(alicePage, { member: "alice", documentId });
+  await openReviewerSession(bobPage, { member: "bob", documentId });
 
-  const aliceEditor = alicePage.getByTestId("collaborative-markdown-editor");
-  const bobEditor = bobPage.getByTestId("collaborative-markdown-editor");
+  const aliceEditor = richMarkdownEditor(alicePage);
+  const bobEditor = richMarkdownEditor(bobPage);
 
   await expect(aliceEditor).toBeVisible();
   await expect(bobEditor).toBeVisible();
@@ -26,8 +28,8 @@ test("CE-01: two members edit the same workspace document and converge without m
   const aliceLine = `Alice concurrent line ${Date.now()}`;
   const bobLine = `Bob concurrent line ${Date.now()}`;
 
-  await appendMarkdownLine(alicePage, aliceEditor, aliceLine);
-  await appendMarkdownLine(bobPage, bobEditor, bobLine);
+  await appendRichEditorLine(alicePage, aliceEditor, aliceLine);
+  await appendRichEditorLine(bobPage, bobEditor, bobLine);
 
   await expect(aliceEditor).toContainText(bobLine);
   await expect(bobEditor).toContainText(aliceLine);

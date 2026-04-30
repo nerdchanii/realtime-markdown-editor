@@ -23,7 +23,7 @@ The first usable screen is the collaborative Markdown editor workspace, not a la
 ## Feature Boundaries
 
 - `app` owns shell composition and route-level layout.
-- `features/editor` owns Markdown authoring, mode controls, preview coordination, and editor-local UI state.
+- `features/editor` owns TipTap rich Markdown authoring, presence-aware selection updates, and editor-local UI state.
 - `features/document` owns document title, properties, state display/control, and document-scoped view model mapping.
 - `features/history` owns checkpoint list and read-only snapshot inspection UI.
 - `features/workspace` owns navigation projection UI for workspace/project/folder/document context.

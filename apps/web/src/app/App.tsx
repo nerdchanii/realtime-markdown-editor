@@ -53,7 +53,7 @@ function useLocalDocumentCreator(
     (request: { title: string; folderId?: string | null; projectId?: string | null }) => {
       if (seedContext.status !== "ready") return;
 
-      const id = `document_local_${createdDocumentCount + 1}`;
+      const id = createLocalDocumentId(request.title, createdDocumentCount + 1);
       const folderId = request.folderId ?? seedContext.context.project.rootFolderId;
       setters.setCreatedDocuments((current) => [
         ...current,
@@ -63,6 +63,16 @@ function useLocalDocumentCreator(
     },
     [createdDocumentCount, seedContext, setters],
   );
+}
+
+function createLocalDocumentId(title: string, sequence: number) {
+  const slug = title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")
+    .slice(0, 48);
+
+  return `document_local_${slug || "untitled"}_${sequence}`;
 }
 
 function createLocalDocument(

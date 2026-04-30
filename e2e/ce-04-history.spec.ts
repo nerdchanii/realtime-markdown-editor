@@ -1,20 +1,24 @@
 import { expect, test } from "@playwright/test";
 
 import {
-  appendMarkdownLine,
+  appendRichEditorLine,
   openReviewerSession,
-  seededReviewDocumentId,
+  richMarkdownEditor,
+  uniqueReviewDocumentId,
 } from "./support/reviewer-session.js";
 
 test("CE-04: reviewer can create and inspect a user-visible document revision", async ({
   page,
 }) => {
-  await openReviewerSession(page, { member: "alice", documentId: seededReviewDocumentId });
+  await openReviewerSession(page, {
+    member: "alice",
+    documentId: uniqueReviewDocumentId("ce-04"),
+  });
 
-  const editor = page.getByTestId("collaborative-markdown-editor");
+  const editor = richMarkdownEditor(page);
   const revisionText = `Revision candidate text ${Date.now()}`;
   await expect(editor).toBeVisible();
-  await appendMarkdownLine(page, editor, revisionText);
+  await appendRichEditorLine(page, editor, revisionText);
 
   await page.getByTestId("publish-revision-button").click();
   await page.getByTestId("revision-message-input").fill("Capture review plan draft");

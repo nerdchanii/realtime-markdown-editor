@@ -16,6 +16,8 @@ Backlog는 first subject skeleton으로 오해하면 안 되는 보류 요청, �
 | Markdown body에서 task extraction | CE skeleton보다 제품 범위가 커진다. | CE-01부터 CE-05 skeleton이 안정화된 뒤. |
 | `@owner`, `#tag`, `due:YYYY-MM-DD` parsing | Task extraction strategy에 의존한다. | Task extraction이 선택된 뒤. |
 | Comments와 suggestions | CRDT anchor와 stale-anchor policy가 필요하다. | Collaboration engine 선택 후 basic history가 동작한 뒤. |
+| Raw Markdown source editor | First submission은 TipTap rich authoring surface를 기본으로 하며, raw source 편집은 별도 text editor stack 선택이 필요하다. | Markdown source editing user evidence가 생기고 CodeMirror 같은 OSS editor 도입 범위를 검토할 때. |
+| Source + rendered preview Split mode | Rich editor 자체가 rendered authoring surface 역할을 하므로 first submission에서는 중복 UI가 된다. | Raw source editor를 승격하거나 reviewer가 별도 preview 검증을 요구할 때. |
 | Quick chat, mention, notification, DM | 커뮤니케이션 workflow가 editor-first 제품을 압도할 수 있다. | Core collaboration과 review surface가 안정화된 뒤. |
 | Wikilink | Standard Markdown links/backlinks가 먼저다. | Standard link resolution과 export가 안정화된 뒤. |
 | IDE-style multi-pane document workspace | 여러 workspace document를 center editor area에서 split/tab으로 동시에 여는 기능은 CE skeleton보다 UI/session/collaboration scope가 크다. | CE-01부터 CE-05와 basic workspace/document navigation이 안정화된 뒤 workspace presence/follow 확장과 비교 검토한다. |

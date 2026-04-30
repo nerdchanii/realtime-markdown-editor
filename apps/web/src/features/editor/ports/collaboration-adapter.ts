@@ -1,7 +1,5 @@
 import type { CollaborationSessionDto } from "@rme/contracts";
 
-export type EditorMode = "rich" | "markdown" | "split" | "preview";
-
 export type SyncStatusViewModel = Readonly<{
   label: string;
   detail: string;
