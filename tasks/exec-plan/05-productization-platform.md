@@ -101,9 +101,10 @@ Worker responsibilities:
 - Seed endpoints become dev-only, environment-gated bootstrap helpers.
 - Current user and workspace membership come from authenticated session state, not query/body trust.
 - Owner/member is the first role model. Do not introduce editor/viewer/admin yet.
-- Postgres stores product metadata and current Markdown projection.
+- Postgres stores product metadata and a derived current Markdown projection.
 - Object storage stores immutable artifacts: checkpoint snapshots, exports, images, and future blobs.
-- Live Tiptap/Yjs state is realtime provider state. It is separate from checkpoint history.
+- Live Tiptap/Yjs provider state is the active collaborative editing source of truth. It is
+  separate from derived Markdown projection and checkpoint history.
 - Checkpoint creation is owned by the documents API.
 - The Tiptap `EditorContent` instance must be the actual collaboration editor instance.
 - Undo/redo is collaboration-safe undo/redo, not the default local history extension.
@@ -119,7 +120,7 @@ Worker responsibilities:
 | `TASK-073` | `blocking`         | `TASK-071`                                                 | `TASK-074`, `TASK-075`, `TASK-078` | Runtime validation, error envelope, centralized CORS                         |
 | `TASK-074` | `parallel-backend` | `TASK-072`, `TASK-073`                                     | `TASK-077`, `TASK-082`             | Auth/session and owner/member authorization                                  |
 | `TASK-075` | `parallel-backend` | `TASK-072`, `TASK-073`                                     | `TASK-076`, `TASK-080`, `TASK-082` | Workspace/project/folder/document CRUD APIs                                  |
-| `TASK-076` | `blocking`         | `TASK-075`                                                 | `TASK-077`, `TASK-078`, `TASK-081` | Current Markdown projection and Tiptap serialization contract                |
+| `TASK-076` | `blocking`         | `TASK-075`                                                 | `TASK-077`, `TASK-078`, `TASK-081` | Derived Markdown projection and Tiptap serialization contract                |
 | `TASK-077` | `parallel-backend` | `TASK-074`, `TASK-076`                                     | `TASK-082`                         | DB-backed collaboration session and live Yjs persistence                     |
 | `TASK-078` | `parallel-backend` | `TASK-072`, `TASK-076`                                     | `TASK-080`, `TASK-082`             | Checkpoint metadata/artifact split and canonical documents route             |
 | `TASK-079` | `parallel-backend` | `TASK-072`, `TASK-073`                                     | `TASK-081`, `TASK-082`             | Artifact-backed image upload API                                             |
@@ -309,6 +310,10 @@ Verification:
 
 ### TASK-076: Current Markdown Projection And Serialization Contract
 
+`TASK-076` preserves Yjs/Tiptap provider state as the live collaborative editing source of truth.
+The DB Markdown projection is a derived portable read model for export, checkpoint snapshot
+creation, and fallback bootstrap only when live Yjs state is absent or uninitialized.
+
 Type: `contract` / Mode: `blocking`
 
 Goal:
@@ -328,8 +333,10 @@ Acceptance:
 
 - The actual `EditorContent` instance is wired to collaboration extensions.
 - Markdown serialization uses the Tiptap Markdown extension path.
-- DB stores a latest Markdown projection.
-- Opening a document can bootstrap from DB Markdown when live Yjs state is absent.
+- DB stores a derived latest Markdown projection.
+- Opening a document can bootstrap from DB Markdown only when live Yjs state is absent or
+  uninitialized.
+- Live Yjs state wins for active collaboration and reconnect merge.
 - Export and checkpoint creation use server-resolved current content, not an untrusted full-body
   client snapshot.
 
@@ -340,6 +347,9 @@ Verification:
 - `pnpm test:e2e e2e/ce-01-concurrent-editing.spec.ts e2e/ce-05-rich-preview.spec.ts`
 
 ### TASK-077: DB-Backed Collaboration Session And Live Yjs Persistence
+
+`TASK-077` owns live Yjs provider persistence and rehydration. It does not own checkpoint Markdown
+snapshot artifacts, export artifacts, or DB Markdown as the live editing source of truth.
 
 Type: `parallel-backend` / Mode: `parallel`
 
@@ -370,6 +380,9 @@ Verification:
 - `pnpm test:e2e e2e/ce-01-concurrent-editing.spec.ts e2e/ce-03-offline-merge.spec.ts`
 
 ### TASK-078: Checkpoint Metadata And Artifact Split
+
+`TASK-078` owns checkpoint metadata, Markdown snapshot artifacts, and removal of the retired
+collaboration checkpoint route in favor of canonical `POST /documents/:documentId/checkpoints`.
 
 Type: `parallel-backend` / Mode: `parallel`
 
@@ -427,6 +440,9 @@ Verification:
 
 ### TASK-080: Frontend Product API Migration
 
+`TASK-080` migrates UI data loading to product APIs while keeping CE-01 through CE-05 as product
+validation stories, not visible evaluation-harness UI.
+
 Type: `parallel-ui` / Mode: `parallel`
 
 Goal:
@@ -457,6 +473,9 @@ Verification:
 
 ### TASK-081: Template UI Absorption, Undo/Redo, And Image Insert
 
+`TASK-081` adds editor controls and image insertion within the existing editor-first product UI.
+It must not become a broad redesign or expose evaluation-harness language.
+
 Type: `parallel-ui` / Mode: `parallel`
 
 Goal:
@@ -486,6 +505,9 @@ Verification:
 
 ### TASK-082: Product Runtime Integration
 
+`TASK-082` integrates already-archived task outputs and fixes seams only. New feature gaps return
+to the owning prerequisite task or become explicit blockers.
+
 Type: `integration` / Mode: `integration`
 
 Goal:
@@ -514,6 +536,9 @@ Verification:
 - `pnpm test:e2e e2e/ce-01-concurrent-editing.spec.ts e2e/ce-02-presence.spec.ts e2e/ce-03-offline-merge.spec.ts e2e/ce-04-history.spec.ts e2e/ce-05-rich-preview.spec.ts`
 
 ### TASK-083: Productization Verification Gate
+
+`TASK-083` verifies the product validation stories and evidence. It may correct docs/evidence and
+e2e robustness, but it must not hide missing product capabilities inside the final gate.
 
 Type: `verification` / Mode: `verification`
 

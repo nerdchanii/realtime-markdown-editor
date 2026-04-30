@@ -45,6 +45,8 @@ Checkpoint history를 Postgres metadata와 artifact-backed snapshot payload로 �
 - Snapshot Markdown payload through artifact storage port.
 - Artifact metadata in Postgres.
 - Canonical `POST /documents/:documentId/checkpoints`.
+- Removal of retired `POST /collaboration/documents/:documentId/checkpoints`.
+- Smoke-test migration from retired collaboration checkpoint route to canonical documents checkpoint route.
 - Refresh/API restart persistence evidence.
 
 ### 제외
@@ -64,8 +66,10 @@ Checkpoint history를 Postgres metadata와 artifact-backed snapshot payload로 �
   `packages/contracts/src/http/routes.ts`.
 - Request contract: `CreateCheckpointRequestDto` carries checkpoint message only;
   API derives author membership from session and resolves Markdown snapshot server-side.
+- Checkpoint snapshot artifacts are explicit Markdown history artifacts. They are separate from
+  live Yjs binary/provider persistence owned by `TASK-077`.
 - mock 허용 여부: local filesystem/in-memory artifact adapter may exist only as explicit dev/test adapter.
-- Collaboration checkpoint route removed or explicitly transitional.
+- Collaboration checkpoint route is removed here unless an explicit transitional blocker is recorded.
 
 ## Write Set
 
@@ -91,6 +95,8 @@ Checkpoint history를 Postgres metadata와 artifact-backed snapshot payload로 �
 - Artifact metadata is stored in Postgres.
 - `POST /documents/:documentId/checkpoints` is canonical.
 - Collaboration routes do not create checkpoints.
+- Retired collaboration checkpoint smoke coverage is moved to the canonical documents checkpoint route.
+- Snapshot inspect reads Markdown snapshot artifacts, not live Yjs provider state.
 - List and inspect work after refresh and API restart.
 
 ## 검증

@@ -45,7 +45,7 @@ Useful Tiptap template UI를 product state ownership 없이 흡수하고 collabo
 
 ### 포함
 
-- Dense workspace toolbar polish.
+- Dense workspace toolbar controls that preserve the editor-first product layout.
 - Collaboration-safe undo/redo controls.
 - Link, heading, list, task, code, image controls where supported.
 - Image insertion through `TASK-079` artifact upload API.
@@ -56,6 +56,7 @@ Useful Tiptap template UI를 product state ownership 없이 흡수하고 collabo
 - Raw Markdown source/split preview.
 - Backend upload API implementation.
 - Product state duplication in template UI.
+- Broad visual redesign or evaluation-harness UI.
 
 ## 계약과 의존성
 
@@ -67,6 +68,8 @@ Useful Tiptap template UI를 product state ownership 없이 흡수하고 collabo
 - mock 허용 여부: image insertion must use artifact API in product path.
 - Image upload route source: `POST /documents/:documentId/images` from
   `packages/contracts/src/http/routes.ts`.
+- `TASK-080` owns general product API migration. `TASK-081` may touch API client code only for
+  image insertion and editor-control needs that are not already covered by `TASK-080`.
 - Contract/API changes stop work and route to main orchestrator.
 
 ## Write Set
@@ -94,6 +97,7 @@ Useful Tiptap template UI를 product state ownership 없이 흡수하고 collabo
 - Link, heading, list, task, code, and image controls are available where supported.
 - Image insertion uses artifact upload API from `TASK-079`.
 - The editor instance remains the real collaboration editor instance.
+- Normal UI presents editor/product controls, not evaluation-harness artifacts.
 
 ## 검증
 

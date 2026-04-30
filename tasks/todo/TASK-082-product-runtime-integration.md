@@ -52,12 +52,15 @@ Backend, collaboration runtime, frontend 결과를 하나의 authenticated produ
 - Server/current content Markdown export.
 - Artifact-backed image upload and insertion.
 - Dev-only seed APIs.
+- Integration seams between already-archived backend, collab, and UI tasks.
 
 ### 제외
 
 - New product scope not in official docs or `05-productization-platform.md`.
 - Role expansion beyond owner/member.
 - Restore/branching/workflow integrations.
+- New feature implementation that belongs to unfinished prerequisite tasks.
+- Evaluation-harness UI.
 
 ## 계약과 의존성
 
@@ -69,7 +72,8 @@ Backend, collaboration runtime, frontend 결과를 하나의 authenticated produ
 - mock 허용 여부: dev bootstrap only; normal runtime product APIs.
 - Normal runtime route source: `packages/contracts/src/http/routes.ts`.
 - Dev-only seed routes remain limited to local bootstrap and are not normal product dependencies.
-- Integration owns cross-cutting drift only after parallel task merge.
+- Integration owns cross-cutting seams only after parallel task merge. Feature gaps must go back
+  to the owning prerequisite task or become explicit blockers.
 
 ## Write Set
 
@@ -96,6 +100,7 @@ Backend, collaboration runtime, frontend 결과를 하나의 authenticated produ
 - Markdown export uses server/current content.
 - Image upload and insertion work through artifact references.
 - Seed APIs are dev-only.
+- CE evidence is verified through product behavior and tests, not visible compliance UI.
 
 ## 검증
 

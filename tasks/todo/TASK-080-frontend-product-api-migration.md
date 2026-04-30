@@ -48,12 +48,14 @@ Workspace/document/history UI를 seed/local-only state에서 canonical product A
 - Checkpoint creation through canonical documents route.
 - Cross-user refresh visibility for checkpoint updates.
 - Dev seed route dependency isolated to local bootstrap.
+- Editor-first product UI keeps CE coverage as behavior/e2e evidence, not visible checklist UI.
 
 ### 제외
 
 - Backend route creation.
 - Tiptap toolbar absorption and image insertion.
 - Raw Markdown source/split preview.
+- CE/compliance/reviewer dashboard UI.
 
 ## 계약과 의존성
 
@@ -65,6 +67,8 @@ Workspace/document/history UI를 seed/local-only state에서 canonical product A
 - Canonical route source: `packages/contracts/src/http/routes.ts`.
 - Checkpoint creation uses `POST /documents/:documentId/checkpoints`; collaboration checkpoint
   route is not a frontend product dependency.
+- CE-01 through CE-05 are first product validation stories, not user-facing navigation labels,
+  badges, or checklist panels.
 - mock 허용 여부: UI tests may use explicit test bootstrap only.
 - Contract changes stop work and return to main orchestrator.
 
@@ -93,6 +97,7 @@ Workspace/document/history UI를 seed/local-only state에서 canonical product A
 - Creating a checkpoint refetches or updates from the canonical documents route.
 - Other users can see checkpoint updates after refresh; polling/realtime event can be staged.
 - Dev seed route dependency is isolated to local bootstrap.
+- Normal UI does not expose CE/compliance/reviewer/test-evidence language.
 
 ## 검증
 

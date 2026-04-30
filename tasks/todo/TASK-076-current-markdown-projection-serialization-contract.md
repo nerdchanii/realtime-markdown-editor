@@ -31,7 +31,9 @@ review_required: true
 
 ## 목표
 
-Rich Tiptap state가 durable Markdown projection으로 저장, export, checkpoint되는 product serialization contract를 확정한다.
+Yjs/Tiptap live collaboration state에서 파생되는 portable Markdown projection contract를 확정한다.
+Yjs provider state는 live editing source of truth이며, DB Markdown projection은 export,
+checkpoint, fallback bootstrap을 위한 derived read model이다.
 
 ## 배경
 
@@ -46,8 +48,8 @@ Rich Tiptap state가 durable Markdown projection으로 저장, export, checkpoin
 
 - Actual `EditorContent` collaboration editor instance wiring 확인/수정.
 - Tiptap Markdown extension serialization path.
-- DB latest Markdown projection update contract.
-- Live Yjs absence 시 DB Markdown bootstrap.
+- Derived DB latest Markdown projection update contract.
+- Live Yjs state absence/uninitialized 시 DB Markdown fallback bootstrap.
 - Export/checkpoint creation uses server-resolved current content.
 
 ### 제외
@@ -63,6 +65,8 @@ Rich Tiptap state가 durable Markdown projection으로 저장, export, checkpoin
 | `TASK-076` | `blocking` | `TASK-075` | `TASK-077`, `TASK-078`, `TASK-081` | serialization and current content gate |
 
 - 안정 contract: ADR-0007 rich authoring surface.
+- Source-of-truth rule: live Yjs provider state wins for active collaborative editing; DB
+  Markdown projection must not overwrite live Yjs state without an explicit sync decision.
 - Route contract: `GET/PUT /documents/:documentId/content`,
   `POST /documents/:documentId/export`, and `POST /documents/:documentId/checkpoints`
   from `packages/contracts/src/http/routes.ts`.
@@ -90,8 +94,11 @@ Rich Tiptap state가 durable Markdown projection으로 저장, export, checkpoin
 
 - Actual `EditorContent` instance is wired to collaboration extensions.
 - Markdown serialization uses the Tiptap Markdown extension path.
-- DB stores a latest Markdown projection.
-- Opening a document can bootstrap from DB Markdown when live Yjs state is absent.
+- DB stores a derived latest Markdown projection, not the live editing source of truth.
+- Opening a document can bootstrap from DB Markdown only when live Yjs state is absent or
+  uninitialized.
+- Live Yjs state remains authoritative for active collaborative editing and reconnect merge.
+- API/domain code does not import Yjs, Tiptap, Hocuspocus, ProseMirror, or browser editor types.
 - Export and checkpoint creation use server-resolved current content, not untrusted full-body client snapshots.
 - Product docs stay aligned with the server-resolved content/export/checkpoint contract.
 

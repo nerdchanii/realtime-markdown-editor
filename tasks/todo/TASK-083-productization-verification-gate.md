@@ -47,11 +47,14 @@ Productization 결과가 tests뿐 아니라 product/runtime expectation과 CE ev
 - README local Postgres/object storage/product login/bootstrap/reviewer flow update.
 - Compliance matrix evidence truth check.
 - Deferred items placed in backlog rather than hidden as implementation gaps.
+- Evidence that CE-01 through CE-05 are product validation stories exercised through normal product behavior.
 
 ### 제외
 
 - Feature implementation except test robustness fixes in `e2e/**`.
 - New product scope not in official docs or `05-productization-platform.md`.
+- Fixing missing prerequisite functionality inside the final gate.
+- Adding user-facing evaluation-harness UI.
 
 ## 계약과 의존성
 
@@ -62,7 +65,8 @@ Productization 결과가 tests뿐 아니라 product/runtime expectation과 CE ev
 - 안정 contract: integrated product runtime from `TASK-082`.
 - mock 허용 여부: normal reviewer path cannot require seed/review APIs except dev bootstrap.
 - Verify seed/review routes remain dev-only according to `packages/contracts/src/http/routes.ts`.
-- Failures become blocker notes or scoped fixes.
+- Failures become blocker notes, backlog items, documentation/evidence corrections, or scoped
+  e2e robustness fixes. Missing product capabilities must not be hidden inside the final gate.
 
 ## Write Set
 
@@ -87,6 +91,7 @@ Productization 결과가 tests뿐 아니라 product/runtime expectation과 CE ev
 - README explains product login/bootstrap, local Postgres/object storage setup, and reviewer flow.
 - Compliance matrix evidence statements are true for product code.
 - Known deferred items are in backlog, not hidden in implementation gaps.
+- Normal UI remains product-oriented and does not expose evaluation-harness language.
 
 ## 검증
 

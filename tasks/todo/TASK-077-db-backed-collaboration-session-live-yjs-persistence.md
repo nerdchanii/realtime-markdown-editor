@@ -45,13 +45,16 @@ Seed-backed collaboration runtime을 DB-backed product collaboration session과 
 
 - Authenticated membership check for collaboration session issuance.
 - Provider-neutral session contract between API and collab runtime.
-- Hocuspocus live Yjs state persistence to Postgres.
+- Hocuspocus live Yjs provider state persistence and rehydration to Postgres.
 - Reload after collab service restart.
 - Boundary assertion that `apps/collab` does not import API domain/use-case files.
 
 ### 제외
 
 - Checkpoint creation route ownership.
+- Checkpoint Markdown snapshot artifact storage.
+- Export artifact creation.
+- DB Markdown projection as live editing source of truth.
 - Frontend toolbar/editor UI.
 - Document CRUD APIs.
 
@@ -63,6 +66,8 @@ Seed-backed collaboration runtime을 DB-backed product collaboration session과 
 
 - 안정 contract: auth membership session and serialization contract.
 - Canonical session route: `POST /documents/:documentId/collaboration-sessions`.
+- Live Yjs persistence is provider state for active collaboration rehydration. It must not be
+  merged with checkpoint Markdown snapshot artifacts or export file representations.
 - Retired route guardrail: do not revive `POST /collaboration/documents/:documentId/checkpoints`.
 - mock 허용 여부: collab tests may use explicit test fixtures only.
 - If checkpoint ownership is needed, stop and route to `TASK-078`/main orchestrator.
@@ -91,6 +96,8 @@ Seed-backed collaboration runtime을 DB-backed product collaboration session과 
 - Product session issuance uses `POST /documents/:documentId/collaboration-sessions`.
 - Hocuspocus session loading uses provider-neutral contract data from product APIs or DB-backed session client.
 - Live Yjs state persists to Postgres and reloads after collab service restart.
+- DB Markdown projection is used only according to `TASK-076` fallback/bootstrap policy, not as
+  a replacement for live Yjs state.
 - `apps/collab` does not import API domain/use-case files.
 
 ## 검증
