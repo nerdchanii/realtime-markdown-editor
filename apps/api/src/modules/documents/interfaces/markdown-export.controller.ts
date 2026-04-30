@@ -17,10 +17,10 @@ export class MarkdownExportController {
   @Post(":documentId/export")
   createMarkdownExport(
     @Param("documentId") documentId: string,
-    @Body() body: CreateMarkdownExportRequestDto,
+    @Body() body: CreateMarkdownExportRequestDto | undefined,
   ): Promise<MarkdownExportResponseDto> {
     const input =
-      body.filename === undefined
+      body?.filename === undefined
         ? { documentId: documentId as DocumentId }
         : { documentId: documentId as DocumentId, filename: body.filename };
 

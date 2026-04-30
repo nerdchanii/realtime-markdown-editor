@@ -32,9 +32,9 @@ export class ExportMarkdownUseCase {
       this.documents.findById(input.documentId),
       this.content.findCurrentContent(input.documentId),
     ]);
-    if (!document || !content) throw new MarkdownExportSourceNotFoundError(input.documentId);
+    if (!content) throw new MarkdownExportSourceNotFoundError(input.documentId);
 
-    const frontmatter = createFrontmatter(document.properties);
+    const frontmatter = createFrontmatter(document?.properties ?? []);
 
     return {
       documentId: input.documentId,

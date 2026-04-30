@@ -7,10 +7,10 @@ import type {
 } from "@rme/contracts";
 
 export type CreateCheckpointRequestDto = Readonly<{
-  documentId: DocumentId;
-  authorMembershipId: WorkspaceMembershipId;
   message: string;
-  markdownSnapshot: string;
+  documentId?: DocumentId | undefined;
+  authorMembershipId?: WorkspaceMembershipId | undefined;
+  markdownSnapshot?: string | undefined;
 }>;
 
 export type CreateCheckpointResponseDto = Readonly<{

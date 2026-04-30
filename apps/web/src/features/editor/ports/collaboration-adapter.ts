@@ -1,4 +1,5 @@
 import type { CollaborationSessionDto } from "@rme/contracts";
+import type { AnyExtension } from "@tiptap/core";
 
 export type SyncStatusViewModel = Readonly<{
   label: string;
@@ -32,6 +33,8 @@ export type CollaborationDocumentState = Readonly<{
   markdown: string;
   updateMarkdown: (markdown: string) => void;
   updateSelection: (selection: EditorSelectionSnapshot) => void;
+  editorExtensions?: readonly AnyExtension[] | undefined;
+  bootstrapMarkdown?: string | undefined;
   syncStatus: SyncStatusViewModel;
   presence: readonly PresenceMember[];
   providerName: string;

@@ -6,7 +6,11 @@ import * as Y from "yjs";
 
 export type YjsDocumentStore = {
   readonly persistenceProviderName: string;
-  loadDocument(documentKey: string, document: Y.Doc): Promise<void>;
+  loadDocument(
+    documentKey: string,
+    document: Y.Doc,
+    fallbackMarkdown?: string | null,
+  ): Promise<void>;
   storeDocument(documentKey: string, document: Y.Doc): Promise<void>;
 };
 
@@ -39,23 +43,42 @@ export class SeededYjsDocumentStore implements YjsDocumentStore {
     return this.persistence.providerName;
   }
 
-  async loadDocument(documentKey: string, document: Y.Doc): Promise<void> {
+  async loadDocument(
+    documentKey: string,
+    document: Y.Doc,
+    fallbackMarkdown?: string | null,
+  ): Promise<void> {
     const snapshot = await this.persistence.loadDocumentState(documentKey);
-    if (snapshot) {
-      Y.applyUpdate(document, snapshot);
-      return;
-    }
+    if (snapshot) return applySnapshot(document, snapshot);
 
-    if (documentKey !== this.seed.documentKey) return;
+    const bootstrapMarkdown = this.resolveBootstrapMarkdown(documentKey, fallbackMarkdown);
+    if (bootstrapMarkdown === null) return;
 
-    const markdown = document.getText("markdown");
-    if (markdown.length === 0) markdown.insert(0, this.seed.markdown);
+    insertBootstrapMarkdown(document, bootstrapMarkdown);
     await this.storeDocument(documentKey, document);
   }
 
   async storeDocument(documentKey: string, document: Y.Doc): Promise<void> {
     await this.persistence.storeDocumentState(documentKey, Y.encodeStateAsUpdate(document));
   }
+
+  private resolveBootstrapMarkdown(
+    documentKey: string,
+    fallbackMarkdown: string | null | undefined,
+  ): string | null {
+    if (fallbackMarkdown !== undefined && fallbackMarkdown !== null) return fallbackMarkdown;
+    if (documentKey === this.seed.documentKey) return this.seed.markdown;
+    return null;
+  }
+}
+
+function applySnapshot(document: Y.Doc, snapshot: Uint8Array): void {
+  Y.applyUpdate(document, snapshot);
+}
+
+function insertBootstrapMarkdown(document: Y.Doc, markdownBody: string): void {
+  const markdown = document.getText("markdown");
+  if (markdown.length === 0) markdown.insert(0, markdownBody);
 }
 
 export class InMemoryLiveYjsPersistenceAdapter implements LiveYjsPersistenceAdapter {

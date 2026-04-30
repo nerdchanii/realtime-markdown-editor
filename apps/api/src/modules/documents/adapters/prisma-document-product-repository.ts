@@ -21,6 +21,11 @@ import type {
   DocumentConnections,
   DocumentProductRepository,
 } from "@/modules/documents/ports/document-product-repository.js";
+import {
+  findLocalCurrentMarkdownProjection,
+  isLocalReviewDocumentId,
+  saveLocalCurrentMarkdownProjection,
+} from "@/modules/documents/adapters/local-current-markdown-projection.js";
 
 type JsonValue =
   | string
@@ -240,6 +245,17 @@ export class PrismaDocumentProductRepository implements DocumentProductRepositor
   }
 
   async findContent(documentId: string): Promise<DocumentContentDto | null> {
+    if (isLocalReviewDocumentId(documentId)) {
+      const projection = findLocalCurrentMarkdownProjection(documentId);
+      if (!projection) return null;
+      return {
+        documentId: projection.documentId,
+        markdownBody: projection.markdownBody,
+        latestRevisionId: projection.latestRevisionId,
+        updatedAt: projection.updatedAt.toISOString(),
+      };
+    }
+
     const record = await this.client.document.findUnique({
       where: { id: documentId },
       select: documentSelect,
@@ -252,6 +268,19 @@ export class PrismaDocumentProductRepository implements DocumentProductRepositor
     documentId: string,
     input: UpdateDocumentContentRequestDto,
   ): Promise<DocumentContentDto | null> {
+    if (isLocalReviewDocumentId(documentId)) {
+      const projection = saveLocalCurrentMarkdownProjection({
+        documentId,
+        markdownBody: input.markdownBody,
+      });
+      return {
+        documentId: projection.documentId,
+        markdownBody: projection.markdownBody,
+        latestRevisionId: projection.latestRevisionId,
+        updatedAt: projection.updatedAt.toISOString(),
+      };
+    }
+
     if (!(await this.findDetail(documentId))) return null;
     const record = await this.client.document.update({
       where: { id: documentId },

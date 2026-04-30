@@ -5,6 +5,9 @@ import type { CollaborationSessionDto, RealtimeMemberDto } from "@rme/contracts"
 
 import type { EditorSelectionSnapshot, PresenceMember } from "../ports/collaboration-adapter";
 
+const appCursorAwarenessKey = "rmeCursor";
+const appSelectionAwarenessKey = "rmeSelection";
+
 export type AwarenessRuntime = Readonly<{
   provider: HocuspocusProvider;
 }>;
@@ -71,11 +74,11 @@ function publishSelectionAwareness(
   const selectedRange = createPresenceRange(session, member, selection);
 
   setAwarenessIdentity(provider, member);
-  provider.setAwarenessField("cursor", {
+  provider.setAwarenessField(appCursorAwarenessKey, {
     ...selectedRange,
     anchor: selectedRange.head,
   });
-  provider.setAwarenessField("selection", selectedRange);
+  provider.setAwarenessField(appSelectionAwarenessKey, selectedRange);
 }
 
 function createPresenceRange(
@@ -110,14 +113,14 @@ function readRemotePresence(
 function toPresenceMember(session: CollaborationSessionDto, state: unknown): PresenceMember | null {
   if (!isAwarenessState(state)) return null;
   if (state.member.id === session.currentMemberId) return null;
-  if (!state.cursor && !state.selection) return null;
+  if (!state.rmeCursor && !state.rmeSelection) return null;
 
   return {
     id: routePresenceId(state.member),
     name: state.member.displayName,
     color: state.member.color,
-    range: describePresenceRange(state.selection ?? state.cursor),
-    ...toPresenceOffsets(state.selection ?? state.cursor),
+    range: describePresenceRange(state.rmeSelection ?? state.rmeCursor),
+    ...toPresenceOffsets(state.rmeSelection ?? state.rmeCursor),
   };
 }
 
@@ -129,8 +132,8 @@ type RuntimePresenceRange = Readonly<{
 
 type RuntimeAwarenessState = Readonly<{
   member: RealtimeMemberDto;
-  cursor?: RuntimePresenceRange | null;
-  selection?: RuntimePresenceRange | null;
+  rmeCursor?: RuntimePresenceRange | null;
+  rmeSelection?: RuntimePresenceRange | null;
 }>;
 
 function isAwarenessState(state: unknown): state is RuntimeAwarenessState {

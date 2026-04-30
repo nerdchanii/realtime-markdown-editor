@@ -1,9 +1,9 @@
-import type { Editor } from "@tiptap/core";
+import type { AnyExtension, Editor } from "@tiptap/core";
 import Link from "@tiptap/extension-link";
 import { Markdown } from "@tiptap/markdown";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import { useEffect } from "react";
+import { useEffect, useRef, type MutableRefObject } from "react";
 
 import type { EditorSelectionSnapshot } from "./ports/collaboration-adapter";
 import { richEditorPaneStyle } from "./styles";
@@ -21,12 +21,22 @@ export function RichEditorPane({
   markdown,
   onMarkdownChange,
   onSelectionChange,
+  collaborationExtensions,
+  bootstrapMarkdown,
 }: Readonly<{
   markdown: string;
   onMarkdownChange: (markdown: string) => void;
   onSelectionChange: (selection: EditorSelectionSnapshot) => void;
+  collaborationExtensions?: readonly AnyExtension[] | undefined;
+  bootstrapMarkdown?: string | undefined;
 }>) {
-  const editor = useRichMarkdownEditor({ markdown, onMarkdownChange, onSelectionChange });
+  const editor = useRichMarkdownEditor({
+    markdown,
+    onMarkdownChange,
+    onSelectionChange,
+    collaborationExtensions,
+    bootstrapMarkdown,
+  });
 
   return (
     <section aria-label="Rich Markdown editor" data-testid="editor-rich-tiptap-surface">
@@ -39,25 +49,75 @@ function useRichMarkdownEditor({
   markdown,
   onMarkdownChange,
   onSelectionChange,
-}: Readonly<{
-  markdown: string;
-  onMarkdownChange: (markdown: string) => void;
-  onSelectionChange: (selection: EditorSelectionSnapshot) => void;
-}>) {
+  collaborationExtensions,
+  bootstrapMarkdown,
+}: RichMarkdownEditorOptions) {
+  const bootstrappedMarkdownRef = useRef<string | null>(null);
   const editor = useEditor(
     createRichEditorOptions(markdown, {
       onMarkdownChange,
       onSelectionChange,
+      collaborationExtensions,
     }),
+    [collaborationExtensions],
   );
 
-  useEffect(() => {
-    if (!editor || markdown === readEditorMarkdown(editor)) return;
-
-    writeEditorMarkdown(editor, markdown);
-  }, [editor, markdown]);
+  useExternalMarkdownSync(editor, markdown, collaborationExtensions);
+  useCollaborationBootstrap(
+    editor,
+    bootstrapMarkdown,
+    collaborationExtensions,
+    bootstrappedMarkdownRef,
+  );
 
   return editor;
+}
+
+type RichMarkdownEditorOptions = Readonly<{
+  markdown: string;
+  onMarkdownChange: (markdown: string) => void;
+  onSelectionChange: (selection: EditorSelectionSnapshot) => void;
+  collaborationExtensions?: readonly AnyExtension[] | undefined;
+  bootstrapMarkdown?: string | undefined;
+}>;
+
+function useExternalMarkdownSync(
+  editor: Editor | null,
+  markdown: string,
+  collaborationExtensions: readonly AnyExtension[] | undefined,
+) {
+  useEffect(() => {
+    if (!editor || markdown === readEditorMarkdown(editor)) return;
+    if (hasCollaborationExtensions(collaborationExtensions)) return;
+
+    writeEditorMarkdown(editor, markdown);
+  }, [collaborationExtensions, editor, markdown]);
+}
+
+function useCollaborationBootstrap(
+  editor: Editor | null,
+  bootstrapMarkdown: string | undefined,
+  collaborationExtensions: readonly AnyExtension[] | undefined,
+  bootstrappedMarkdownRef: MutableRefObject<string | null>,
+) {
+  useEffect(() => {
+    const bootstrap = bootstrapMarkdown;
+    if (bootstrap === undefined) return;
+    if (!shouldBootstrapEditor(editor, collaborationExtensions)) return;
+    if (bootstrappedMarkdownRef.current === bootstrap) return;
+
+    bootstrappedMarkdownRef.current = bootstrap;
+    writeEditorMarkdownWithUpdate(editor, bootstrap, true);
+  }, [bootstrapMarkdown, bootstrappedMarkdownRef, collaborationExtensions, editor]);
+}
+
+function shouldBootstrapEditor(
+  editor: Editor | null,
+  collaborationExtensions: readonly AnyExtension[] | undefined,
+): editor is Editor {
+  if (!editor) return false;
+  if (!hasCollaborationExtensions(collaborationExtensions)) return false;
+  return isEditorEmptyForBootstrap(editor);
 }
 
 function createRichEditorOptions(
@@ -65,12 +125,18 @@ function createRichEditorOptions(
   handlers: Readonly<{
     onMarkdownChange: (markdown: string) => void;
     onSelectionChange: (selection: EditorSelectionSnapshot) => void;
+    collaborationExtensions?: readonly AnyExtension[] | undefined;
   }>,
 ) {
+  const hasCollaborationExtensionList = hasCollaborationExtensions(
+    handlers.collaborationExtensions,
+  );
+
   return {
-    extensions: createRichEditorExtensions(),
-    content: markdown,
-    contentType: "markdown" as const,
+    extensions: createRichEditorExtensions(handlers.collaborationExtensions),
+    ...(hasCollaborationExtensionList
+      ? {}
+      : { content: markdown, contentType: "markdown" as const }),
     immediatelyRender: false,
     editorProps: { attributes: createRichEditorAttributes() },
     onUpdate: ({ editor }: { editor: Editor }) => publishRichMarkdown(editor, handlers),
@@ -78,7 +144,19 @@ function createRichEditorOptions(
   };
 }
 
-function createRichEditorExtensions() {
+export function createRichEditorExtensions(
+  collaborationExtensions?: readonly AnyExtension[] | undefined,
+) {
+  if (collaborationExtensions && collaborationExtensions.length > 0) {
+    return [
+      ...collaborationExtensions,
+      Markdown.configure({
+        markedOptions: { gfm: true, breaks: false },
+        indentation: { style: "space", size: 2 },
+      }),
+    ];
+  }
+
   return [
     StarterKit.configure({ undoRedo: false, link: false }),
     Link.configure({ autolink: true, openOnClick: false }),
@@ -126,9 +204,23 @@ function readEditorMarkdown(editor: Editor): string {
 }
 
 function writeEditorMarkdown(editor: Editor, markdown: string) {
+  writeEditorMarkdownWithUpdate(editor, markdown, false);
+}
+
+function writeEditorMarkdownWithUpdate(editor: Editor, markdown: string, emitUpdate: boolean) {
   const setContent = editor.commands.setContent as MarkdownSetContent;
   setContent(markdown, {
     contentType: "markdown",
-    emitUpdate: false,
+    emitUpdate,
   });
+}
+
+function hasCollaborationExtensions(
+  collaborationExtensions: readonly AnyExtension[] | undefined,
+): boolean {
+  return collaborationExtensions !== undefined && collaborationExtensions.length > 0;
+}
+
+function isEditorEmptyForBootstrap(editor: Editor): boolean {
+  return editor.isEmpty || readEditorMarkdown(editor).trim().length === 0;
 }

@@ -13,9 +13,11 @@ export function createSeedCollaborationSessionClient(
   return {
     async loadSession(documentKey) {
       const session = validateCollaborationSession(sessionPayload);
-      if (session.documentKey !== documentKey)
-        throw new CollaborationSessionNotFoundError(documentKey);
-      return session;
+      if (session.documentKey === documentKey) return session;
+      if (documentKey.startsWith("workspace_review/")) {
+        return createReviewRouteSession(config, documentKey);
+      }
+      throw new CollaborationSessionNotFoundError(documentKey);
     },
   };
 }
@@ -37,6 +39,21 @@ function createSeedSessionPayload(config: CollabRuntimeConfig): unknown {
 
 function realtimeUrlForDocument(config: CollabRuntimeConfig, documentKey: string): string {
   return `${config.publicRealtimeUrl}/collaboration/${encodeURIComponent(documentKey)}`;
+}
+
+function createReviewRouteSession(config: CollabRuntimeConfig, documentKey: string) {
+  return validateCollaborationSession({
+    documentId: documentKey.slice("workspace_review/".length),
+    documentKey,
+    realtimeUrl: realtimeUrlForDocument(config, documentKey),
+    currentMemberId: "member_alice",
+    members: seedMembers,
+    sync: {
+      status: "connecting",
+      pendingLocalEdits: 0,
+      lastSyncedAt: null,
+    },
+  });
 }
 
 const seedMembers = [

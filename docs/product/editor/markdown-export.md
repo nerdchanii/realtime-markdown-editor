@@ -19,6 +19,7 @@ Markdown export는 document content를 portable하게 유지하면서 structured
 - Standard Markdown body를 export한다.
 - Standard Markdown links가 external tool에서도 읽히게 유지한다.
 - Export 시 document properties를 YAML frontmatter로 포함한다.
+- Export body는 client가 보낸 full-body snapshot이 아니라 server-resolved current Markdown projection에서 만들어진다.
 
 ## Contract
 
@@ -27,6 +28,7 @@ Markdown export는 document content를 portable하게 유지하면서 structured
 - `MarkdownExportDto.frontmatter` contains scalar property values keyed by property key.
 - `MarkdownExportDto.markdownBody` contains the standard Markdown body without internal property storage.
 - `MarkdownExportDto.fileContents` is the inspectable single-file boundary: YAML frontmatter, a blank line, then the Markdown body.
+- The current Markdown projection is derived from live Yjs/Tiptap collaboration state. It is a portable read model for export and checkpoint creation, not the live editing source of truth.
 
 ## 경계
 

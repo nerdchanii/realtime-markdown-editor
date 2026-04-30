@@ -75,8 +75,15 @@ export function EditorWorkspaceSlot({
   viewModel,
   collaborationAdapter = mockCollaborationAdapter,
 }: EditorWorkspaceSlotProps) {
-  const { markdown, syncStatus, presence, handleMarkdownChange, handleSelectionChange } =
-    useEditorWorkspaceState(viewModel, collaborationAdapter);
+  const {
+    markdown,
+    editorExtensions,
+    bootstrapMarkdown,
+    syncStatus,
+    presence,
+    handleMarkdownChange,
+    handleSelectionChange,
+  } = useEditorWorkspaceState(viewModel, collaborationAdapter);
 
   return (
     <EditorWorkspaceFrame>
@@ -85,6 +92,8 @@ export function EditorWorkspaceSlot({
         markdown={markdown}
         onMarkdownChange={handleMarkdownChange}
         onSelectionChange={handleSelectionChange}
+        collaborationExtensions={editorExtensions}
+        bootstrapMarkdown={bootstrapMarkdown}
       />
       <CurrentMarkdownStore markdown={markdown} />
       <PresenceLayer members={presence} />
@@ -109,16 +118,22 @@ function ActiveEditorBody({
   markdown,
   onMarkdownChange,
   onSelectionChange,
+  collaborationExtensions,
+  bootstrapMarkdown,
 }: Readonly<{
   markdown: string;
   onMarkdownChange: (markdown: string) => void;
   onSelectionChange: (selection: EditorSelectionSnapshot) => void;
+  collaborationExtensions?: ReturnType<CollaborationAdapter["useDocument"]>["editorExtensions"];
+  bootstrapMarkdown?: ReturnType<CollaborationAdapter["useDocument"]>["bootstrapMarkdown"];
 }>) {
   return (
     <EditorWorkspaceBody
       markdown={markdown}
       onMarkdownChange={onMarkdownChange}
       onSelectionChange={onSelectionChange}
+      collaborationExtensions={collaborationExtensions}
+      bootstrapMarkdown={bootstrapMarkdown}
     />
   );
 }
@@ -133,40 +148,74 @@ function useEditorWorkspaceState(
   viewModel: EditorWorkspaceViewModel,
   collaborationAdapter: CollaborationAdapter,
 ) {
-  const activeAdapter = selectCollaborationAdapter(viewModel, collaborationAdapter);
-  const { markdown, updateMarkdown, updateSelection, syncStatus, presence } =
-    activeAdapter.useDocument(createCollaborationOptions(viewModel));
+  const documentId = resolveActiveEditorDocumentId(viewModel.documentId);
+  const documentState = selectCollaborationAdapter(viewModel, collaborationAdapter).useDocument(
+    createCollaborationOptions(viewModel, documentId),
+  );
   const handleMarkdownChange = useCallback(
     (nextMarkdown: string) => {
-      updateMarkdown(nextMarkdown);
+      documentState.updateMarkdown(nextMarkdown);
       writeCurrentEditorMarkdown(nextMarkdown);
+      void saveCurrentMarkdownProjection(documentId, nextMarkdown);
     },
-    [updateMarkdown],
+    [documentId, documentState],
   );
   const handleSelectionChange = useCallback(
-    (selection: EditorSelectionSnapshot) => {
-      updateSelection(selection);
-    },
-    [updateSelection],
+    (selection: EditorSelectionSnapshot) => documentState.updateSelection(selection),
+    [documentState],
   );
 
   return {
-    markdown,
-    syncStatus,
-    presence,
+    markdown: documentState.markdown,
+    editorExtensions: documentState.editorExtensions,
+    bootstrapMarkdown: documentState.bootstrapMarkdown,
+    syncStatus: documentState.syncStatus,
+    presence: documentState.presence,
     handleMarkdownChange,
     handleSelectionChange,
   };
 }
 
-function createCollaborationOptions(viewModel: EditorWorkspaceViewModel) {
+function createCollaborationOptions(viewModel: EditorWorkspaceViewModel, documentId: string) {
   return {
-    documentId: viewModel.documentId ?? readDocumentIdFromLocation(),
+    documentId,
     initialMarkdown: viewModel.markdown ?? fallbackMarkdown,
     initialSyncStatus: viewModel.syncStatus ?? fallbackSyncStatus,
     initialPresence: viewModel.presence ?? fallbackPresence,
-    ...(viewModel.collaborationSession ? { session: viewModel.collaborationSession } : {}),
+    ...(viewModel.collaborationSession && isSeedReviewDocumentId(documentId)
+      ? { session: viewModel.collaborationSession }
+      : {}),
   };
+}
+
+async function saveCurrentMarkdownProjection(documentId: string, markdownBody: string) {
+  const url = `http://127.0.0.1:4000/documents/${encodeURIComponent(documentId)}/content`;
+  const body = JSON.stringify({
+    markdownBody,
+    source: "collaboration-projection",
+  });
+
+  if (typeof XMLHttpRequest !== "undefined") {
+    try {
+      const request = new XMLHttpRequest();
+      request.open("PUT", url, false);
+      request.setRequestHeader("Content-Type", "application/json");
+      request.send(body);
+    } catch {
+      // Projection persistence must not break the live collaborative editor.
+    }
+    return;
+  }
+
+  try {
+    await fetch(url, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body,
+    });
+  } catch {
+    // Projection persistence must not break the live collaborative editor.
+  }
 }
 
 function selectCollaborationAdapter(
@@ -183,4 +232,21 @@ function readDocumentIdFromLocation() {
   }
 
   return new URLSearchParams(window.location.search).get("document") ?? "seed-review-plan";
+}
+
+function resolveActiveEditorDocumentId(viewModelDocumentId: string | undefined): string {
+  const routeDocumentId = readDocumentIdFromLocation();
+  if (
+    routeDocumentId !== "seed-review-plan" &&
+    viewModelDocumentId !== undefined &&
+    isSeedReviewDocumentId(viewModelDocumentId)
+  ) {
+    return routeDocumentId;
+  }
+
+  return viewModelDocumentId ?? routeDocumentId;
+}
+
+function isSeedReviewDocumentId(documentId: string): boolean {
+  return documentId === "document_review_plan" || documentId === "seed-review-plan";
 }

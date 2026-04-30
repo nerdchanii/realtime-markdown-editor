@@ -3,6 +3,7 @@ import type { Document, DocumentId } from "@/modules/documents/domain/document.j
 import type { DocumentState } from "@/modules/documents/domain/document-state.js";
 import type { FolderId } from "@/modules/documents/domain/references.js";
 import type { DocumentRepository } from "@/modules/documents/ports/document-repository.js";
+import { isLocalReviewDocumentId } from "@/modules/documents/adapters/local-current-markdown-projection.js";
 
 type JsonValue =
   | string
@@ -58,6 +59,8 @@ export class PrismaDocumentRepository implements DocumentRepository {
   constructor(private readonly client: PrismaDocumentPersistenceClient) {}
 
   async findById(id: DocumentId): Promise<Document | null> {
+    if (isLocalReviewDocumentId(id)) return null;
+
     const record = await this.client.document.findUnique({
       where: { id },
       include: { properties: { orderBy: { key: "asc" } } },
