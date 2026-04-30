@@ -8,7 +8,7 @@ import tseslint from "typescript-eslint";
 const sourceFiles = ["apps/**/*.{ts,tsx}", "packages/**/*.ts", "e2e/**/*.ts", "scripts/**/*.mjs"];
 
 const productionFiles = ["apps/**/*.{ts,tsx}", "packages/**/*.ts", "scripts/**/*.mjs"];
-const testFiles = ["**/*.spec.{ts,tsx}", "**/*.test.{ts,tsx}", "e2e/**/*.ts"];
+const testFiles = ["**/*.spec.{ts,tsx}", "**/*.test.{ts,tsx}", "**/*.smoke.ts", "e2e/**/*.ts"];
 const reactFiles = ["apps/web/src/**/*.{ts,tsx}"];
 const adapterFiles = ["apps/**/adapters/**/*.{ts,tsx}"];
 const useCaseFiles = ["apps/**/use-cases/**/*.{ts,tsx}"];

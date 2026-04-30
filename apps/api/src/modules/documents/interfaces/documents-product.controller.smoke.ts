@@ -1,5 +1,3 @@
-/* eslint-disable max-lines-per-function */
-
 import "reflect-metadata";
 
 import { strict as assert } from "node:assert";

@@ -7,6 +7,14 @@ import {
   type ImageArtifactPersistenceClient,
 } from "@/modules/artifacts/adapters/local-document-image-artifact-storage.js";
 import {
+  LocalCheckpointSnapshotArtifactStorage,
+  type CheckpointArtifactPersistenceClient,
+} from "@/modules/artifacts/adapters/local-checkpoint-snapshot-artifact-storage.js";
+import {
+  CHECKPOINT_SNAPSHOT_ARTIFACT_STORAGE,
+  type CheckpointSnapshotArtifactStorage,
+} from "@/modules/artifacts/ports/checkpoint-snapshot-artifact-storage.js";
+import {
   DOCUMENT_IMAGE_ARTIFACT_STORAGE,
   type DocumentImageArtifactStorage,
 } from "@/modules/artifacts/ports/document-image-artifact-storage.js";
@@ -22,7 +30,10 @@ import {
   PrismaDocumentRepository,
   type PrismaDocumentPersistenceClient,
 } from "@/modules/documents/adapters/prisma-document-repository.js";
-import { LocalCheckpointRepository } from "@/modules/documents/adapters/local-checkpoint-repository.js";
+import {
+  PrismaCheckpointRepository,
+  type PrismaCheckpointPersistenceClient,
+} from "@/modules/documents/adapters/prisma-checkpoint-repository.js";
 import { CheckpointsController } from "@/modules/documents/interfaces/checkpoints.controller.js";
 import { DocumentsProductController } from "@/modules/documents/interfaces/documents-product.controller.js";
 import { ImageUploadController } from "@/modules/documents/interfaces/image-upload.controller.js";
@@ -62,7 +73,12 @@ import { UploadDocumentImageUseCase } from "@/modules/documents/use-cases/upload
   providers: [
     {
       provide: CHECKPOINT_REPOSITORY,
-      useClass: LocalCheckpointRepository,
+      useFactory: (database: PrismaDatabaseService, artifacts: CheckpointSnapshotArtifactStorage) =>
+        new PrismaCheckpointRepository(
+          database as unknown as PrismaCheckpointPersistenceClient,
+          artifacts,
+        ),
+      inject: [PrismaDatabaseService, CHECKPOINT_SNAPSHOT_ARTIFACT_STORAGE],
     },
     {
       provide: DOCUMENT_REPOSITORY,
@@ -91,6 +107,14 @@ import { UploadDocumentImageUseCase } from "@/modules/documents/use-cases/upload
       useFactory: (database: PrismaDatabaseService) =>
         new LocalDocumentImageArtifactStorage(
           database as unknown as ImageArtifactPersistenceClient,
+        ),
+      inject: [PrismaDatabaseService],
+    },
+    {
+      provide: CHECKPOINT_SNAPSHOT_ARTIFACT_STORAGE,
+      useFactory: (database: PrismaDatabaseService) =>
+        new LocalCheckpointSnapshotArtifactStorage(
+          database as unknown as CheckpointArtifactPersistenceClient,
         ),
       inject: [PrismaDatabaseService],
     },

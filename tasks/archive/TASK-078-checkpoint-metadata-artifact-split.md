@@ -1,6 +1,6 @@
 ---
 title: TASK-078-checkpoint-metadata-artifact-split
-status: blocked
+status: archived
 phase: P10
 task_type: parallel-backend
 task_mode: parallel
@@ -35,8 +35,8 @@ Checkpoint history를 Postgres metadata와 artifact-backed snapshot payload로 �
 
 - 공식 기준 문서: `subject.md`, `docs/compliance/subject-matrix.md`, `docs/requirements/registry.md`.
 - dependencies: `TASK-072`, `TASK-076`.
-- Current classification: backend-ready, integration-blocked by `TASK-080`. Keep unarchived until
-  CE-04 passes through the canonical product route in the normal UI.
+- Current classification: accepted after auth DI integration; CE-04 passes through the canonical
+  product route in the normal UI.
 - `.note/**`는 scratch context이며 공식 요구사항 출처로 인용하지 않는다.
 
 ## 범위
@@ -112,6 +112,18 @@ Checkpoint history를 Postgres metadata와 artifact-backed snapshot payload로 �
 - 실행 명령: `pnpm test:e2e e2e/ce-04-history.spec.ts`
 - 기대 결과: CE-04 history e2e passes through the canonical product route.
 
+### 완료 검증
+
+- `scripts/with-node.sh pnpm --filter @rme/api test`: 42 tests passed.
+- `scripts/with-node.sh pnpm --filter @rme/api typecheck`: passed.
+- `scripts/with-node.sh pnpm --filter @rme/contracts typecheck`: passed.
+- `scripts/with-node.sh pnpm lint`: passed.
+- `DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:55432/realtime_markdown_editor scripts/with-node.sh pnpm --filter @rme/api db:migrate:deploy`: no pending migrations.
+- Real DB proof against safe local Postgres on port `55432`: canonical checkpoint create/list/inspect
+  worked after API restart; Postgres contained one matching checkpoint, revision, and
+  checkpoint-snapshot artifact metadata row for the created checkpoint.
+- `DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:55432/realtime_markdown_editor POSTGRES_HOST_PORT=55432 scripts/with-node.sh pnpm test:e2e e2e/ce-04-history.spec.ts`: 1 test passed.
+
 ## Review
 
 - Spec compliance review 필요 여부: 필요.
@@ -121,13 +133,14 @@ Checkpoint history를 Postgres metadata와 artifact-backed snapshot payload로 �
 
 ## Archive Checklist
 
-- [ ] `status`를 `archived`로 변경했다.
-- [ ] 파일을 `tasks/archive/`로 이동했다.
-- [ ] 검증 결과를 이 문서에 기록했다.
-- [ ] 필요한 공식 문서 업데이트를 완료했다.
-- [ ] follow-up 또는 blocker를 기록했다.
+- [x] `status`를 `archived`로 변경했다.
+- [x] 파일을 `tasks/archive/`로 이동했다.
+- [x] 검증 결과를 이 문서에 기록했다.
+- [x] 필요한 공식 문서 업데이트를 완료했다.
+- [x] follow-up 또는 blocker를 기록했다.
 
 ## 메모
 
 - Suggested worktree: `.worktrees/task-078-checkpoints`.
-- Do not archive while CE-04 still depends on TASK-080 product auth/API-client/UI migration.
+- No remaining blocker. CE-04 now has real DB-backed product identity/document setup for the normal
+  UI path and uses canonical checkpoint creation.
