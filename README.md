@@ -14,50 +14,92 @@ This repository is pinned to Node `>=24 <25`.
 ## Install
 
 ```bash
-pnpm install
+scripts/with-node.sh pnpm install
+scripts/with-node.sh pnpm db:generate
 ```
+
+## Local Product Bootstrap
+
+Start local Postgres and apply migrations before running the product reviewer path. Use an explicit
+local database URL when the default `5432` port is already occupied:
+
+```bash
+DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:55434/realtime_markdown_editor \
+POSTGRES_HOST_PORT=55434 \
+scripts/with-node.sh pnpm db:migrate
+```
+
+The local artifact adapters store checkpoint snapshots and uploaded images on disk. Defaults are
+under the API working directory:
+
+- `.data/checkpoint-artifacts`
+- `.data/image-artifacts`
+
+Override them with `RME_CHECKPOINT_ARTIFACT_DATA_DIR` and `RME_IMAGE_ARTIFACT_DATA_DIR` when a
+review run needs isolated artifact directories.
 
 ## Run Locally
 
 ```bash
-pnpm dev
+DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:55434/realtime_markdown_editor \
+POSTGRES_HOST_PORT=55434 \
+scripts/with-node.sh pnpm dev
 ```
 
-Open the seeded reviewer URL:
+Open the product reviewer URL:
 
 ```text
-http://127.0.0.1:5173/?member=alice&document=seed-review-plan
+http://127.0.0.1:5173/?workspace=workspace_review&document=document_review_plan
 ```
 
-Seeded workspace identities:
+Local reviewer identities:
 
 - `alice`
 - `bob`
 
-These identities are seeded workspace memberships for local review. They are not production login
-accounts or an auth provider. Use `?member=alice` and `?member=bob` in separate browser contexts to
-verify presence and authorship.
+These identities are local product memberships for review. They are not a production identity
+provider. For manual local review, open `http://127.0.0.1:5173`, create the browser session from
+that web origin, then open the reviewer URL:
 
-Seeded reviewer document:
+```js
+await fetch("http://127.0.0.1:4000/auth/session", {
+  method: "POST",
+  credentials: "include",
+  headers: { "content-type": "application/json" },
+  body: JSON.stringify({
+    email: "alice@example.test",
+    workspaceId: "workspace_review",
+  }),
+});
+```
 
-- `seed-review-plan`, mapped to the workspace document `document_review_plan`
+Use `bob@example.test` in a second browser context to verify collaboration and presence.
+
+The normal reviewer path uses product APIs such as `/auth/session`, workspace navigation,
+document content, collaboration sessions, checkpoints, exports, and image upload. Dev-only seed
+routes such as `/review-context/seed` are local bootstrap compatibility routes and are not required
+for the reviewer product flow.
 
 ## Reviewer Scenario
 
-Run this scenario against the local reviewer URL:
+Run this scenario against the local product reviewer URL:
 
-1. Open the seeded reviewer URL as `alice`.
+1. Create a local product session as `alice`.
 2. Use the Workspace navigation to open **Review Plan** under
    **Review Workspace / Launch Readiness / Notes**.
-3. Edit the central Markdown editor and keep the source text visible.
-4. In another browser context, open the same document as `bob` and verify edits converge without
-   refreshing.
+3. Edit the central rich Markdown editor.
+4. In another browser context, create a session as `bob`, open the same document, and verify edits
+   converge without refreshing.
 5. Select text as `bob` and verify `alice` sees Bob's cursor/selection identity.
 6. Simulate offline/reconnect with the CE e2e flow and verify local and remote text both remain.
-7. Create a history checkpoint, select it, and inspect the read-only Markdown snapshot.
-8. Switch Rich, Markdown, Preview, and Split modes; Split keeps source and preview visible.
-9. Inspect document properties near the title and confirm they are outside the Markdown body.
-10. Inspect the Decision Log backlink and export Markdown with YAML frontmatter.
+7. Use toolbar undo/redo and confirm it changes the collaborative editor content.
+8. Create a history checkpoint, select it, inspect the read-only Markdown snapshot, refresh, and
+   confirm the checkpoint remains listed.
+9. Export Markdown and confirm YAML frontmatter plus body content are present.
+10. Upload an image through the toolbar and confirm the exported Markdown contains an
+    `rme-artifact://documents/` image reference.
+11. Inspect document properties near the title and confirm they are outside the Markdown body.
+12. Inspect the Decision Log backlink.
 
 Executable evidence:
 
@@ -71,20 +113,26 @@ Executable evidence:
 ## Checks
 
 ```bash
-pnpm check
-pnpm test:e2e
+DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:55434/realtime_markdown_editor \
+POSTGRES_HOST_PORT=55434 \
+scripts/with-node.sh pnpm check
+
+DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:55434/realtime_markdown_editor \
+POSTGRES_HOST_PORT=55434 \
+scripts/with-node.sh pnpm test:e2e
 ```
 
 `pnpm test:e2e` starts the local API, collaboration server, and web app through the Playwright
-web server configuration.
+web server configuration and seeds product fixtures directly through Prisma for local/test
+bootstrap.
 
 ## Included Product Surface
 
 - CE-01 through CE-05 collaborative editor path.
-- Workspace, project, folder, and document navigation for the seeded reviewer workspace.
+- Workspace, project, folder, and document navigation for the local reviewer workspace.
 - Workspace membership identity for presence and checkpoint authorship.
 - Document properties stored and edited outside the Markdown body.
-- Standard Markdown links/backlinks, starting with the seeded Decision Log backlink.
+- Standard Markdown links/backlinks, starting with the reviewer Decision Log backlink.
 - Rich, Markdown source, Preview, and Split editor modes.
 - User-visible checkpoint history with inspectable Markdown snapshots.
 - Markdown export as YAML frontmatter plus the standard Markdown body.
