@@ -1,6 +1,6 @@
 ---
 title: TASK-080-frontend-product-api-migration
-status: todo
+status: archived
 phase: P10
 task_type: parallel-ui
 task_mode: parallel
@@ -106,10 +106,15 @@ Workspace/document/history UI를 seed/local-only state에서 canonical product A
 
 ## 검증
 
-- 실행 명령: `pnpm --filter @rme/web typecheck`
-- 기대 결과: web typecheck가 통과한다.
-- 실행 명령: `pnpm test:e2e e2e/ce-04-history.spec.ts e2e/task-045-reviewer-flow.spec.ts`
-- 기대 결과: CE-04 and reviewer flow e2e pass.
+- 실행 명령: `scripts/with-node.sh pnpm --filter @rme/web typecheck`
+- 결과: 통과.
+- 실행 명령: `scripts/with-node.sh pnpm exec eslint apps/web/src/app/App.tsx apps/web/src/app/product-workspace-loader.ts apps/web/src/app/product-workspace-providers.ts apps/web/src/app/product-workspace-types.ts apps/web/src/app/product-workspace-view-model.ts apps/web/src/features/editor/index.tsx apps/web/src/features/history/types.ts apps/web/src/features/history/useHistoryInspectorState.ts apps/web/src/features/workspace/index.tsx apps/web/src/lib/api-client/index.ts e2e/ce-04-history.spec.ts e2e/task-045-reviewer-flow.spec.ts e2e/support/product-fixtures.ts`
+- 결과: 통과.
+- 실행 명령: `scripts/with-node.sh pnpm exec prettier --check apps/web/src/app/App.tsx apps/web/src/app/product-workspace-loader.ts apps/web/src/app/product-workspace-providers.ts apps/web/src/app/product-workspace-types.ts apps/web/src/app/product-workspace-view-model.ts apps/web/src/features/editor/index.tsx apps/web/src/features/history/types.ts apps/web/src/features/history/useHistoryInspectorState.ts apps/web/src/features/workspace/index.tsx apps/web/src/lib/api-client/index.ts e2e/ce-04-history.spec.ts e2e/task-045-reviewer-flow.spec.ts e2e/support/product-fixtures.ts`
+- 결과: 통과.
+- 실행 명령: safe task DB/API/collab env로
+  `scripts/with-node.sh pnpm test:e2e -- e2e/ce-04-history.spec.ts e2e/task-045-reviewer-flow.spec.ts`
+- 결과: 2 passed.
 
 ## Review
 
@@ -120,12 +125,20 @@ Workspace/document/history UI를 seed/local-only state에서 canonical product A
 
 ## Archive Checklist
 
-- [ ] `status`를 `archived`로 변경했다.
-- [ ] 파일을 `tasks/archive/`로 이동했다.
-- [ ] 검증 결과를 이 문서에 기록했다.
-- [ ] 필요한 공식 문서 업데이트를 완료했다.
-- [ ] follow-up 또는 blocker를 기록했다.
+- [x] `status`를 `archived`로 변경했다.
+- [x] 파일을 `tasks/archive/`로 이동했다.
+- [x] 검증 결과를 이 문서에 기록했다.
+- [x] 필요한 공식 문서 업데이트를 완료했다.
+- [x] follow-up 또는 blocker를 기록했다.
 
 ## 메모
 
 - Suggested worktree: `.worktrees/task-080-frontend-api`.
+- Product runtime now loads workspace, document content, document context, and checkpoint
+  history from product APIs. CE-04 e2e creates auth session state through the product
+  session API and opens the canonical product workspace route.
+- CE-04 e2e also preloads stale mock editor localStorage for the product document and confirms the
+  editor uses product API content instead.
+- The historical `/review-context/seed` helper remains as legacy local bootstrap code only; it is
+  not used by `App` or the CE-04 path.
+- No blocker remains for TASK-080 finalization.

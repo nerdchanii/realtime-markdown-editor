@@ -1,11 +1,14 @@
 import { expect, test } from "@playwright/test";
 
 import { appendRichEditorLine, richMarkdownEditor } from "./support/reviewer-session.js";
+import { createProductSession, ensureReviewerProductFixture } from "./support/product-fixtures.js";
 
 test("TASK-045: reviewer workspace flow reaches product surfaces without hiding CE path", async ({
   page,
 }) => {
-  await page.goto("/?member=alice");
+  await ensureReviewerProductFixture();
+  await createProductSession(page, "alice@example.test", "workspace_review");
+  await page.goto("/?workspace=workspace_review");
 
   const workspace = page.getByLabel("Workspace navigation");
   await expect(workspace).toBeVisible();
@@ -24,17 +27,15 @@ test("TASK-045: reviewer workspace flow reaches product surfaces without hiding 
 
   const editor = richMarkdownEditor(page);
   const reviewerLine = `TASK-045 reviewer flow ${Date.now()}`;
+  const checkpointMessage = `TASK-045 integrated checkpoint ${Date.now()}`;
   await expect(editor).toBeVisible();
   await appendRichEditorLine(page, editor, reviewerLine);
   await expect(editor).toContainText(reviewerLine);
 
   await page.getByTestId("publish-revision-button").click();
-  await page.getByTestId("revision-message-input").fill("TASK-045 integrated checkpoint");
+  await page.getByTestId("revision-message-input").fill(checkpointMessage);
   await page.getByTestId("confirm-publish-revision-button").click();
-  await page
-    .getByTestId("revision-history-item")
-    .filter({ hasText: "TASK-045 integrated checkpoint" })
-    .click();
+  await page.getByTestId("revision-history-item").filter({ hasText: checkpointMessage }).click();
   await expect(page.getByTestId("revision-snapshot-viewer")).toContainText(reviewerLine);
 
   await page.getByTestId("markdown-export-button").click();

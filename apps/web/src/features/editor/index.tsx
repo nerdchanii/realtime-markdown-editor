@@ -1,8 +1,9 @@
 import type { Editor } from "@tiptap/core";
 import { useCallback, useEffect, useRef, type ReactNode, type RefObject } from "react";
 
-import type { CollaborationSessionDto } from "@rme/contracts";
+import type { CollaborationSessionDto, DocumentId } from "@rme/contracts";
 
+import { createProductApiClient, updateDocumentContent, type ApiClient } from "@/lib/api-client";
 import { writeCurrentEditorMarkdown } from "@/lib/current-editor-markdown";
 
 import { EditorToolbar } from "./EditorToolbar";
@@ -29,6 +30,7 @@ export {
   mockCollaborationAdapter,
   mockCollaborationProviderName,
 } from "./adapters/mock-collaboration-adapter";
+export { createProductApiCollaborationAdapter } from "./adapters/product-api-collaboration-adapter";
 export { createTiptapYjsCollaborationAdapter } from "./adapters/tiptap-yjs-collaboration-adapter";
 export type { CollaborationAdapter, EditorSelectionSnapshot, PresenceMember, SyncStatusViewModel };
 
@@ -40,6 +42,7 @@ export type EditorWorkspaceViewModel = Readonly<{
   syncStatus?: SyncStatusViewModel;
   presence?: readonly PresenceMember[];
   collaborationSession?: CollaborationSessionDto;
+  apiClient?: ApiClient;
 }>;
 
 export type EditorWorkspaceSlotProps = Readonly<{
@@ -175,13 +178,10 @@ function useEditorWorkspaceState(
   const documentState = selectCollaborationAdapter(viewModel, collaborationAdapter).useDocument(
     createCollaborationOptions(viewModel, documentId),
   );
-  const handleMarkdownChange = useCallback(
-    (nextMarkdown: string) => {
-      documentState.updateMarkdown(nextMarkdown);
-      writeCurrentEditorMarkdown(nextMarkdown);
-      void saveCurrentMarkdownProjection(documentId, nextMarkdown);
-    },
-    [documentId, documentState],
+  const handleMarkdownChange = useMarkdownProjectionHandler(
+    viewModel,
+    documentId,
+    documentState.updateMarkdown,
   );
   const handleSelectionChange = useCallback(
     (selection: EditorSelectionSnapshot) => documentState.updateSelection(selection),
@@ -199,6 +199,25 @@ function useEditorWorkspaceState(
   };
 }
 
+function useMarkdownProjectionHandler(
+  viewModel: EditorWorkspaceViewModel,
+  documentId: string,
+  updateMarkdown: (markdown: string) => void,
+) {
+  return useCallback(
+    (nextMarkdown: string) => {
+      updateMarkdown(nextMarkdown);
+      writeCurrentEditorMarkdown(nextMarkdown);
+      void saveCurrentMarkdownProjection(
+        viewModel.apiClient ?? createProductApiClient(),
+        documentId as DocumentId,
+        nextMarkdown,
+      );
+    },
+    [documentId, updateMarkdown, viewModel.apiClient],
+  );
+}
+
 function createCollaborationOptions(viewModel: EditorWorkspaceViewModel, documentId: string) {
   return {
     documentId,
@@ -211,30 +230,15 @@ function createCollaborationOptions(viewModel: EditorWorkspaceViewModel, documen
   };
 }
 
-async function saveCurrentMarkdownProjection(documentId: string, markdownBody: string) {
-  const url = `http://127.0.0.1:4000/documents/${encodeURIComponent(documentId)}/content`;
-  const body = JSON.stringify({
-    markdownBody,
-    source: "collaboration-projection",
-  });
-
-  if (typeof XMLHttpRequest !== "undefined") {
-    try {
-      const request = new XMLHttpRequest();
-      request.open("PUT", url, false);
-      request.setRequestHeader("Content-Type", "application/json");
-      request.send(body);
-    } catch {
-      // Projection persistence must not break the live collaborative editor.
-    }
-    return;
-  }
-
+async function saveCurrentMarkdownProjection(
+  apiClient: ApiClient,
+  documentId: DocumentId,
+  markdownBody: string,
+) {
   try {
-    await fetch(url, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body,
+    await updateDocumentContent(apiClient, documentId, {
+      markdownBody,
+      source: "collaboration-projection",
     });
   } catch {
     // Projection persistence must not break the live collaborative editor.
@@ -257,17 +261,8 @@ function readDocumentIdFromLocation() {
   return new URLSearchParams(window.location.search).get("document") ?? "seed-review-plan";
 }
 
-function resolveActiveEditorDocumentId(viewModelDocumentId: string | undefined): string {
-  const routeDocumentId = readDocumentIdFromLocation();
-  if (
-    routeDocumentId !== "seed-review-plan" &&
-    viewModelDocumentId !== undefined &&
-    isSeedReviewDocumentId(viewModelDocumentId)
-  ) {
-    return routeDocumentId;
-  }
-
-  return viewModelDocumentId ?? routeDocumentId;
+export function resolveActiveEditorDocumentId(viewModelDocumentId: string | undefined): string {
+  return viewModelDocumentId ?? readDocumentIdFromLocation();
 }
 
 function isSeedReviewDocumentId(documentId: string): boolean {

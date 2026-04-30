@@ -57,7 +57,7 @@ function WorkspaceHeader({ model }: Readonly<{ model: ReturnType<typeof normaliz
       <div style={panelStyles.metaRow}>
         <span style={panelStyles.badge}>{model.activeMembersLabel}</span>
         <span style={panelStyles.badge}>{model.currentMemberLabel}</span>
-        <span style={panelStyles.badge}>Seeded review</span>
+        <span style={panelStyles.badge}>Product workspace</span>
       </div>
       <div style={{ color: "var(--color-text-secondary)", fontSize: "13px", lineHeight: 1.45 }}>
         {model.workspaceDescription}

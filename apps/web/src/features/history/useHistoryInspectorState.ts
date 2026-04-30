@@ -1,4 +1,11 @@
-import { useCallback, useMemo, useState, type Dispatch, type SetStateAction } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type Dispatch,
+  type SetStateAction,
+} from "react";
 
 import type {
   CheckpointDto,
@@ -11,7 +18,9 @@ import type {
 import {
   createCollaborationCheckpoint,
   createMockApiClient,
+  fetchDocumentCheckpoints,
   inspectCheckpointSnapshot,
+  updateDocumentContent,
 } from "@/lib/api-client";
 import { readCurrentEditorMarkdown as readCurrentEditorMarkdownSnapshot } from "@/lib/current-editor-markdown";
 
@@ -25,9 +34,11 @@ export function useHistoryInspectorState(
   const [checkpoints, setCheckpoints] = useState(initialCheckpoints);
   const [selectedCheckpointId, setSelectedCheckpointId] = useState(checkpoints[0]?.id);
   const [revisionMessage, setRevisionMessage] = useState("");
-  const selected = checkpoints.find((checkpoint) => checkpoint.id === selectedCheckpointId);
+
+  useProductCheckpointList(viewModel, setCheckpoints, setSelectedCheckpointId);
 
   const selectCheckpoint = useCheckpointSelection(
+    viewModel,
     checkpoints,
     setCheckpoints,
     setSelectedCheckpointId,
@@ -42,11 +53,38 @@ export function useHistoryInspectorState(
     checkpoints,
     publishRevision,
     revisionMessage,
-    selected,
+    selected: checkpoints.find((checkpoint) => checkpoint.id === selectedCheckpointId),
     selectedCheckpointId,
     setRevisionMessage,
     selectCheckpoint,
   });
+}
+
+function useProductCheckpointList(
+  viewModel: HistoryInspectorViewModel,
+  setCheckpoints: Dispatch<SetStateAction<HistoryCheckpoint[]>>,
+  setSelectedCheckpointId: (checkpointId: string | undefined) => void,
+) {
+  useEffect(() => {
+    if (!viewModel.apiClient || !viewModel.documentId) return;
+
+    const abortController = new AbortController();
+    void loadProductCheckpoints(viewModel).then(
+      (loadedCheckpoints) => {
+        if (abortController.signal.aborted) return;
+        setCheckpoints(loadedCheckpoints);
+        setSelectedCheckpointId(loadedCheckpoints[0]?.id);
+      },
+      () => {
+        if (!abortController.signal.aborted) {
+          setCheckpoints([]);
+          setSelectedCheckpointId(undefined);
+        }
+      },
+    );
+
+    return () => abortController.abort();
+  }, [setCheckpoints, setSelectedCheckpointId, viewModel]);
 }
 
 function useInitialCheckpoints(
@@ -72,6 +110,7 @@ function createHistoryState(state: {
 }
 
 function useCheckpointSelection(
+  viewModel: HistoryInspectorViewModel,
   checkpoints: readonly HistoryCheckpoint[],
   setCheckpoints: Dispatch<SetStateAction<HistoryCheckpoint[]>>,
   setSelectedCheckpointId: (checkpointId: string) => void,
@@ -80,9 +119,9 @@ function useCheckpointSelection(
     (checkpointId: string) => {
       setSelectedCheckpointId(checkpointId);
       const checkpoint = checkpoints.find((candidate) => candidate.id === checkpointId);
-      if (checkpoint) void refreshSnapshot(checkpoint, setCheckpoints);
+      if (checkpoint) void refreshSnapshot(viewModel, checkpoint, setCheckpoints);
     },
-    [checkpoints, setCheckpoints, setSelectedCheckpointId],
+    [checkpoints, setCheckpoints, setSelectedCheckpointId, viewModel],
   );
 }
 
@@ -119,27 +158,55 @@ async function createApiCheckpoint(
   viewModel: HistoryInspectorViewModel,
   revisionMessage: string,
 ): Promise<HistoryCheckpoint> {
-  const documentId = viewModel.documentId ?? readRouteDocumentId();
-  const authorMembershipId = viewModel.currentMemberId ?? readRouteMemberId();
+  const documentId = viewModel.documentId ?? ("document_review_plan" as DocumentId);
+  const authorMembershipId = viewModel.currentMemberId ?? ("member_alice" as WorkspaceMembershipId);
   const markdownSnapshot = readCurrentEditorMarkdown();
-  const response = await createCollaborationCheckpoint(createMockApiClient(), documentId, {
+  const apiClient = viewModel.apiClient ?? createMockApiClient();
+
+  if (viewModel.apiClient) {
+    await updateDocumentContent(apiClient, documentId, {
+      markdownBody: markdownSnapshot,
+      source: "collaboration-projection",
+    });
+  }
+
+  const response = await createCollaborationCheckpoint(apiClient, documentId, {
     message: revisionMessage.trim() || "Untitled revision",
   });
 
   const checkpoint = mapCheckpoint(response.checkpoint, {
-    author: displayNameForMember(authorMembershipId),
+    author: displayNameForMember(authorMembershipId, viewModel.memberLabels),
     snapshot: markdownSnapshot,
   });
-  const snapshot = await inspectCheckpointSnapshot(createMockApiClient(), response.checkpoint.id);
+  const snapshot = await inspectCheckpointSnapshot(apiClient, response.checkpoint.id);
 
   return { ...checkpoint, snapshot: snapshot.markdownBody };
 }
 
+async function loadProductCheckpoints(
+  viewModel: HistoryInspectorViewModel,
+): Promise<HistoryCheckpoint[]> {
+  if (!viewModel.apiClient || !viewModel.documentId) return [];
+
+  const response = await fetchDocumentCheckpoints(viewModel.apiClient, viewModel.documentId);
+  return Promise.all(
+    response.checkpoints.map(async (checkpoint) => {
+      const mapped = mapCheckpoint(checkpoint, {
+        author: displayNameForMember(checkpoint.authorMembershipId, viewModel.memberLabels),
+        snapshot: "",
+      });
+      const snapshot = await inspectCheckpointSnapshot(viewModel.apiClient!, checkpoint.id);
+      return { ...mapped, snapshot: snapshot.markdownBody };
+    }),
+  );
+}
+
 async function refreshSnapshot(
+  viewModel: HistoryInspectorViewModel,
   checkpoint: HistoryCheckpoint,
   setCheckpoints: Dispatch<SetStateAction<HistoryCheckpoint[]>>,
 ) {
-  const snapshot = await loadSnapshot(checkpoint);
+  const snapshot = await loadSnapshot(viewModel, checkpoint);
   setCheckpoints((current) =>
     current.map((candidate) =>
       candidate.id === checkpoint.id ? { ...candidate, snapshot } : candidate,
@@ -147,10 +214,10 @@ async function refreshSnapshot(
   );
 }
 
-async function loadSnapshot(checkpoint: HistoryCheckpoint) {
+async function loadSnapshot(viewModel: HistoryInspectorViewModel, checkpoint: HistoryCheckpoint) {
   try {
     const snapshot = await inspectCheckpointSnapshot(
-      createMockApiClient(),
+      viewModel.apiClient ?? createMockApiClient(),
       checkpoint.id as CheckpointId,
     );
     return mapSnapshot(snapshot);
@@ -182,26 +249,10 @@ function readCurrentEditorMarkdown() {
   return readCurrentEditorMarkdownSnapshot();
 }
 
-function readRouteDocumentId(): DocumentId {
-  if (typeof window === "undefined") return "document_review_plan" as DocumentId;
+function displayNameForMember(memberId: string, labels?: Readonly<Record<string, string>>) {
+  const memberLabel = labels?.[memberId];
+  if (memberLabel) return memberLabel;
 
-  const routeDocument = new URLSearchParams(window.location.search).get("document");
-  const documentId =
-    routeDocument === "seed-review-plan" || !routeDocument ? "document_review_plan" : routeDocument;
-
-  return documentId as DocumentId;
-}
-
-function readRouteMemberId(): WorkspaceMembershipId {
-  if (typeof window === "undefined") return "member_alice" as WorkspaceMembershipId;
-
-  const routeMember = new URLSearchParams(window.location.search).get("member") ?? "alice";
-  const memberId = routeMember.startsWith("member_") ? routeMember : `member_${routeMember}`;
-
-  return memberId as WorkspaceMembershipId;
-}
-
-function displayNameForMember(memberId: string) {
   const label = memberId.replace("member_", "");
   return label.charAt(0).toUpperCase() + label.slice(1);
 }
