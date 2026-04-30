@@ -13,6 +13,8 @@ export type PresenceMember = Readonly<{
   name: string;
   color: string;
   range: string;
+  anchor?: number;
+  head?: number;
 }>;
 
 export type EditorSelectionSnapshot = Readonly<{

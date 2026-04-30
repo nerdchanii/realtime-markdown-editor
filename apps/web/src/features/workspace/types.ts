@@ -33,6 +33,12 @@ export type WorkspaceNavigationSelection = Readonly<{
   path: readonly string[];
 }>;
 
+export type WorkspaceDocumentCreateRequest = Readonly<{
+  title: string;
+  folderId?: string | null;
+  projectId?: string | null;
+}>;
+
 export type WorkspaceNavigationViewModel = Readonly<{
   replacementPoint: string;
   label: string;
@@ -40,13 +46,15 @@ export type WorkspaceNavigationViewModel = Readonly<{
   workspaceName?: string;
   workspaceDescription?: string;
   activeMembersLabel?: string;
+  currentMemberLabel?: string;
   root?: WorkspaceNavigationNode;
   projects?: readonly WorkspaceNavigationProject[];
   selectedDocumentId?: string | null;
   onSelectDocument?: (selection: WorkspaceNavigationSelection) => void;
+  onCreateDocument?: (request: WorkspaceDocumentCreateRequest) => void;
 }>;
 
 export type NormalizedWorkspaceNavigationViewModel = Required<
-  Omit<WorkspaceNavigationViewModel, "onSelectDocument">
+  Omit<WorkspaceNavigationViewModel, "onSelectDocument" | "onCreateDocument">
 > &
-  Pick<WorkspaceNavigationViewModel, "onSelectDocument">;
+  Pick<WorkspaceNavigationViewModel, "onSelectDocument" | "onCreateDocument">;

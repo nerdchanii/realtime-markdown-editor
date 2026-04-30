@@ -130,8 +130,10 @@ function readCurrentMarkdown() {
   if (typeof document === "undefined") return "";
 
   return (
+    document.querySelector<HTMLTextAreaElement>('[data-testid="current-markdown-body"]')?.value ??
     document.querySelector<HTMLTextAreaElement>('[data-testid="collaborative-markdown-editor"]')
-      ?.value ?? ""
+      ?.value ??
+    ""
   );
 }
 

@@ -30,7 +30,6 @@ function RootNodeView(props: WorkspaceNodeViewProps) {
     <li style={panelStyles.rootNode} data-node-kind={node.kind} data-node-id={node.id}>
       <div style={panelStyles.rootLabel}>
         <span>{node.name}</span>
-        <span>System root, not movable</span>
       </div>
       <ChildNodes {...props} path={props.path} />
     </li>

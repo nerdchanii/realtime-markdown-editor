@@ -1,24 +1,44 @@
 import type { SeedReviewContextDto } from "@rme/contracts";
 
+import type { CreatedReviewDocument, ReviewDocument } from "./created-review-document";
+import { isSeedDocument } from "./created-review-document";
 import type { AppFeatureProviders } from "./mock-providers";
 import type { ReviewerRoute } from "./reviewer-route";
+import { mapCheckpoint } from "./seed-review-context-history";
 
 import type { DocumentBacklink, DocumentProperty } from "@/features/document";
 import { createMockCollaborationAdapter } from "@/features/editor";
-import type { HistoryCheckpoint } from "@/features/history";
-import type { WorkspaceNavigationNode, WorkspaceNavigationSelection } from "@/features/workspace";
+import type {
+  WorkspaceDocumentCreateRequest,
+  WorkspaceNavigationNode,
+  WorkspaceNavigationSelection,
+} from "@/features/workspace";
 
 export function createSeedReviewProviders(
   context: SeedReviewContextDto,
   route: ReviewerRoute,
   selectedDocumentId: string | null,
   onSelectDocument: (selection: WorkspaceNavigationSelection) => void,
+  createdDocuments: readonly CreatedReviewDocument[] = [],
+  onCreateDocument?: (request: WorkspaceDocumentCreateRequest) => void,
 ): AppFeatureProviders {
-  const selectedDocument = findSelectedDocument(context, selectedDocumentId, route.document);
+  const selectedDocument = findSelectedDocument(
+    context,
+    createdDocuments,
+    selectedDocumentId,
+    route.document,
+  );
   const currentMember = findRouteMember(context, route.member);
 
   return {
-    workspaceNavigation: createWorkspaceNavigation(context, selectedDocument.id, onSelectDocument),
+    workspaceNavigation: createWorkspaceNavigation(
+      context,
+      createdDocuments,
+      selectedDocument.id,
+      currentMember.displayName,
+      onSelectDocument,
+      onCreateDocument,
+    ),
     documentContext: createDocumentContext(context, selectedDocument),
     editorWorkspace: createEditorWorkspace(context, currentMember, selectedDocument),
     editorCollaborationAdapter: createMockCollaborationAdapter(),
@@ -28,8 +48,11 @@ export function createSeedReviewProviders(
 
 function createWorkspaceNavigation(
   context: SeedReviewContextDto,
+  createdDocuments: readonly CreatedReviewDocument[],
   selectedDocumentId: string,
+  currentMemberName: string,
   onSelectDocument: (selection: WorkspaceNavigationSelection) => void,
+  onCreateDocument?: (request: WorkspaceDocumentCreateRequest) => void,
 ) {
   return {
     replacementPoint: "features.workspace.provider.seed-review-context",
@@ -38,32 +61,38 @@ function createWorkspaceNavigation(
     workspaceName: context.workspace.name,
     workspaceDescription: `${context.members.length} workspace members with seeded review data.`,
     activeMembersLabel: `${context.members.length} members available`,
-    root: createFolderNode(context, context.workspace.rootFolderId),
-    projects: [
-      {
-        id: context.project.id,
-        name: context.project.name,
-        key: "Seed",
-        status: "Review context",
-        root: createFolderNode(context, context.project.rootFolderId),
-      },
-    ],
+    currentMemberLabel: `Editing as ${currentMemberName}`,
+    root: createFolderNode(context, createdDocuments, context.workspace.rootFolderId),
+    projects: [createNavigationProject(context, createdDocuments)],
     selectedDocumentId,
     onSelectDocument,
+    ...(onCreateDocument ? { onCreateDocument } : {}),
   };
 }
 
-function createDocumentContext(
+function createNavigationProject(
   context: SeedReviewContextDto,
-  document: SeedReviewContextDto["documents"][number],
+  createdDocuments: readonly CreatedReviewDocument[],
 ) {
+  return {
+    id: context.project.id,
+    name: context.project.name,
+    key: "Seed",
+    status: "Review context",
+    root: createFolderNode(context, createdDocuments, context.project.rootFolderId),
+  };
+}
+
+function createDocumentContext(context: SeedReviewContextDto, document: ReviewDocument) {
   return {
     replacementPoint: "features.document.provider.seed-review-context",
     label: "Seeded document context",
     documentId: document.id,
     title: document.title,
     path: createDocumentPath(context, document.folderId, document.title).join(" / "),
-    properties: document.properties.map((property) => mapProperty(context, property)),
+    properties: isSeedDocument(document)
+      ? document.properties.map((property) => mapProperty(context, property))
+      : [],
     backlinks: context.backlinks.map(mapBacklink),
   };
 }
@@ -71,7 +100,7 @@ function createDocumentContext(
 function createEditorWorkspace(
   context: SeedReviewContextDto,
   currentMember: SeedReviewContextDto["members"][number],
-  document: SeedReviewContextDto["documents"][number],
+  document: ReviewDocument,
 ) {
   return {
     replacementPoint: "features.editor.provider.seed-review-context",
@@ -85,7 +114,7 @@ function createEditorWorkspace(
       color: member.color,
       range: member.id === currentMember.id ? "editing locally" : "reviewing selection",
     })),
-    collaborationSession: context.collaboration,
+    ...(isSeedDocument(document) ? { collaborationSession: context.collaboration } : {}),
   };
 }
 
@@ -101,39 +130,50 @@ function createHistoryInspector(context: SeedReviewContextDto, documentId: strin
 
 function createFolderNode(
   context: SeedReviewContextDto,
+  createdDocuments: readonly CreatedReviewDocument[],
   folderId: string,
 ): WorkspaceNavigationNode {
   const folder = context.folders.find((candidate) => candidate.id === folderId) ?? context.folder;
   const childFolders = context.folders.filter(
     (candidate) => candidate.parentFolderId === folder.id,
   );
-  const childDocuments = context.documents.filter((document) => document.folderId === folder.id);
+  const childDocuments = [
+    ...context.documents.filter((document) => document.folderId === folder.id),
+    ...createdDocuments.filter((document) => document.folderId === folder.id),
+  ];
 
   return {
     id: folder.id,
     kind: folder.kind,
     name: folder.name,
     children: [
-      ...childFolders.map((childFolder) => createFolderNode(context, childFolder.id)),
+      ...childFolders.map((childFolder) =>
+        createFolderNode(context, createdDocuments, childFolder.id),
+      ),
       ...childDocuments.map((document) => createDocumentNode(document)),
     ],
   };
 }
 
-function createDocumentNode(document: SeedReviewContextDto["documents"][number]) {
+function createDocumentNode(document: ReviewDocument) {
   return {
     id: document.id,
     kind: "document" as const,
     name: document.title,
     folderId: document.folderId,
-    status: document.state,
-    updatedLabel: document.latestRevisionId ? "Revision available" : "No revision",
-    ownerLabel: "Seed",
+    status: isSeedDocument(document) ? document.state : "Draft",
+    updatedLabel: isSeedDocument(document)
+      ? document.latestRevisionId
+        ? "Revision available"
+        : "No revision"
+      : "Local draft",
+    ownerLabel: isSeedDocument(document) ? "Seed" : "Reviewer local",
   };
 }
 
 function findSelectedDocument(
   context: SeedReviewContextDto,
+  createdDocuments: readonly CreatedReviewDocument[],
   selectedDocumentId: string | null,
   routeDocument: string,
 ) {
@@ -141,6 +181,7 @@ function findSelectedDocument(
     routeDocument === "seed-review-plan" ? context.document.id : routeDocument;
 
   return (
+    createdDocuments.find((document) => document.id === selectedDocumentId) ??
     context.documents.find((document) => document.id === selectedDocumentId) ??
     context.documents.find((document) => document.id === requestedDocumentId) ??
     context.document
@@ -220,23 +261,4 @@ function mapSyncStatus(context: SeedReviewContextDto) {
     detail: sync.lastSyncedAt ? `Last synced ${sync.lastSyncedAt}` : "Waiting for sync",
     pendingEdits: sync.pendingLocalEdits,
   };
-}
-
-function mapCheckpoint(
-  context: SeedReviewContextDto,
-  checkpoint: SeedReviewContextDto["checkpoints"][number],
-): HistoryCheckpoint {
-  const revision = context.revisions.find((candidate) => candidate.id === checkpoint.revisionId);
-
-  return {
-    id: checkpoint.id,
-    message: checkpoint.message,
-    author: findMemberName(context, checkpoint.authorMembershipId),
-    createdAt: checkpoint.createdAt,
-    snapshot: revision?.snapshotArtifact.key ?? checkpoint.snapshotArtifact.key,
-  };
-}
-
-function findMemberName(context: SeedReviewContextDto, membershipId: string) {
-  return context.members.find((member) => member.id === membershipId)?.displayName ?? "Seed member";
 }

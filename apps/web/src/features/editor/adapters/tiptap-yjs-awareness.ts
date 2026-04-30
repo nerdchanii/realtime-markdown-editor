@@ -117,6 +117,7 @@ function toPresenceMember(session: CollaborationSessionDto, state: unknown): Pre
     name: state.member.displayName,
     color: state.member.color,
     range: describePresenceRange(state.selection ?? state.cursor),
+    ...toPresenceOffsets(state.selection ?? state.cursor),
   };
 }
 
@@ -173,4 +174,13 @@ function describePresenceRange(range: RuntimePresenceRange | null | undefined): 
   if (range.isCollapsed || anchor === head) return `cursor at ${head}`;
 
   return `selection ${anchor}-${head}`;
+}
+
+function toPresenceOffsets(range: RuntimePresenceRange | null | undefined) {
+  if (!range) return {};
+
+  return {
+    anchor: Math.min(range.anchor, range.head),
+    head: Math.max(range.anchor, range.head),
+  };
 }

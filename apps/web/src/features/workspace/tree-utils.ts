@@ -18,6 +18,7 @@ export function normalizeViewModel(
     workspaceName: fallbackTo(viewModel.workspaceName, viewModel.label, fallback.workspaceName),
     workspaceDescription: fallbackTo(viewModel.workspaceDescription, fallback.workspaceDescription),
     activeMembersLabel: fallbackTo(viewModel.activeMembersLabel, fallback.activeMembersLabel),
+    currentMemberLabel: fallbackTo(viewModel.currentMemberLabel, fallback.currentMemberLabel),
     root: fallbackTo(viewModel.root, fallback.root),
     projects: fallbackTo(viewModel.projects, fallback.projects),
     selectedDocumentId: fallbackTo(viewModel.selectedDocumentId, fallback.selectedDocumentId),

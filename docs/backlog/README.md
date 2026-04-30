@@ -24,6 +24,8 @@ Backlog는 first subject skeleton으로 오해하면 안 되는 보류 요청, �
 | Workflow hooks와 visual builder | `DocumentState` foundation이 먼저 필요하다. | DocumentState가 안정화되고 CE skeleton이 완료된 뒤. |
 | Slack, Agent, mail, logging hook | 연동 범위가 first skeleton보다 크다. | Workflow hook model이 설계된 뒤. |
 | Tauri/Electron/PWA packaging | 플랫폼 범위가 web editor skeleton을 흐릴 수 있다. | Web skeleton과 adapter boundary가 안정화된 뒤. |
+| Production auth provider와 account management | Seeded reviewer membership으로 CE evidence를 검증하고 production identity는 별도 보안/운영 결정이 필요하다. | CE recovery가 끝나고 authorization/RBAC 범위를 ADR로 승격할 때. |
+| Production workspace/folder CRUD persistence | Reviewer-local document creation은 entrypoint smoke path이고 durable CRUD는 domain/API/storage contract 확대가 필요하다. | Workspace hierarchy UX와 document create smoke path가 안정화된 뒤. |
 
 ## 규칙
 

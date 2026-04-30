@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 import { workspaceFeatureId } from "./events";
 import { WorkspaceNodeView } from "./WorkspaceNodeView";
 import { panelStyles } from "./styles";
@@ -10,6 +12,7 @@ export type {
   WorkspaceNavigationProject,
   WorkspaceNavigationSelection,
   WorkspaceNavigationViewModel,
+  WorkspaceDocumentCreateRequest,
 } from "./types";
 
 export { workspaceDocumentSelectedEventName, workspaceFeatureId } from "./events";
@@ -30,6 +33,7 @@ export function WorkspaceNavigationSlot({ viewModel }: WorkspaceNavigationSlotPr
       data-selected-document-id={selectedDocument?.documentId}
     >
       <WorkspaceHeader model={model} />
+      <DocumentCreateEntryPoint model={model} selectedDocument={selectedDocument} />
       <WorkspaceRoot
         model={model}
         selectedDocumentId={selectedDocumentId}
@@ -41,7 +45,6 @@ export function WorkspaceNavigationSlot({ viewModel }: WorkspaceNavigationSlotPr
         onSelectDocument={selectDocument}
       />
       <SelectedEditorContext selectedDocument={selectedDocument} />
-      <div className="replacement-point">{model.replacementPoint}</div>
     </aside>
   );
 }
@@ -53,11 +56,80 @@ function WorkspaceHeader({ model }: Readonly<{ model: ReturnType<typeof normaliz
       <h1 className="slot-title">{model.workspaceName}</h1>
       <div style={panelStyles.metaRow}>
         <span style={panelStyles.badge}>{model.activeMembersLabel}</span>
-        <span style={panelStyles.badge}>Mock seed</span>
+        <span style={panelStyles.badge}>{model.currentMemberLabel}</span>
+        <span style={panelStyles.badge}>Seeded review</span>
       </div>
       <div style={{ color: "var(--color-text-secondary)", fontSize: "13px", lineHeight: 1.45 }}>
         {model.workspaceDescription}
       </div>
+    </div>
+  );
+}
+
+function DocumentCreateEntryPoint({
+  model,
+  selectedDocument,
+}: Readonly<{
+  model: ReturnType<typeof normalizeViewModel>;
+  selectedDocument: WorkspaceNavigationSelection | undefined;
+}>) {
+  const [title, setTitle] = useState("Untitled decision note");
+  const createDocument = useDocumentCreateAction(model, selectedDocument, title, setTitle);
+
+  if (!model.onCreateDocument) return null;
+
+  return (
+    <form
+      aria-label="Create Markdown document"
+      style={panelStyles.createForm}
+      onSubmit={(event) => {
+        event.preventDefault();
+        createDocument();
+      }}
+    >
+      <label style={panelStyles.sectionTitle} htmlFor="workspace-new-document-title">
+        New Markdown document
+      </label>
+      <DocumentCreateFields title={title} onTitleChange={setTitle} />
+    </form>
+  );
+}
+
+function useDocumentCreateAction(
+  model: ReturnType<typeof normalizeViewModel>,
+  selectedDocument: WorkspaceNavigationSelection | undefined,
+  title: string,
+  setTitle: (title: string) => void,
+) {
+  return () => {
+    const trimmedTitle = title.trim();
+    if (!trimmedTitle) return;
+
+    model.onCreateDocument?.({
+      title: trimmedTitle,
+      folderId: selectedDocument?.folderId ?? null,
+      projectId: selectedDocument?.projectId ?? null,
+    });
+    setTitle("Untitled decision note");
+  };
+}
+
+function DocumentCreateFields({
+  title,
+  onTitleChange,
+}: Readonly<{ title: string; onTitleChange: (title: string) => void }>) {
+  return (
+    <div style={panelStyles.createRow}>
+      <input
+        id="workspace-new-document-title"
+        aria-label="New document title"
+        value={title}
+        onChange={(event) => onTitleChange(event.currentTarget.value)}
+        style={panelStyles.createInput}
+      />
+      <button type="submit" style={panelStyles.createButton} data-testid="create-document-button">
+        New
+      </button>
     </div>
   );
 }

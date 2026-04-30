@@ -40,7 +40,9 @@ const fallbackBacklinks: readonly DocumentBacklink[] = [
 export function DocumentContextSlot({ viewModel }: DocumentContextSlotProps) {
   const title = viewModel.title ?? "Collaborative editor review plan";
   const path = viewModel.path ?? "Acme Workspace / Editor / Review plan";
-  const { properties, updateProperty } = useDocumentProperties(viewModel.properties);
+  const { properties, addProperty, deleteProperty, updateProperty } = useDocumentProperties(
+    viewModel.properties,
+  );
 
   return (
     <header
@@ -48,20 +50,32 @@ export function DocumentContextSlot({ viewModel }: DocumentContextSlotProps) {
       aria-label="Document context"
       data-testid="document-header"
     >
-      <div className="slot-kicker">Document</div>
-      <h2 className="slot-title" data-testid="document-title">
-        {title}
-      </h2>
-      <p style={metadataStyle}>{path}</p>
-      <PropertiesSurface properties={properties} onPropertyChange={updateProperty} />
+      <DocumentTitle title={title} path={path} />
+      <PropertiesSurface
+        properties={properties}
+        onPropertyAdd={addProperty}
+        onPropertyChange={updateProperty}
+        onPropertyDelete={deleteProperty}
+      />
       <MarkdownExportSurface
         documentId={viewModel.documentId}
         title={title}
         properties={properties}
       />
       <BacklinksSurface backlinks={viewModel.backlinks ?? fallbackBacklinks} />
-      <div className="replacement-point">{viewModel.replacementPoint}</div>
     </header>
+  );
+}
+
+function DocumentTitle({ title, path }: Readonly<{ title: string; path: string }>) {
+  return (
+    <>
+      <div className="slot-kicker">Document</div>
+      <h2 className="slot-title" data-testid="document-title">
+        {title}
+      </h2>
+      <p style={metadataStyle}>{path}</p>
+    </>
   );
 }
 
@@ -71,13 +85,32 @@ function useDocumentProperties(initialProperties: readonly DocumentProperty[] | 
   ]);
   const updateProperty = (key: string, value: string) => {
     setProperties((current) =>
-      current.map((property) =>
-        (property.key ?? property.label) === key ? { ...property, value } : property,
-      ),
+      current.map((property) => (propertyId(property) === key ? { ...property, value } : property)),
     );
   };
+  const addProperty = (label: string) => {
+    const trimmedLabel = label.trim();
+    if (!trimmedLabel) return;
 
-  return { properties, updateProperty };
+    setProperties((current) => [
+      ...current,
+      {
+        key: `${trimmedLabel}-${current.length + 1}`,
+        label: trimmedLabel,
+        value: "",
+        valueType: "text",
+      },
+    ]);
+  };
+  const deleteProperty = (key: string) => {
+    setProperties((current) => current.filter((property) => propertyId(property) !== key));
+  };
+
+  return { properties, addProperty, deleteProperty, updateProperty };
+}
+
+function propertyId(property: DocumentProperty) {
+  return property.key ?? property.label;
 }
 
 function BacklinksSurface({ backlinks }: { backlinks: readonly DocumentBacklink[] }) {

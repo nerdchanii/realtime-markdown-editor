@@ -19,13 +19,16 @@ related_adrs:
 - `User`를 model로 둔다.
 - `WorkspaceMembership`을 model로 둔다.
 - Presence와 checkpoint authorship에는 membership identity를 사용한다.
-- Local development에서는 mocked users 또는 reviewer switcher를 허용한다.
+- Local development에서는 seeded reviewer membership을 허용한다.
+- Reviewer route의 `?member=alice`, `?member=bob` 값은 production login이 아니라 local review
+  identity 선택이다.
 
 ## 보류
 
 - Authorization과 RBAC.
 - Enterprise identity provider는 보류한다.
 - Production-grade account administration은 보류한다.
+- Production workspace/folder CRUD persistence는 CE recovery 이후로 보류한다.
 
 ## 인증 메모
 

@@ -34,6 +34,10 @@ Seeded workspace identities:
 - `alice`
 - `bob`
 
+These identities are seeded workspace memberships for local review. They are not production login
+accounts or an auth provider. Use `?member=alice` and `?member=bob` in separate browser contexts to
+verify presence and authorship.
+
 Seeded reviewer document:
 
 - `seed-review-plan`, mapped to the workspace document `document_review_plan`
@@ -89,7 +93,8 @@ web server configuration.
 
 The first reviewer build does not include workflow hooks/builders, publish/draft visibility policy,
 RBAC/admin, restore/branching, graph view, wikilinks, multi-document pane split, PWA/Tauri/Electron,
-or a production identity provider.
+or a production identity provider. Workspace/folder CRUD persistence and account management remain
+staged after CE recovery; reviewer-local document creation is only a product entrypoint smoke path.
 
 ## Official Documentation
 

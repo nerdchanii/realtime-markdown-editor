@@ -1,4 +1,5 @@
 import { MarkdownPreview } from "./MarkdownPreview";
+import { RichEditorPane } from "./RichEditorPane";
 import { SourcePane } from "./SourcePane";
 import type { EditorMode, EditorSelectionSnapshot } from "./ports/collaboration-adapter";
 import { workspaceGridStyle, workspaceSinglePaneStyle } from "./styles";
@@ -18,8 +19,12 @@ export function EditorWorkspaceBody({
     return renderMarkdownMode(markdown, onMarkdownChange, onSelectionChange);
   }
 
-  if (mode === "preview" || mode === "rich") {
-    return renderPreviewMode(markdown, mode);
+  if (mode === "rich") {
+    return renderRichMode(markdown, onMarkdownChange, onSelectionChange);
+  }
+
+  if (mode === "preview") {
+    return renderPreviewMode(markdown);
   }
 
   return renderSplitMode(markdown, onMarkdownChange, onSelectionChange);
@@ -41,9 +46,25 @@ function renderMarkdownMode(
   );
 }
 
-function renderPreviewMode(markdown: string, mode: "preview" | "rich") {
+function renderRichMode(
+  markdown: string,
+  onMarkdownChange: (markdown: string) => void,
+  onSelectionChange: (selection: EditorSelectionSnapshot) => void,
+) {
   return (
-    <div style={workspaceSinglePaneStyle} data-testid={`editor-${mode}-view`}>
+    <div style={workspaceSinglePaneStyle} data-testid="editor-rich-view">
+      <RichEditorPane
+        markdown={markdown}
+        onMarkdownChange={onMarkdownChange}
+        onSelectionChange={onSelectionChange}
+      />
+    </div>
+  );
+}
+
+function renderPreviewMode(markdown: string) {
+  return (
+    <div style={workspaceSinglePaneStyle} data-testid="editor-preview-view">
       <MarkdownPreview markdown={markdown} />
     </div>
   );

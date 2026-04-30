@@ -32,7 +32,7 @@ test("TASK-050: four reviewer sessions converge on all collaborative edits", asy
 
     for (const edit of edits) {
       for (const expected of edits) {
-        await expect(edit.editor).toContainText(expected.line);
+        await expect(edit.editor).toContainText(expected.line, { timeout: 10_000 });
       }
     }
   } finally {

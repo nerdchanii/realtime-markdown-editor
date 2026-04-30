@@ -32,3 +32,20 @@ test("CE-05: split preview renders current Markdown without losing source conten
   );
   await expect(editor).toContainText(`# ${previewHeading}`);
 });
+
+test("CE-05: rich mode is an editable Tiptap surface backed by the same Markdown body", async ({
+  page,
+}) => {
+  await openReviewerSession(page, { member: "alice", documentId: seededReviewDocumentId });
+
+  await page.getByRole("button", { name: "Rich" }).click();
+  const richEditor = page.getByTestId("rich-markdown-editor");
+  const richText = `Rich edit ${Date.now()}`;
+
+  await expect(page.getByTestId("editor-rich-tiptap-surface")).toBeVisible();
+  await richEditor.click();
+  await page.keyboard.insertText(richText);
+
+  await page.getByTestId("editor-mode-switcher").getByRole("button", { name: "Markdown" }).click();
+  await expect(page.getByTestId("collaborative-markdown-editor")).toContainText(richText);
+});

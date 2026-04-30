@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useState, type ReactNode } from "react";
 
 import type { CollaborationSessionDto } from "@rme/contracts";
 
@@ -86,26 +86,68 @@ export function EditorWorkspaceSlot({
   const [selectedMode, setSelectedMode] = useState(mode);
 
   return (
-    <div
-      className="editor-workspace"
-      aria-label="Editor and rich preview"
-      data-testid="editor-workspace"
-    >
+    <EditorWorkspaceFrame>
       <EditorToolbar
         label={viewModel.label}
         mode={selectedMode}
         syncStatus={syncStatus}
         onModeChange={setSelectedMode}
       />
-      <EditorWorkspaceBody
+      <ActiveEditorBody
         markdown={markdown}
         mode={selectedMode}
         onMarkdownChange={handleMarkdownChange}
         onSelectionChange={handleSelectionChange}
       />
+      <CurrentMarkdownStore markdown={markdown} />
       <PresenceLayer members={presence} />
-      <div className="replacement-point">{viewModel.replacementPoint}</div>
+    </EditorWorkspaceFrame>
+  );
+}
+
+function EditorWorkspaceFrame({ children }: Readonly<{ children: ReactNode }>) {
+  return (
+    <div
+      className="editor-workspace"
+      aria-label="Editor and rich preview"
+      data-testid="editor-workspace"
+      style={{ position: "relative" }}
+    >
+      {children}
     </div>
+  );
+}
+
+function ActiveEditorBody({
+  markdown,
+  mode,
+  onMarkdownChange,
+  onSelectionChange,
+}: Readonly<{
+  markdown: string;
+  mode: EditorMode;
+  onMarkdownChange: (markdown: string) => void;
+  onSelectionChange: (selection: EditorSelectionSnapshot) => void;
+}>) {
+  return (
+    <EditorWorkspaceBody
+      markdown={markdown}
+      mode={mode}
+      onMarkdownChange={onMarkdownChange}
+      onSelectionChange={onSelectionChange}
+    />
+  );
+}
+
+function CurrentMarkdownStore({ markdown }: Readonly<{ markdown: string }>) {
+  return (
+    <textarea
+      aria-hidden="true"
+      data-testid="current-markdown-body"
+      readOnly
+      hidden
+      value={markdown}
+    />
   );
 }
 
