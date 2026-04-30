@@ -102,6 +102,12 @@ Worker responsibilities:
 - Current user and workspace membership come from authenticated session state, not query/body trust.
 - Owner/member is the first role model. Do not introduce editor/viewer/admin yet.
 - Postgres stores product metadata and a derived current Markdown projection.
+- Local product runtime depends on Docker Postgres bootstrap before TASK-077/TASK-078 retry work:
+  `pnpm db:up` starts `postgres:16`, maps `${POSTGRES_HOST_PORT:-5432}:5432`, and ensures the
+  `DATABASE_URL` database exists; `pnpm db:migrate` ensures the database and applies Prisma deploy
+  migrations. When host port 5432 is occupied, use safe local examples from `.env.example`, such as
+  `POSTGRES_HOST_PORT=55432` with
+  `DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:55432/realtime_markdown_editor`.
 - Object storage stores immutable artifacts: checkpoint snapshots, exports, images, and future blobs.
 - Live Tiptap/Yjs provider state is the active collaborative editing source of truth. It is
   separate from derived Markdown projection and checkpoint history.
@@ -109,25 +115,29 @@ Worker responsibilities:
 - The Tiptap `EditorContent` instance must be the actual collaboration editor instance.
 - Undo/redo is collaboration-safe undo/redo, not the default local history extension.
 - Image upload is artifact-backed before image insertion is exposed as durable product behavior.
+- CE-01 through CE-05 are product core features and product validation stories, not evaluator-only
+  e2e paths. Do not claim acceptance when the path depends on `/review-context/seed`, URL member
+  spoofing, fabricated document ids, retired checkpoint routes, local React-only state, fallback
+  persistence, or label/button-only assertions.
 
 ## Execution Graph
 
-| Task       | Mode               | Depends on                                                 | Unlocks                            | Notes                                                                        |
-| ---------- | ------------------ | ---------------------------------------------------------- | ---------------------------------- | ---------------------------------------------------------------------------- |
-| `TASK-070` | `orchestration`    | none                                                       | `TASK-071`                         | Materialize productization tasks and lock post-ADR-0007 baseline             |
-| `TASK-071` | `blocking`         | `TASK-070`                                                 | `TASK-072`, `TASK-073`             | Contract/schema/API route inventory and acceptance gates                     |
-| `TASK-072` | `blocking`         | `TASK-071`                                                 | `TASK-074`, `TASK-075`, `TASK-078` | Prisma/Postgres foundation                                                   |
-| `TASK-073` | `blocking`         | `TASK-071`                                                 | `TASK-074`, `TASK-075`, `TASK-078` | Runtime validation, error envelope, centralized CORS                         |
-| `TASK-074` | `parallel-backend` | `TASK-072`, `TASK-073`                                     | `TASK-077`, `TASK-082`             | Auth/session and owner/member authorization                                  |
-| `TASK-075` | `parallel-backend` | `TASK-072`, `TASK-073`                                     | `TASK-076`, `TASK-080`, `TASK-082` | Workspace/project/folder/document CRUD APIs                                  |
-| `TASK-076` | `blocking`         | `TASK-075`                                                 | `TASK-077`, `TASK-078`, `TASK-081` | Derived Markdown projection and Tiptap serialization contract                |
-| `TASK-077` | `parallel-backend` | `TASK-074`, `TASK-076`                                     | `TASK-082`                         | DB-backed collaboration session and live Yjs persistence                     |
-| `TASK-078` | `parallel-backend` | `TASK-072`, `TASK-076`                                     | `TASK-080`, `TASK-082`             | Checkpoint metadata/artifact split and canonical documents route             |
-| `TASK-079` | `parallel-backend` | `TASK-072`, `TASK-073`                                     | `TASK-081`, `TASK-082`             | Artifact-backed image upload API                                             |
-| `TASK-080` | `parallel-ui`      | `TASK-075`, `TASK-078`                                     | `TASK-082`                         | Frontend migration from seed/checkpoint local state to product APIs          |
-| `TASK-081` | `parallel-ui`      | `TASK-076`, `TASK-079`                                     | `TASK-082`                         | Tiptap template UI absorption, collaboration-safe undo/redo, image insertion |
-| `TASK-082` | `integration`      | `TASK-077`, `TASK-078`, `TASK-079`, `TASK-080`, `TASK-081` | `TASK-083`                         | Product runtime integration                                                  |
-| `TASK-083` | `verification`     | `TASK-082`                                                 | complete                           | Full regression and reviewer product flow                                    |
+| Task       | Mode               | Depends on                                                 | Unlocks                            | Notes                                                                                  |
+| ---------- | ------------------ | ---------------------------------------------------------- | ---------------------------------- | -------------------------------------------------------------------------------------- |
+| `TASK-070` | `orchestration`    | none                                                       | `TASK-071`                         | Materialize productization tasks and lock post-ADR-0007 baseline                       |
+| `TASK-071` | `blocking`         | `TASK-070`                                                 | `TASK-072`, `TASK-073`             | Contract/schema/API route inventory and acceptance gates                               |
+| `TASK-072` | `blocking`         | `TASK-071`                                                 | `TASK-074`, `TASK-075`, `TASK-078` | Prisma/Postgres foundation                                                             |
+| `TASK-073` | `blocking`         | `TASK-071`                                                 | `TASK-074`, `TASK-075`, `TASK-078` | Runtime validation, error envelope, centralized CORS                                   |
+| `TASK-074` | `parallel-backend` | `TASK-072`, `TASK-073`                                     | `TASK-077`, `TASK-082`             | Auth/session and owner/member authorization                                            |
+| `TASK-075` | `parallel-backend` | `TASK-072`, `TASK-073`                                     | `TASK-076`, `TASK-080`, `TASK-082` | Workspace/project/folder/document CRUD APIs                                            |
+| `TASK-076` | `blocking`         | `TASK-075`                                                 | `TASK-077`, `TASK-078`, `TASK-081` | Derived Markdown projection and Tiptap serialization contract                          |
+| `TASK-077` | `parallel-backend` | `TASK-074`, `TASK-076`, local Docker Postgres + migrations | `TASK-082`                         | Blocked until DB-backed reload proof can run against real local Postgres               |
+| `TASK-078` | `parallel-backend` | `TASK-072`, `TASK-076`                                     | `TASK-080`, `TASK-082`             | Backend-ready can unblock TASK-080; remains unarchived until CE-04 product path passes |
+| `TASK-079` | `parallel-backend` | `TASK-072`, `TASK-073`                                     | `TASK-081`, `TASK-082`             | Artifact-backed image upload API                                                       |
+| `TASK-080` | `parallel-ui`      | `TASK-075`, TASK-078 backend-ready contract                | `TASK-082`                         | May start before TASK-078 archives to unblock CE-04 product-path verification          |
+| `TASK-081` | `parallel-ui`      | `TASK-076`, `TASK-079`                                     | `TASK-082`                         | Tiptap template UI absorption, collaboration-safe undo/redo, image insertion           |
+| `TASK-082` | `integration`      | `TASK-077`, `TASK-078`, `TASK-079`, `TASK-080`, `TASK-081` | `TASK-083`                         | Product runtime integration                                                            |
+| `TASK-083` | `verification`     | `TASK-082`                                                 | complete                           | Full regression and reviewer product flow                                              |
 
 ## Task Details
 
@@ -351,6 +361,10 @@ Verification:
 `TASK-077` owns live Yjs provider persistence and rehydration. It does not own checkpoint Markdown
 snapshot artifacts, export artifacts, or DB Markdown as the live editing source of truth.
 
+Current classification: blocked on real local Postgres provision. Retry only after Docker
+Postgres is available through `pnpm db:up`, migrations have been applied through
+`pnpm db:migrate`, and DB-backed reload proof can run against the resulting database.
+
 Type: `parallel-backend` / Mode: `parallel`
 
 Goal:
@@ -374,6 +388,8 @@ Acceptance:
 
 Verification:
 
+- `pnpm db:up`
+- `pnpm db:migrate`
 - `pnpm --filter @rme/collab typecheck`
 - `pnpm --filter @rme/api typecheck`
 - `pnpm arch:check`
@@ -383,6 +399,10 @@ Verification:
 
 `TASK-078` owns checkpoint metadata, Markdown snapshot artifacts, and removal of the retired
 collaboration checkpoint route in favor of canonical `POST /documents/:documentId/checkpoints`.
+
+Current classification: backend-ready but integration-blocked by `TASK-080`. Keep this task
+unarchived until CE-04 passes through the canonical product route in the normal UI, not through
+seed/review shortcuts or local-only state.
 
 Type: `parallel-backend` / Mode: `parallel`
 
@@ -442,6 +462,10 @@ Verification:
 
 `TASK-080` migrates UI data loading to product APIs while keeping CE-01 through CE-05 as product
 validation stories, not visible evaluation-harness UI.
+
+`TASK-080` may start once `TASK-075` is available and `TASK-078` has a backend-ready canonical
+checkpoint contract. It does not need to wait for `TASK-078` archive, because CE-04 product-path
+verification is blocked on product auth/API-client/UI migration.
 
 Type: `parallel-ui` / Mode: `parallel`
 

@@ -1,6 +1,6 @@
 ---
 title: TASK-078-checkpoint-metadata-artifact-split
-status: todo
+status: blocked
 phase: P10
 task_type: parallel-backend
 task_mode: parallel
@@ -35,6 +35,8 @@ Checkpoint history를 Postgres metadata와 artifact-backed snapshot payload로 �
 
 - 공식 기준 문서: `subject.md`, `docs/compliance/subject-matrix.md`, `docs/requirements/registry.md`.
 - dependencies: `TASK-072`, `TASK-076`.
+- Current classification: backend-ready, integration-blocked by `TASK-080`. Keep unarchived until
+  CE-04 passes through the canonical product route in the normal UI.
 - `.note/**`는 scratch context이며 공식 요구사항 출처로 인용하지 않는다.
 
 ## 범위
@@ -70,6 +72,10 @@ Checkpoint history를 Postgres metadata와 artifact-backed snapshot payload로 �
   live Yjs binary/provider persistence owned by `TASK-077`.
 - mock 허용 여부: local filesystem/in-memory artifact adapter may exist only as explicit dev/test adapter.
 - Collaboration checkpoint route is removed here unless an explicit transitional blocker is recorded.
+- Product framing guardrail: CE-04 is a product history feature, not an evaluator-only e2e path.
+  Do not claim acceptance from `/review-context/seed`, URL member spoofing, fabricated document ids,
+  retired checkpoint routes, local React-only state, fallback persistence, or label/button-only
+  assertions.
 
 ## Write Set
 
@@ -104,7 +110,7 @@ Checkpoint history를 Postgres metadata와 artifact-backed snapshot payload로 �
 - 실행 명령: `pnpm --filter @rme/api test`
 - 기대 결과: API tests가 통과한다.
 - 실행 명령: `pnpm test:e2e e2e/ce-04-history.spec.ts`
-- 기대 결과: CE-04 history e2e passes.
+- 기대 결과: CE-04 history e2e passes through the canonical product route.
 
 ## Review
 
@@ -124,3 +130,4 @@ Checkpoint history를 Postgres metadata와 artifact-backed snapshot payload로 �
 ## 메모
 
 - Suggested worktree: `.worktrees/task-078-checkpoints`.
+- Do not archive while CE-04 still depends on TASK-080 product auth/API-client/UI migration.
