@@ -1,5 +1,14 @@
 import { Module } from "@nestjs/common";
 
+import { PrismaDatabaseService } from "@/database/database.service.js";
+import {
+  PrismaDocumentContentRepository,
+  type PrismaDocumentContentPersistenceClient,
+} from "@/modules/documents/adapters/prisma-document-content-repository.js";
+import {
+  PrismaDocumentRepository,
+  type PrismaDocumentPersistenceClient,
+} from "@/modules/documents/adapters/prisma-document-repository.js";
 import { LocalCheckpointRepository } from "@/modules/documents/adapters/local-checkpoint-repository.js";
 import { CheckpointsController } from "@/modules/documents/interfaces/checkpoints.controller.js";
 import { MarkdownExportController } from "@/modules/documents/interfaces/markdown-export.controller.js";
@@ -7,8 +16,8 @@ import {
   CHECKPOINT_REPOSITORY,
   type CheckpointRepository,
 } from "@/modules/documents/ports/checkpoint-repository.js";
-import { InMemoryDocumentRepository } from "@/modules/documents/adapters/in-memory-document-repository.js";
 import { CreateDocumentUseCase } from "@/modules/documents/use-cases/create-document-use-case.js";
+import { DOCUMENT_CONTENT_REPOSITORY } from "@/modules/documents/ports/document-content-repository.js";
 import {
   DOCUMENT_REPOSITORY,
   type DocumentRepository,
@@ -27,7 +36,17 @@ import { ExportMarkdownUseCase } from "@/modules/documents/use-cases/export-mark
     },
     {
       provide: DOCUMENT_REPOSITORY,
-      useClass: InMemoryDocumentRepository,
+      useFactory: (database: PrismaDatabaseService) =>
+        new PrismaDocumentRepository(database as unknown as PrismaDocumentPersistenceClient),
+      inject: [PrismaDatabaseService],
+    },
+    {
+      provide: DOCUMENT_CONTENT_REPOSITORY,
+      useFactory: (database: PrismaDatabaseService) =>
+        new PrismaDocumentContentRepository(
+          database as unknown as PrismaDocumentContentPersistenceClient,
+        ),
+      inject: [PrismaDatabaseService],
     },
     {
       provide: CreateDocumentUseCase,
@@ -58,6 +77,7 @@ import { ExportMarkdownUseCase } from "@/modules/documents/use-cases/export-mark
     InspectCheckpointSnapshotUseCase,
     ListCheckpointsUseCase,
     ExportMarkdownUseCase,
+    DOCUMENT_CONTENT_REPOSITORY,
   ],
 })
 export class DocumentsModule {}

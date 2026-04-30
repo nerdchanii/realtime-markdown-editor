@@ -1,0 +1,372 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum WorkspaceMembershipRole {
+  owner
+  member
+}
+
+enum SessionStatus {
+  active
+  revoked
+  expired
+}
+
+enum FolderKind {
+  workspaceRoot
+  projectRoot
+  regular
+  inbox
+}
+
+enum DocumentState {
+  draft
+  review
+  saved
+}
+
+enum DocumentPropertyType {
+  text
+  status
+  date
+  member
+  checkbox
+}
+
+enum DocumentContentSource {
+  collaborationProjection @map("collaboration-projection")
+  manualImport            @map("manual-import")
+}
+
+enum ArtifactKind {
+  checkpointSnapshot @map("checkpoint-snapshot")
+  export
+  image
+  collaborationState @map("collaboration-state")
+  autosaveSnapshot   @map("autosave-snapshot")
+}
+
+enum RevisionSource {
+  checkpoint
+  publication
+  autosave
+  contentUpdate @map("content-update")
+}
+
+enum AutosaveStatus {
+  pending
+  saved
+  failed
+}
+
+enum CollaborationSyncStatus {
+  connecting
+  synced
+  offline
+  reconnecting
+  pendingLocalChanges @map("pending-local-changes")
+  error
+}
+
+model User {
+  id          String                @id @db.VarChar(80)
+  email       String                @unique @db.VarChar(320)
+  name        String                @db.VarChar(160)
+  createdAt   DateTime              @default(now())
+  updatedAt   DateTime              @updatedAt
+  memberships WorkspaceMembership[]
+  sessions    Session[]
+
+  @@map("users")
+}
+
+model Session {
+  id                  String               @id @db.VarChar(80)
+  tokenHash           String               @unique @db.VarChar(128)
+  userId              String               @db.VarChar(80)
+  currentMembershipId String?              @db.VarChar(80)
+  status              SessionStatus        @default(active)
+  expiresAt           DateTime
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  revokedAt           DateTime?
+  user                User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  currentMembership   WorkspaceMembership? @relation("CurrentMembershipSessions", fields: [currentMembershipId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([currentMembershipId])
+  @@index([status, expiresAt])
+  @@map("sessions")
+}
+
+model WorkspaceMembership {
+  id                    String                     @id @db.VarChar(80)
+  userId                String                     @db.VarChar(80)
+  workspaceId           String                     @db.VarChar(80)
+  displayName           String                     @db.VarChar(160)
+  color                 String                     @db.VarChar(32)
+  role                  WorkspaceMembershipRole
+  createdAt             DateTime                   @default(now())
+  updatedAt             DateTime                   @updatedAt
+  user                  User                       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace             Workspace                  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  currentSessions       Session[]                  @relation("CurrentMembershipSessions")
+  authoredRevisions     Revision[]
+  authoredCheckpoints   Checkpoint[]
+  publications          Publication[]
+  collaborationSessions LiveCollaborationSession[]
+
+  @@unique([workspaceId, userId])
+  @@index([userId])
+  @@index([workspaceId])
+  @@map("workspace_memberships")
+}
+
+model Workspace {
+  id           String                @id @db.VarChar(80)
+  name         String                @db.VarChar(200)
+  rootFolderId String?               @unique @db.VarChar(80)
+  createdAt    DateTime              @default(now())
+  updatedAt    DateTime              @updatedAt
+  rootFolder   Folder?               @relation("WorkspaceRootFolder", fields: [rootFolderId], references: [id], onDelete: Restrict)
+  projects     Project[]
+  folders      Folder[]              @relation("WorkspaceFolders")
+  memberships  WorkspaceMembership[]
+
+  @@map("workspaces")
+}
+
+model Project {
+  id           String    @id @db.VarChar(80)
+  workspaceId  String    @db.VarChar(80)
+  name         String    @db.VarChar(200)
+  rootFolderId String?   @unique @db.VarChar(80)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  workspace    Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  rootFolder   Folder?   @relation("ProjectRootFolder", fields: [rootFolderId], references: [id], onDelete: Restrict)
+  folders      Folder[]  @relation("ProjectFolders")
+
+  @@index([workspaceId])
+  @@map("projects")
+}
+
+model Folder {
+  id               String     @id @db.VarChar(80)
+  workspaceId      String     @db.VarChar(80)
+  projectId        String?    @db.VarChar(80)
+  parentFolderId   String?    @db.VarChar(80)
+  name             String     @db.VarChar(200)
+  kind             FolderKind
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+  deletedAt        DateTime?
+  workspace        Workspace  @relation("WorkspaceFolders", fields: [workspaceId], references: [id], onDelete: Cascade)
+  project          Project?   @relation("ProjectFolders", fields: [projectId], references: [id], onDelete: Cascade)
+  parentFolder     Folder?    @relation("FolderTree", fields: [parentFolderId], references: [id], onDelete: Restrict)
+  childFolders     Folder[]   @relation("FolderTree")
+  documents        Document[]
+  workspaceRootFor Workspace? @relation("WorkspaceRootFolder")
+  projectRootFor   Project?   @relation("ProjectRootFolder")
+
+  @@index([workspaceId, parentFolderId])
+  @@index([projectId])
+  @@index([kind])
+  @@map("folders")
+}
+
+model Document {
+  id                    String                     @id @db.VarChar(80)
+  folderId              String                     @db.VarChar(80)
+  title                 String                     @db.VarChar(240)
+  state                 DocumentState              @default(draft)
+  markdownBodyRef       String                     @db.VarChar(512)
+  markdownBody          String                     @default("") @db.Text
+  contentSource         DocumentContentSource      @default(manualImport)
+  markdownBodyUpdatedAt DateTime                   @default(now())
+  latestRevisionId      String?                    @unique @db.VarChar(80)
+  publishedRevisionId   String?                    @unique @db.VarChar(80)
+  createdAt             DateTime                   @default(now())
+  updatedAt             DateTime                   @updatedAt
+  archivedAt            DateTime?
+  folder                Folder                     @relation(fields: [folderId], references: [id], onDelete: Restrict)
+  properties            DocumentProperty[]
+  sourceLinks           LinkEdge[]                 @relation("SourceDocumentLinks")
+  targetBacklinks       LinkEdge[]                 @relation("TargetDocumentLinks")
+  artifacts             Artifact[]
+  revisions             Revision[]                 @relation("DocumentRevisions")
+  latestRevision        Revision?                  @relation("DocumentLatestRevision", fields: [latestRevisionId], references: [id], onDelete: SetNull)
+  publishedRevision     Revision?                  @relation("DocumentPublishedRevision", fields: [publishedRevisionId], references: [id], onDelete: SetNull)
+  checkpoints           Checkpoint[]
+  publications          Publication[]
+  autosaveSnapshots     AutosaveSnapshot[]
+  liveCollaboration     LiveCollaborationState?
+  liveSessions          LiveCollaborationSession[]
+
+  @@index([folderId])
+  @@index([state])
+  @@map("documents")
+}
+
+model DocumentProperty {
+  id         String               @id @default(uuid()) @db.Uuid
+  documentId String               @db.VarChar(80)
+  key        String               @db.VarChar(120)
+  type       DocumentPropertyType
+  value      Json
+  createdAt  DateTime             @default(now())
+  updatedAt  DateTime             @updatedAt
+  document   Document             @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@unique([documentId, key])
+  @@index([type])
+  @@map("document_properties")
+}
+
+model LinkEdge {
+  id               String   @id @default(uuid()) @db.Uuid
+  sourceDocumentId String   @db.VarChar(80)
+  targetDocumentId String   @db.VarChar(80)
+  markdownHref     String   @db.VarChar(512)
+  preview          String   @default("") @db.Text
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  sourceDocument   Document @relation("SourceDocumentLinks", fields: [sourceDocumentId], references: [id], onDelete: Cascade)
+  targetDocument   Document @relation("TargetDocumentLinks", fields: [targetDocumentId], references: [id], onDelete: Cascade)
+
+  @@unique([sourceDocumentId, targetDocumentId, markdownHref])
+  @@index([targetDocumentId])
+  @@map("link_edges")
+}
+
+model Artifact {
+  id                      String                   @id @default(uuid()) @db.Uuid
+  documentId              String?                  @db.VarChar(80)
+  key                     String                   @unique @db.VarChar(768)
+  kind                    ArtifactKind
+  contentType             String                   @db.VarChar(160)
+  checksumSha256          String                   @db.Char(64)
+  sizeBytes               BigInt
+  metadata                Json?
+  createdAt               DateTime                 @default(now())
+  document                Document?                @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  revisionSnapshots       Revision[]               @relation("RevisionSnapshotArtifact")
+  checkpointSnapshots     Checkpoint[]             @relation("CheckpointSnapshotArtifact")
+  autosaveSnapshots       AutosaveSnapshot[]
+  liveCollaborationStates LiveCollaborationState[]
+
+  @@index([documentId])
+  @@index([kind])
+  @@map("artifacts")
+}
+
+model Revision {
+  id                   String              @id @db.VarChar(80)
+  documentId           String              @db.VarChar(80)
+  authorMembershipId   String              @db.VarChar(80)
+  source               RevisionSource
+  message              String?             @db.VarChar(500)
+  snapshotArtifactId   String              @db.Uuid
+  createdAt            DateTime            @default(now())
+  document             Document            @relation("DocumentRevisions", fields: [documentId], references: [id], onDelete: Cascade)
+  authorMembership     WorkspaceMembership @relation(fields: [authorMembershipId], references: [id], onDelete: Restrict)
+  snapshotArtifact     Artifact            @relation("RevisionSnapshotArtifact", fields: [snapshotArtifactId], references: [id], onDelete: Restrict)
+  latestForDocument    Document?           @relation("DocumentLatestRevision")
+  publishedForDocument Document?           @relation("DocumentPublishedRevision")
+  checkpoint           Checkpoint?
+  publication          Publication?
+
+  @@index([documentId, createdAt])
+  @@index([authorMembershipId])
+  @@map("revisions")
+}
+
+model Checkpoint {
+  id                 String              @id @db.VarChar(80)
+  documentId         String              @db.VarChar(80)
+  revisionId         String              @unique @db.VarChar(80)
+  authorMembershipId String              @db.VarChar(80)
+  message            String              @db.VarChar(500)
+  snapshotArtifactId String              @db.Uuid
+  createdAt          DateTime            @default(now())
+  document           Document            @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  revision           Revision            @relation(fields: [revisionId], references: [id], onDelete: Cascade)
+  authorMembership   WorkspaceMembership @relation(fields: [authorMembershipId], references: [id], onDelete: Restrict)
+  snapshotArtifact   Artifact            @relation("CheckpointSnapshotArtifact", fields: [snapshotArtifactId], references: [id], onDelete: Restrict)
+
+  @@index([documentId, createdAt])
+  @@index([authorMembershipId])
+  @@map("checkpoints")
+}
+
+model Publication {
+  id                      String              @id @db.VarChar(80)
+  documentId              String              @db.VarChar(80)
+  revisionId              String              @unique @db.VarChar(80)
+  publishedByMembershipId String              @db.VarChar(80)
+  publishedAt             DateTime            @default(now())
+  document                Document            @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  revision                Revision            @relation(fields: [revisionId], references: [id], onDelete: Cascade)
+  publishedByMembership   WorkspaceMembership @relation(fields: [publishedByMembershipId], references: [id], onDelete: Restrict)
+
+  @@index([documentId, publishedAt])
+  @@index([publishedByMembershipId])
+  @@map("publications")
+}
+
+model AutosaveSnapshot {
+  id         String         @id @default(uuid()) @db.Uuid
+  documentId String         @db.VarChar(80)
+  artifactId String         @db.Uuid
+  status     AutosaveStatus
+  savedAt    DateTime       @default(now())
+  document   Document       @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  artifact   Artifact       @relation(fields: [artifactId], references: [id], onDelete: Restrict)
+
+  @@index([documentId, savedAt])
+  @@index([status])
+  @@map("autosave_snapshots")
+}
+
+model LiveCollaborationState {
+  id                String                     @id @default(uuid()) @db.Uuid
+  documentId        String                     @unique @db.VarChar(80)
+  documentKey       String                     @unique @db.VarChar(240)
+  realtimeUrl       String                     @db.VarChar(512)
+  syncStatus        CollaborationSyncStatus    @default(connecting)
+  pendingLocalEdits Int                        @default(0)
+  lastSyncedAt      DateTime?
+  stateArtifactId   String?                    @db.Uuid
+  createdAt         DateTime                   @default(now())
+  updatedAt         DateTime                   @updatedAt
+  document          Document                   @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  stateArtifact     Artifact?                  @relation(fields: [stateArtifactId], references: [id], onDelete: SetNull)
+  sessions          LiveCollaborationSession[]
+
+  @@index([syncStatus])
+  @@map("live_collaboration_states")
+}
+
+model LiveCollaborationSession {
+  id               String                  @id @default(uuid()) @db.Uuid
+  documentId       String                  @db.VarChar(80)
+  membershipId     String                  @db.VarChar(80)
+  stateId          String?                 @db.Uuid
+  sessionTokenHash String                  @unique @db.VarChar(128)
+  issuedAt         DateTime                @default(now())
+  expiresAt        DateTime
+  revokedAt        DateTime?
+  document         Document                @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  membership       WorkspaceMembership     @relation(fields: [membershipId], references: [id], onDelete: Cascade)
+  state            LiveCollaborationState? @relation(fields: [stateId], references: [id], onDelete: SetNull)
+
+  @@index([documentId, membershipId])
+  @@index([expiresAt])
+  @@map("live_collaboration_sessions")
+}
