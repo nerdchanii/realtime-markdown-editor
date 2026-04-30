@@ -1,8 +1,11 @@
 import { Module } from "@nestjs/common";
 
+import { PrismaCollaborationSessionRepository } from "@/modules/collaboration/adapters/prisma-collaboration-session-repository.js";
 import { SeedCollaborationSessionRepository } from "@/modules/collaboration/adapters/seed-collaboration-session-repository.js";
 import { CollaborationSessionController } from "@/modules/collaboration/interfaces/collaboration-session.controller.js";
+import { DocumentCollaborationSessionController } from "@/modules/collaboration/interfaces/document-collaboration-session.controller.js";
 import { DocumentsModule } from "@/modules/documents/documents.module.js";
+import { IdentityModule } from "@/modules/identity/identity.module.js";
 import {
   COLLABORATION_SESSION_REPOSITORY,
   type CollaborationSessionRepository,
@@ -12,12 +15,18 @@ import {
   IssueSeedCollaborationSessionUseCase,
 } from "@/modules/collaboration/use-cases/issue-collaboration-session-use-case.js";
 
+const SEED_COLLABORATION_SESSION_REPOSITORY = Symbol("SEED_COLLABORATION_SESSION_REPOSITORY");
+
 @Module({
-  imports: [DocumentsModule],
-  controllers: [CollaborationSessionController],
+  imports: [DocumentsModule, IdentityModule],
+  controllers: [CollaborationSessionController, DocumentCollaborationSessionController],
   providers: [
     {
       provide: COLLABORATION_SESSION_REPOSITORY,
+      useClass: PrismaCollaborationSessionRepository,
+    },
+    {
+      provide: SEED_COLLABORATION_SESSION_REPOSITORY,
       useClass: SeedCollaborationSessionRepository,
     },
     {
@@ -30,7 +39,7 @@ import {
       provide: IssueSeedCollaborationSessionUseCase,
       useFactory: (repository: CollaborationSessionRepository) =>
         new IssueSeedCollaborationSessionUseCase(repository),
-      inject: [COLLABORATION_SESSION_REPOSITORY],
+      inject: [SEED_COLLABORATION_SESSION_REPOSITORY],
     },
   ],
 })
