@@ -20,3 +20,12 @@ test("collab runtime dev fallbacks require explicit opt-in flags", () => {
   assert.equal(config.enableSeedSessionFallback, true);
   assert.equal(config.enableLiveYjsPersistenceFallback, true);
 });
+
+test("collab runtime accepts dev-local COLLAB_PORT alias", () => {
+  const config = readCollabRuntimeConfig({
+    COLLAB_PORT: "4001",
+  });
+
+  assert.equal(config.port, 4001);
+  assert.equal(config.publicRealtimeUrl, "ws://127.0.0.1:4001");
+});

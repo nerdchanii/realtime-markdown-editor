@@ -16,6 +16,11 @@ import {
   ProductCollaborationDocumentNotFoundError,
   type CollaborationDocumentKey,
 } from "@/modules/collaboration/ports/live-yjs-document-state-repository.js";
+import {
+  DOCUMENT_CONTENT_REPOSITORY,
+  type DocumentContentRepository,
+} from "@/modules/documents/ports/document-content-repository.js";
+import type { DocumentId } from "@/modules/documents/domain/document.js";
 import { LoadRuntimeCollaborationSessionUseCase } from "@/modules/collaboration/use-cases/issue-collaboration-session-use-case.js";
 import {
   LoadLiveYjsDocumentStateUseCase,
@@ -24,6 +29,15 @@ import {
 
 type LiveYjsStateResponseDto = Readonly<{
   stateBase64: string;
+}>;
+
+type DocumentContentProjectionResponseDto = Readonly<{
+  content: {
+    documentId: string;
+    markdownBody: string;
+    latestRevisionId: string | null;
+    updatedAt: string;
+  };
 }>;
 
 @Controller("collaboration/internal")
@@ -35,6 +49,8 @@ export class InternalCollaborationRuntimeController {
     private readonly loadLiveYjsDocumentState: LoadLiveYjsDocumentStateUseCase,
     @Inject(StoreLiveYjsDocumentStateUseCase)
     private readonly storeLiveYjsDocumentState: StoreLiveYjsDocumentStateUseCase,
+    @Inject(DOCUMENT_CONTENT_REPOSITORY)
+    private readonly documentContent: DocumentContentRepository,
   ) {}
 
   @Get("document-sessions/:encodedDocumentKey")
@@ -82,5 +98,47 @@ export class InternalCollaborationRuntimeController {
       }
       throw error;
     }
+  }
+
+  @Get("documents/:documentId/content")
+  async getDocumentContentProjection(
+    @Param("documentId") documentId: string,
+  ): Promise<DocumentContentProjectionResponseDto> {
+    const content = await this.documentContent.findCurrentContent(documentId as DocumentId);
+    if (!content) throw new NotFoundException("Document content projection not found.");
+
+    return {
+      content: {
+        documentId: content.documentId,
+        markdownBody: content.markdownBody,
+        latestRevisionId: content.latestRevisionId,
+        updatedAt: content.updatedAt.toISOString(),
+      },
+    };
+  }
+
+  @Put("documents/:documentId/content")
+  async putDocumentContentProjection(
+    @Param("documentId") documentId: string,
+    @Body() body: { markdownBody?: unknown },
+  ): Promise<DocumentContentProjectionResponseDto> {
+    if (typeof body.markdownBody !== "string") {
+      throw new BadRequestException("markdownBody is required.");
+    }
+
+    const content = await this.documentContent.saveCurrentContent({
+      documentId: documentId as DocumentId,
+      markdownBody: body.markdownBody,
+      source: "collaboration-projection",
+    });
+
+    return {
+      content: {
+        documentId: content.documentId,
+        markdownBody: content.markdownBody,
+        latestRevisionId: content.latestRevisionId,
+        updatedAt: content.updatedAt.toISOString(),
+      },
+    };
   }
 }

@@ -15,6 +15,7 @@ export async function inspectCheckpointSnapshot(
 ): Promise<CheckpointSnapshotInspectDto> {
   const response = await fetch(
     `${client.baseUrl}/documents/checkpoints/${encodeURIComponent(checkpointId)}/snapshot`,
+    { credentials: "include" },
   );
 
   if (!response.ok) {

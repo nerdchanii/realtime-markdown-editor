@@ -29,7 +29,7 @@ const BOOLEAN_VALUES = new Map([
 
 export function readCollabRuntimeConfig(env: NodeJS.ProcessEnv): CollabRuntimeConfig {
   const host = readString(env.RME_COLLAB_HOST, "127.0.0.1");
-  const port = readPort(env.RME_COLLAB_PORT, 1234);
+  const port = readPort(env.RME_COLLAB_PORT ?? env.COLLAB_PORT, 1234);
   const liveYjsPersistenceProvider = readLiveYjsPersistenceProvider(
     env.RME_COLLAB_YJS_PERSISTENCE_PROVIDER,
     "api-postgres",

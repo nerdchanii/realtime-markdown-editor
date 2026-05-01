@@ -24,7 +24,7 @@ export class PrismaLiveYjsDocumentStateRepository implements LiveYjsDocumentStat
   private readonly realtimeUrl: string;
 
   constructor(private readonly database: PrismaDatabaseService) {
-    this.realtimeUrl = readString(process.env.RME_COLLAB_PUBLIC_URL, "ws://127.0.0.1:1234");
+    this.realtimeUrl = readConfiguredRealtimeUrl(process.env);
   }
 
   async loadDocumentState(documentKey: CollaborationDocumentKey): Promise<Uint8Array | null> {
@@ -109,7 +109,7 @@ async function upsertLiveCollaborationState(
   await tx.liveCollaborationState.upsert({
     where: { documentKey: state.documentKey },
     create: liveStateCreateInput(realtimeUrl, state, stateArtifactId),
-    update: liveStateUpdateInput(stateArtifactId),
+    update: liveStateUpdateInput(realtimeUrl, state, stateArtifactId),
   });
 }
 
@@ -121,7 +121,7 @@ function liveStateCreateInput(
   return {
     documentId: state.documentId,
     documentKey: state.documentKey,
-    realtimeUrl: realtimeUrlForDocumentKey(realtimeUrl, state.documentKey),
+    realtimeUrl: realtimeUrlForDocumentKey(realtimeUrl),
     syncStatus: "synced" as const,
     pendingLocalEdits: 0,
     lastSyncedAt: new Date(),
@@ -129,8 +129,13 @@ function liveStateCreateInput(
   };
 }
 
-function liveStateUpdateInput(stateArtifactId: string) {
+function liveStateUpdateInput(
+  realtimeUrl: string,
+  state: LiveYjsStatePersistenceInput,
+  stateArtifactId: string,
+) {
   return {
+    realtimeUrl: realtimeUrlForDocumentKey(realtimeUrl),
     syncStatus: "synced" as const,
     pendingLocalEdits: 0,
     lastSyncedAt: new Date(),
@@ -170,10 +175,18 @@ function artifactKeyForDocumentKey(documentKey: string): string {
   return `collaboration/live-yjs/${Buffer.from(documentKey, "utf8").toString("base64url")}.yjs`;
 }
 
-function realtimeUrlForDocumentKey(baseRealtimeUrl: string, documentKey: string): string {
-  return `${baseRealtimeUrl.replace(/\/$/, "")}/collaboration/${encodeURIComponent(documentKey)}`;
+function realtimeUrlForDocumentKey(baseRealtimeUrl: string): string {
+  return baseRealtimeUrl;
 }
 
 function readString(value: string | undefined, fallback: string): string {
   return value && value.trim().length > 0 ? value.trim() : fallback;
+}
+
+function readConfiguredRealtimeUrl(env: NodeJS.ProcessEnv): string {
+  const configured = env.RME_COLLAB_PUBLIC_URL;
+  if (configured && configured.trim().length > 0) return configured.trim();
+
+  const port = readString(env.RME_COLLAB_PORT ?? env.COLLAB_PORT, "4001");
+  return `ws://127.0.0.1:${port}`;
 }

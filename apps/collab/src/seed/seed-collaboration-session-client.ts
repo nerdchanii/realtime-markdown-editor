@@ -26,7 +26,7 @@ function createSeedSessionPayload(config: CollabRuntimeConfig): unknown {
   return {
     documentId: "document_review_plan",
     documentKey: config.seedDocumentKey,
-    realtimeUrl: realtimeUrlForDocument(config, config.seedDocumentKey),
+    realtimeUrl: realtimeUrlForDocument(config),
     currentMemberId: "member_alice",
     members: seedMembers,
     sync: {
@@ -37,15 +37,15 @@ function createSeedSessionPayload(config: CollabRuntimeConfig): unknown {
   };
 }
 
-function realtimeUrlForDocument(config: CollabRuntimeConfig, documentKey: string): string {
-  return `${config.publicRealtimeUrl}/collaboration/${encodeURIComponent(documentKey)}`;
+function realtimeUrlForDocument(config: CollabRuntimeConfig): string {
+  return config.publicRealtimeUrl;
 }
 
 function createReviewRouteSession(config: CollabRuntimeConfig, documentKey: string) {
   return validateCollaborationSession({
     documentId: documentKey.slice("workspace_review/".length),
     documentKey,
-    realtimeUrl: realtimeUrlForDocument(config, documentKey),
+    realtimeUrl: realtimeUrlForDocument(config),
     currentMemberId: "member_alice",
     members: seedMembers,
     sync: {

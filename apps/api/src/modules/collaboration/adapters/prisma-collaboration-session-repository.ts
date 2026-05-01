@@ -16,7 +16,7 @@ export class PrismaCollaborationSessionRepository implements CollaborationSessio
   private readonly realtimeUrl: string;
 
   constructor(private readonly database: PrismaDatabaseService) {
-    this.realtimeUrl = readString(process.env.RME_COLLAB_PUBLIC_URL, "ws://127.0.0.1:1234");
+    this.realtimeUrl = readConfiguredRealtimeUrl(process.env);
   }
 
   async findSession(lookup: CollaborationSessionLookup): Promise<CollaborationSession | null> {
@@ -108,7 +108,7 @@ function realtimeUrlFromRecord(
   document: CollaborationDocumentRecord,
   fallbackRealtimeUrl: string,
 ): string {
-  return document.liveCollaboration?.realtimeUrl ?? fallbackRealtimeUrl;
+  return fallbackRealtimeUrl;
 }
 
 function syncStateFromRecord(document: CollaborationDocumentRecord): CollaborationSession["sync"] {
@@ -161,4 +161,12 @@ function mapSyncStatus(status: string): CollaborationSyncStatus {
 
 function readString(value: string | undefined, fallback: string): string {
   return value && value.trim().length > 0 ? value.trim() : fallback;
+}
+
+function readConfiguredRealtimeUrl(env: NodeJS.ProcessEnv): string {
+  const configured = env.RME_COLLAB_PUBLIC_URL;
+  if (configured && configured.trim().length > 0) return configured.trim();
+
+  const port = readString(env.RME_COLLAB_PORT ?? env.COLLAB_PORT, "4001");
+  return `ws://127.0.0.1:${port}`;
 }
