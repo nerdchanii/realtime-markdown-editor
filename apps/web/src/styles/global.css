@@ -935,12 +935,7 @@ a {
   padding: 16px 12px;
 }
 
-[data-node-kind="document"] > div {
-  position: relative;
-  overflow: hidden;
-}
-
-[data-node-kind="document"] > div > button:last-child {
+.workspace-node-delete {
   position: absolute;
   right: 4px;
   top: 50%;
@@ -951,8 +946,12 @@ a {
   z-index: 20;
 }
 
-[data-node-kind="document"] > div:focus-within > button:last-child,
-[data-node-kind="document"] > div:hover > button:last-child {
+[data-node-kind="document"] > div:focus-within > .workspace-node-delete,
+[data-node-kind="document"] > div:hover > .workspace-node-delete,
+[data-node-kind="regular"] > div:focus-within > .workspace-node-delete,
+[data-node-kind="regular"] > div:hover > .workspace-node-delete,
+[data-node-kind="inbox"] > div:focus-within > .workspace-node-delete,
+[data-node-kind="inbox"] > div:hover > .workspace-node-delete {
   opacity: 1;
   pointer-events: auto;
   visibility: visible;

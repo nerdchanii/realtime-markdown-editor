@@ -363,8 +363,7 @@ function isDuplicateSiblingName(
 const folderSelectStyle = {
   ...panelStyles.nodeButton,
   flex: 1,
-  paddingRight: "30px",
-  padding: "6px 6px 6px 0px",
+  padding: "6px 30px 6px 0px",
   gap: "4px",
   background: "transparent",
 };
@@ -372,7 +371,7 @@ const folderSelectStyle = {
 const folderRenameWrapStyle = {
   ...panelStyles.nodeButton,
   flex: 1,
-  padding: "6px 6px 6px 0px",
+  padding: "6px 30px 6px 0px",
   gap: "4px",
   background: "transparent",
 };
