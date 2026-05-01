@@ -1,6 +1,6 @@
 ---
 title: DESIGN.md
-version: 0.3.1
+version: 0.3.2
 product: Realtime collaborative Markdown editor
 design_intent: IDE-like dense technical writing workspace for collaborative engineering documents
 ---
@@ -49,6 +49,19 @@ Do not implement:
 - Duplicate presence indicators.
 - Decorative details not described in this document.
 - Global app-level bottom status bars or footer chrome if they appear in generated mockups.
+
+Current visual reference set:
+
+- Reference 01A: final workspace proposal image with callouts, showing the intended IDE-like shell, compact top bar, left Explorer, center TipTap editor, right History panel, and profile menu.
+- Reference 01B: duplicate final workspace proposal image, used only to reinforce the same layout and density direction as Reference 01A.
+- Reference 03: decision and follow-up improvement slide, used to confirm the product decisions, deferred scope, settings IA, and current limitation around presence.
+
+Reference-specific guidance:
+
+- Use Reference 01A/01B for pane placement, editor-first density, compact toolbar direction, profile menu placement, and the docs/templates Explorer shape.
+- Use Reference 03 for implementation boundaries: History-only inspector, no Document Details panel, settings split by Workspace / Project / User, and presence as a known first-implementation limitation.
+- Ignore visual callout boxes, connector lines, slide numbers, and presentation-only labels in all references.
+- Treat any reference-level bottom strip as non-binding. This document's no-global-bottom-status-bar rule remains authoritative.
 
 ## 3. Product Information Architecture
 
