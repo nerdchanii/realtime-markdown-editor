@@ -10,6 +10,7 @@ depends_on:
   - TASK-084
 write_set:
   - DESIGN.md
+  - docs/product/ui-capability-gap-log.md
   - apps/web/src/app/**
   - apps/web/src/features/editor/**
   - apps/web/src/features/workspace/**
@@ -61,6 +62,8 @@ review_required: true
 - Profile menu and settings entry consistent with `TASK-085`.
 - Presence caret/name label polish if it does not conflict with collaboration adapter internals.
 - Remove dashboard/card-heavy visual patterns that conflict with `DESIGN.md`.
+- Product 구조상 필요하지만 아직 기능이 없는 surface는 honest placeholder로 먼저 구현한다.
+- Missing backend/API/domain capability는 `docs/product/ui-capability-gap-log.md`에 follow-up owner와 함께 기록한다.
 - Existing product API와 client-side state contract만 사용한다.
 
 ### 제외
@@ -80,6 +83,8 @@ review_required: true
 - Editor remains the primary work surface.
 - History inspector is history-only for first implementation.
 - Settings entry comes through profile menu and can route to Workspace, Project, User sections or a scoped placeholder if backend is not ready.
+- Placeholder UI clearly communicates unavailable capability and does not pretend to save, mutate, invite, delete, or authorize anything.
+- Each missing capability exposed by the UI is recorded in `docs/product/ui-capability-gap-log.md` with an owner requirement or task candidate.
 - Presence caret is visually legible and member label appears without becoming Markdown content.
 - UI does not touch forbidden collaboration adapter internals owned by `TASK-084`.
 - UI refresh does not modify server/API/domain code.

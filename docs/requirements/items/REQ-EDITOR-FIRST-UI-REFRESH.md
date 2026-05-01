@@ -21,6 +21,7 @@ next_step: DESIGN.md를 source of truth로 삼아 Top Bar, Explorer, Editor, His
 refs:
   - DESIGN.md
   - docs/product/README.md
+  - docs/product/ui-capability-gap-log.md
   - docs/product/editor/presence.md
   - docs/product/editor/history.md
   - docs/product/workspace/workspace-hierarchy.md
@@ -45,6 +46,9 @@ Acceptance:
 - UI refresh는 existing CE-01 through CE-05 reviewer path를 숨기거나 대체하지 않는다.
 - UI refresh는 existing product API와 client-side state contract를 사용하며 server/API/domain code를 수정하지 않는다.
 - UI 구현 중 server capability gap이 발견되면 이 요구사항 안에서 고치지 않고 별도 backend requirement 또는 task로 분리한다.
+- Backend/API/domain 기능이 아직 없더라도 제품 구조상 필요한 UI surface는 placeholder로 먼저 노출할 수 있다.
+- Placeholder UI는 기능이 동작하는 것처럼 오해시키면 안 되며, missing capability를 `docs/product/ui-capability-gap-log.md`에
+  기록해야 한다.
 
 Explicit non-goals:
 
