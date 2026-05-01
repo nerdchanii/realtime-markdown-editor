@@ -13,7 +13,7 @@ write_set:
   - apps/web/src/features/editor/**
   - README.md
   - docs/product/workspace/user-membership.md
-  - docs/backlog/README.md
+  - docs/requirements/backlog/REQ-DEFERRED-PRODUCTION-AUTH-ACCOUNT-MANAGEMENT.md
 forbidden_paths:
   - .note/**
 related_requirements:
@@ -71,7 +71,7 @@ staging.
 - `apps/web/src/features/editor/**`
 - `README.md`
 - `docs/product/workspace/user-membership.md`
-- `docs/backlog/README.md`
+- `docs/requirements/backlog/REQ-DEFERRED-PRODUCTION-AUTH-ACCOUNT-MANAGEMENT.md`
 
 수정 금지:
 

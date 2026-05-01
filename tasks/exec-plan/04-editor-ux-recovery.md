@@ -282,7 +282,7 @@ Write set:
 - `apps/web/src/features/editor/**`
 - `README.md`
 - `docs/product/workspace/user-membership.md`
-- `docs/backlog/README.md`
+- `docs/requirements/backlog/REQ-DEFERRED-RAW-MARKDOWN-SOURCE.md`
 
 Acceptance:
 

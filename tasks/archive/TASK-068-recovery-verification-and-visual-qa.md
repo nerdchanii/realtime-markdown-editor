@@ -11,7 +11,7 @@ write_set:
   - tasks/archive/**
   - README.md
   - docs/compliance/subject-matrix.md
-  - docs/backlog/README.md
+  - docs/requirements/backlog/REQ-DEFERRED-RAW-MARKDOWN-SOURCE.md
 forbidden_paths:
   - .note/**
 related_requirements:
@@ -68,7 +68,7 @@ deferred-item cleanup.
 - `tasks/archive/**`
 - `README.md`
 - `docs/compliance/subject-matrix.md`
-- `docs/backlog/README.md`
+- `docs/requirements/backlog/REQ-DEFERRED-RAW-MARKDOWN-SOURCE.md`
 - Screenshot artifacts only if ignored or explicitly allowed by task policy.
 
 수정 금지:

@@ -108,7 +108,7 @@ DocumentState는 지금 깊게 구현하지 않더라도 도메인 경계로 중
 - `docs/domain/models/document-state.md`
 - `docs/domain/rules/document-lifecycle.md`
 - `docs/product/workflow/document-state.md`
-- `docs/backlog/README.md`
+- `docs/requirements/backlog/REQ-DEFERRED-WORKFLOW-HOOKS.md`
 
 ## 변경 이력
 
