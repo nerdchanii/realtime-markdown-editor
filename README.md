@@ -52,27 +52,31 @@
 
 필요한 도구:
 
-- `fnm`
-- Node.js 24.x 권장
+- Node.js 24 이상
 - pnpm `10.28.2`
 - Docker / Docker Compose
 
-`scripts/with-node.sh`가 `fnm`으로 저장소의 Node 버전을 맞춰 실행합니다. 저장소 설정상 공식
-지원 범위는 Node `>=24 <25`입니다. 별도 worktree에서 Node `25.9.0`으로 설치, Prisma 생성,
-`pnpm check` 통과는 확인했지만, 아직 package engine 범위와 전체 build gate를 Node 25 기준으로
-갱신하지는 않았습니다.
+Node.js 24 이상과 pnpm이 설치되어 있으면 별도 버전 매니저 없이 바로 실행할 수 있습니다.
+저장소 설정상 공식 지원 범위는 Node `>=24`입니다.
+
+pnpm이 없다면 Node.js에 포함된 Corepack으로 준비할 수 있습니다.
+
+```bash
+corepack enable
+corepack prepare pnpm@10.28.2 --activate
+```
 
 ## 설치
 
 ```bash
-scripts/with-node.sh pnpm install
-scripts/with-node.sh pnpm db:generate
+pnpm install
+pnpm db:generate
 ```
 
 E2E 테스트까지 실행하려면 Chromium 브라우저도 설치합니다.
 
 ```bash
-scripts/with-node.sh pnpm exec playwright install chromium
+pnpm exec playwright install chromium
 ```
 
 ## 빌드
@@ -80,7 +84,7 @@ scripts/with-node.sh pnpm exec playwright install chromium
 프로덕션 빌드는 아래 명령으로 실행합니다.
 
 ```bash
-scripts/with-node.sh pnpm build
+pnpm build
 ```
 
 이 명령은 `@rme/contracts`를 먼저 `dist`로 빌드한 뒤 API, 협업 서버, 웹 앱을 빌드합니다.
@@ -97,7 +101,7 @@ POSTGRES_HOST_PORT=55432 \
 DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:55432/realtime_markdown_editor \
 COLLAB_PORT=4001 \
 RME_COLLAB_PUBLIC_URL=ws://127.0.0.1:4001 \
-scripts/with-node.sh pnpm dev
+pnpm dev
 ```
 
 브라우저에서 엽니다.
@@ -132,7 +136,7 @@ POSTGRES_HOST_PORT=55432 \
 DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:55432/realtime_markdown_editor \
 COLLAB_PORT=4001 \
 RME_COLLAB_PUBLIC_URL=ws://127.0.0.1:4001 \
-scripts/with-node.sh pnpm check
+pnpm check
 ```
 
 ```bash
@@ -140,7 +144,7 @@ POSTGRES_HOST_PORT=55432 \
 DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:55432/realtime_markdown_editor \
 COLLAB_PORT=4001 \
 RME_COLLAB_PUBLIC_URL=ws://127.0.0.1:4001 \
-scripts/with-node.sh pnpm test:e2e
+pnpm test:e2e
 ```
 
 ## 중요한 결정 문서
