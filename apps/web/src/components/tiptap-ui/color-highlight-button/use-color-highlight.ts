@@ -174,24 +174,24 @@ export function isColorHighlightActive(
     return highlightColor
       ? editor.isActive("highlight", { color: highlightColor })
       : editor.isActive("highlight");
-  } else {
-    if (!highlightColor) return false;
+  }
 
-    try {
-      const { state } = editor;
-      const { selection } = state;
+  if (!highlightColor) return false;
 
-      const $pos = selection.$anchor;
-      for (let depth = $pos.depth; depth >= 0; depth--) {
-        const node = $pos.node(depth);
-        if (node && node.attrs?.backgroundColor === highlightColor) {
-          return true;
-        }
+  try {
+    const { state } = editor;
+    const { selection } = state;
+
+    const $pos = selection.$anchor;
+    for (let depth = $pos.depth; depth >= 0; depth--) {
+      const node = $pos.node(depth);
+      if (node && node.attrs?.backgroundColor === highlightColor) {
+        return true;
       }
-      return false;
-    } catch {
-      return false;
     }
+    return false;
+  } catch {
+    return false;
   }
 }
 

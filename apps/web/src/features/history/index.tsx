@@ -7,13 +7,15 @@ export type { HistoryCheckpoint, HistoryInspectorViewModel } from "./types";
 export type HistoryInspectorSlotProps = Readonly<{
   viewModel: HistoryInspectorViewModel;
   onPreviewCheckpoint?: ((checkpoint: HistoryCheckpoint) => void) | undefined;
+  refreshToken?: number | undefined;
 }>;
 
 export function HistoryInspectorSlot({
   viewModel,
   onPreviewCheckpoint,
+  refreshToken,
 }: HistoryInspectorSlotProps) {
-  const history = useHistoryInspectorState(viewModel, []);
+  const history = useHistoryInspectorState(viewModel, [], refreshToken);
   const usesProductHistory = Boolean(viewModel.apiClient && viewModel.documentId);
   const timelineEntries = history.checkpoints.length
     ? history.checkpoints.map((checkpoint, index) => {

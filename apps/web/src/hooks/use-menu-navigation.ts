@@ -11,11 +11,11 @@ interface MenuNavigationOptions<T> {
   /**
    * Reference to the container element for handling keyboard events.
    */
-  containerRef?: React.RefObject<HTMLElement | null>;
+  containerRef?: React.RefObject<HTMLElement | null> | undefined;
   /**
    * Search query that affects the selected item.
    */
-  query?: string;
+  query?: string | undefined;
   /**
    * Array of items to navigate through.
    */
@@ -23,16 +23,16 @@ interface MenuNavigationOptions<T> {
   /**
    * Callback fired when an item is selected.
    */
-  onSelect?: (item: T) => void;
+  onSelect?: ((item: T) => void) | undefined;
   /**
    * Callback fired when the menu should close.
    */
-  onClose?: () => void;
+  onClose?: (() => void) | undefined;
   /**
    * The navigation orientation of the menu.
    * @default "vertical"
    */
-  orientation?: Orientation;
+  orientation?: Orientation | undefined;
   /**
    * Whether to automatically select the first item when the menu opens.
    * @default true
@@ -46,8 +46,8 @@ type NavigationState = Readonly<{
 }>;
 
 type SetSelectedIndex = (value: number | ((currentIndex: number) => number)) => void;
-type KeyboardNavigationOptions<T> = MenuNavigationOptions<T> &
-  Readonly<{ selectedIndex: number; setSelectedIndex: SetSelectedIndex }>;
+type KeyboardNavigationOptions<T> = Omit<MenuNavigationOptions<T>, "orientation"> &
+  Readonly<{ orientation: Orientation; selectedIndex: number; setSelectedIndex: SetSelectedIndex }>;
 
 /**
  * Hook that implements keyboard navigation for dropdown menus and command palettes.
@@ -147,8 +147,8 @@ function handleMenuKeyDown<T>(
   event: KeyboardEvent,
   input: Readonly<{
     items: T[];
-    onClose?: () => void;
-    onSelect?: (item: T) => void;
+    onClose?: (() => void) | undefined;
+    onSelect?: ((item: T) => void) | undefined;
     orientation: Orientation;
     selectedIndex: number;
     setSelectedIndex: SetSelectedIndex;
@@ -207,8 +207,8 @@ function handleActionKey<T>(
   event: KeyboardEvent,
   input: Readonly<{
     items: T[];
-    onClose?: () => void;
-    onSelect?: (item: T) => void;
+    onClose?: (() => void) | undefined;
+    onSelect?: ((item: T) => void) | undefined;
     selectedIndex: number;
   }>,
 ) {
@@ -219,12 +219,17 @@ function handleActionKey<T>(
 
 function handleEnterKey<T>(
   event: KeyboardEvent,
-  input: Readonly<{ items: T[]; onSelect?: (item: T) => void; selectedIndex: number }>,
+  input: Readonly<{
+    items: T[];
+    onSelect?: ((item: T) => void) | undefined;
+    selectedIndex: number;
+  }>,
 ) {
   if (event.isComposing) return false;
   return preventAndRun(event, () => {
-    if (input.selectedIndex !== -1 && input.items[input.selectedIndex]) {
-      input.onSelect?.(input.items[input.selectedIndex]);
+    const item = input.items[input.selectedIndex];
+    if (input.selectedIndex !== -1 && item !== undefined) {
+      input.onSelect?.(item);
     }
   });
 }

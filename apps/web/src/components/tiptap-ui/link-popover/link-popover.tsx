@@ -1,6 +1,6 @@
 "use client";
 
-import { forwardRef, useCallback, useEffect, useState } from "react";
+import { forwardRef, useCallback, useState } from "react";
 import type { Editor } from "@tiptap/react";
 
 // --- Hooks ---
@@ -130,6 +130,8 @@ const LinkMain: React.FC<LinkMainProps> = ({
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             onKeyDown={handleKeyDown}
+            // Existing link editing flow opens with the URL field focused.
+            // eslint-disable-next-line jsx-a11y/no-autofocus
             autoFocus
             autoComplete="off"
             autoCorrect="off"
@@ -215,7 +217,12 @@ export const LinkPopover = forwardRef<HTMLButtonElement, LinkPopoverProps>(
     ref,
   ) => {
     const { editor } = useTiptapEditor(providedEditor);
-    const [isOpen, setIsOpen] = useState(false);
+    const [openState, setOpenState] = useState<
+      Readonly<{
+        dismissedHref: string | null;
+        manualOpen: boolean;
+      }>
+    >({ dismissedHref: null, manualOpen: false });
 
     const { isVisible, canSet, isActive, url, setUrl, setLink, removeLink, openLink, label, Icon } =
       useLinkPopover({
@@ -223,34 +230,33 @@ export const LinkPopover = forwardRef<HTMLButtonElement, LinkPopoverProps>(
         hideWhenUnavailable,
         onSetLink,
       });
+    const isOpen =
+      openState.manualOpen || (autoOpenOnLinkActive && isActive && openState.dismissedHref !== url);
 
     const handleOnOpenChange = useCallback(
       (nextIsOpen: boolean) => {
-        setIsOpen(nextIsOpen);
+        setOpenState({
+          dismissedHref: nextIsOpen || !isActive ? null : url,
+          manualOpen: nextIsOpen,
+        });
         onOpenChange?.(nextIsOpen);
       },
-      [onOpenChange],
+      [isActive, onOpenChange, url],
     );
 
     const handleSetLink = useCallback(() => {
       setLink();
-      setIsOpen(false);
+      setOpenState({ dismissedHref: null, manualOpen: false });
     }, [setLink]);
 
     const handleClick = useCallback(
       (event: React.MouseEvent<HTMLButtonElement>) => {
         onClick?.(event);
         if (event.defaultPrevented) return;
-        setIsOpen(!isOpen);
+        handleOnOpenChange(!isOpen);
       },
-      [onClick, isOpen],
+      [handleOnOpenChange, isOpen, onClick],
     );
-
-    useEffect(() => {
-      if (autoOpenOnLinkActive && isActive) {
-        setIsOpen(true);
-      }
-    }, [autoOpenOnLinkActive, isActive]);
 
     if (!isVisible) {
       return null;

@@ -1,4 +1,3 @@
-/* eslint-disable max-lines-per-function */
 import type { Editor } from "@tiptap/core";
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 import type { CollaborationSessionDto } from "@rme/contracts";

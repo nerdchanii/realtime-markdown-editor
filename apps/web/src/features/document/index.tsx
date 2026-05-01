@@ -1,6 +1,4 @@
-/* eslint-disable max-lines-per-function */
-import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
-import { CalendarDays, CircleDashed, CheckSquare, Tag, Text, UserRound } from "lucide-react";
+import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import type {
   DocumentId,
   DocumentPropertyDto,
@@ -10,6 +8,7 @@ import type {
 
 import { replaceDocumentProperties, updateDocument } from "@/lib/api-client";
 
+import { PropertyField } from "./DocumentPropertyDisplay";
 import { PropertiesSurface } from "./PropertiesSurface";
 import type { DocumentContextViewModel, DocumentProperty } from "./types";
 
@@ -34,10 +33,16 @@ export function DocumentContextSlot({ viewModel }: DocumentContextSlotProps) {
       aria-label="Document context"
       data-testid="document-header"
     >
-      <EditableDocumentTitle title={title} viewModel={viewModel} />
+      <EditableDocumentTitle key={title} title={title} viewModel={viewModel} />
 
       {canEditProperties ? (
-        <EditableDocumentProperties properties={properties} viewModel={viewModel} />
+        <EditableDocumentProperties
+          key={properties
+            .map((property) => `${property.key ?? property.label}:${property.value}`)
+            .join("|")}
+          properties={properties}
+          viewModel={viewModel}
+        />
       ) : properties.length ? (
         <div className="document-context__properties">
           {properties.map((property) => (
@@ -61,12 +66,6 @@ function EditableDocumentProperties({
     null,
   );
   const [status, setStatus] = useState<"idle" | "saving" | "failed">("idle");
-
-  useEffect(() => {
-    setDraftProperties(properties);
-    setPendingProperties(null);
-    setStatus("idle");
-  }, [properties]);
 
   useEffect(() => {
     if (!pendingProperties) return undefined;
@@ -142,11 +141,6 @@ function EditableDocumentTitle({
   const trimmedDraftTitle = draftTitle.trim();
   const persistedTitle = viewModel.persistedTitle ?? title;
   const titleInputRef = useRef<HTMLInputElement | null>(null);
-
-  useEffect(() => {
-    setDraftTitle(title);
-    setStatus("idle");
-  }, [title]);
 
   useEffect(() => {
     if (!canEdit) return undefined;
@@ -228,46 +222,6 @@ function EditableDocumentTitle({
       ) : null}
     </div>
   );
-}
-
-function PropertyField({ property }: Readonly<{ property: DocumentProperty }>) {
-  return (
-    <>
-      <FieldLabel icon={propertyIcon(property)} label={property.label} />
-      <div>{propertyValue(property)}</div>
-    </>
-  );
-}
-
-function propertyIcon(property: DocumentProperty) {
-  if (property.valueType === "date") return <CalendarDays size={14} />;
-  if (property.valueType === "member") return <UserRound size={14} />;
-  if (property.valueType === "status") return <CircleDashed size={14} />;
-  if (property.valueType === "checkbox") return <CheckSquare size={14} />;
-  if (property.label.toLowerCase().includes("tag")) return <Tag size={14} />;
-  return <Text size={14} />;
-}
-
-function propertyValue(property: DocumentProperty) {
-  if (property.valueType === "status") {
-    return (
-      <span style={statusChipStyle}>
-        <span style={statusDotStyle} />
-        {property.value}
-      </span>
-    );
-  }
-
-  if (property.valueType === "member") {
-    return (
-      <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
-        <span style={avatarStyle} aria-hidden="true" />
-        <span style={{ color: "#314158", fontWeight: 500 }}>{property.value}</span>
-      </span>
-    );
-  }
-
-  return <span style={{ color: "#45556c", fontWeight: 500 }}>{property.value}</span>;
 }
 
 function handleTitleKeyDown(
@@ -443,39 +397,3 @@ function toDocumentPropertyValueDto(property: DocumentProperty): DocumentPropert
   if (type === "status") return { type, value: String(rawValue) };
   return { type: "text", value: property.value };
 }
-
-function FieldLabel({ icon, label }: Readonly<{ icon: ReactNode; label: string }>) {
-  return (
-    <div style={{ color: "#90a1b9", display: "flex", alignItems: "center", gap: "8px" }}>
-      {icon}
-      {label}
-    </div>
-  );
-}
-
-const statusChipStyle = {
-  display: "inline-flex",
-  alignItems: "center",
-  gap: "6px",
-  borderRadius: "4px",
-  padding: "2px 8px",
-  background: "#fffbeb",
-  color: "#bb4d00",
-  fontSize: "12px",
-  fontWeight: 500,
-};
-
-const statusDotStyle = {
-  width: "6px",
-  height: "6px",
-  borderRadius: "50%",
-  background: "#fe9a00",
-};
-
-const avatarStyle = {
-  width: "16px",
-  height: "16px",
-  borderRadius: "50%",
-  background: "linear-gradient(180deg, #d0d7de 0%, #b4bfcb 100%)",
-  border: "1px solid #e2e8f0",
-};

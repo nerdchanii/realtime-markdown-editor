@@ -103,18 +103,7 @@ export function shouldShowLinkButton(props: {
  */
 export function useLinkHandler(props: LinkHandlerProps) {
   const { editor, onSetLink } = props;
-  const [url, setUrl] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!editor) return;
-
-    // Get URL immediately on mount
-    const { href } = editor.getAttributes("link");
-
-    if (isLinkActive(editor) && url === null) {
-      setUrl(href || "");
-    }
-  }, [editor, url]);
+  const [url, setUrl] = useState<string | null>(() => activeLinkHref(editor));
 
   useEffect(() => {
     if (!editor) return;
@@ -182,6 +171,12 @@ export function useLinkHandler(props: LinkHandlerProps) {
     removeLink,
     openLink,
   };
+}
+
+function activeLinkHref(editor: Editor | null) {
+  if (!editor || !isLinkActive(editor)) return null;
+  const { href } = editor.getAttributes("link");
+  return href || "";
 }
 
 /**

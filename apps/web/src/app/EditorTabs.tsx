@@ -32,6 +32,12 @@ export function EditorTabs({
                   event.stopPropagation();
                   onCloseDocument(tab.documentId);
                 }}
+                onKeyDown={(event) => {
+                  if (event.key !== "Enter" && event.key !== " ") return;
+                  event.preventDefault();
+                  event.stopPropagation();
+                  onCloseDocument(tab.documentId);
+                }}
                 role="button"
                 tabIndex={0}
               >

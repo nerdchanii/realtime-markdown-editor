@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { EditorContent, EditorContext, useEditor } from "@tiptap/react";
 
 // --- Tiptap Core Extensions ---
@@ -173,6 +173,12 @@ export function SimpleEditor() {
   const { height } = useWindowSize();
   const [mobileView, setMobileView] = useState<"main" | "highlighter" | "link">("main");
   const toolbarRef = useRef<HTMLDivElement>(null);
+  const [toolbarHeight, setToolbarHeight] = useState(0);
+  const activeMobileView = isMobile ? mobileView : "main";
+  const setToolbarElement = useCallback((node: HTMLDivElement | null) => {
+    toolbarRef.current = node;
+    setToolbarHeight(node?.getBoundingClientRect().height ?? 0);
+  }, []);
 
   const editor = useEditor({
     immediatelyRender: false,
@@ -216,20 +222,14 @@ export function SimpleEditor() {
 
   const rect = useCursorVisibility({
     editor,
-    overlayHeight: toolbarRef.current?.getBoundingClientRect().height ?? 0,
+    overlayHeight: toolbarHeight,
   });
-
-  useEffect(() => {
-    if (!isMobile && mobileView !== "main") {
-      setMobileView("main");
-    }
-  }, [isMobile, mobileView]);
 
   return (
     <div className="simple-editor-wrapper">
       <EditorContext.Provider value={{ editor }}>
         <Toolbar
-          ref={toolbarRef}
+          ref={setToolbarElement}
           style={{
             ...(isMobile
               ? {
@@ -238,7 +238,7 @@ export function SimpleEditor() {
               : {}),
           }}
         >
-          {mobileView === "main" ? (
+          {activeMobileView === "main" ? (
             <MainToolbarContent
               onHighlighterClick={() => setMobileView("highlighter")}
               onLinkClick={() => setMobileView("link")}
@@ -246,7 +246,7 @@ export function SimpleEditor() {
             />
           ) : (
             <MobileToolbarContent
-              type={mobileView === "highlighter" ? "highlighter" : "link"}
+              type={activeMobileView === "highlighter" ? "highlighter" : "link"}
               onBack={() => setMobileView("main")}
             />
           )}

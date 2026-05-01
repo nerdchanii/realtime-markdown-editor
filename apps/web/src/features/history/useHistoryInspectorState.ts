@@ -29,13 +29,14 @@ import type { HistoryCheckpoint, HistoryInspectorViewModel } from "./types";
 export function useHistoryInspectorState(
   viewModel: HistoryInspectorViewModel,
   fallbackCheckpoints: readonly HistoryCheckpoint[],
+  refreshToken?: number,
 ) {
   const initialCheckpoints = useInitialCheckpoints(viewModel, fallbackCheckpoints);
   const [checkpoints, setCheckpoints] = useState(initialCheckpoints);
   const [selectedCheckpointId, setSelectedCheckpointId] = useState(checkpoints[0]?.id);
   const [revisionMessage, setRevisionMessage] = useState("");
 
-  useProductCheckpointList(viewModel, setCheckpoints, setSelectedCheckpointId);
+  useProductCheckpointList(viewModel, setCheckpoints, setSelectedCheckpointId, refreshToken);
 
   const selectCheckpoint = useCheckpointSelection(
     viewModel,
@@ -64,6 +65,7 @@ function useProductCheckpointList(
   viewModel: HistoryInspectorViewModel,
   setCheckpoints: Dispatch<SetStateAction<HistoryCheckpoint[]>>,
   setSelectedCheckpointId: (checkpointId: string | undefined) => void,
+  refreshToken?: number,
 ) {
   useEffect(() => {
     if (!viewModel.apiClient || !viewModel.documentId) return;
@@ -84,7 +86,15 @@ function useProductCheckpointList(
     );
 
     return () => abortController.abort();
-  }, [setCheckpoints, setSelectedCheckpointId, viewModel]);
+  }, [
+    setCheckpoints,
+    setSelectedCheckpointId,
+    viewModel,
+    viewModel.apiClient,
+    viewModel.documentId,
+    viewModel.memberLabels,
+    refreshToken,
+  ]);
 }
 
 function useInitialCheckpoints(

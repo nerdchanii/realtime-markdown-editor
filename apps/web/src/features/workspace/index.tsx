@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { FilePlus2, FolderPlus } from "lucide-react";
 
 import { workspaceFeatureId } from "./events";
@@ -31,22 +31,30 @@ export type WorkspaceNavigationSlotProps = Readonly<{
 
 export function WorkspaceNavigationSlot({ viewModel }: WorkspaceNavigationSlotProps) {
   const { model, selectedDocumentId, selectDocument } = useWorkspaceSelection(viewModel);
-  const [selectedFolderId, setSelectedFolderId] = useState<string | null>(
-    model.activeFolderId ?? model.defaultFolderId,
-  );
+  const [selectedFolder, setSelectedFolder] = useState<Readonly<{
+    documentId: string | null;
+    folderId: string | null;
+  }> | null>(null);
+  const selectedFolderId =
+    selectedFolder?.documentId === selectedDocumentId ? selectedFolder.folderId : null;
   const targetFolderId = selectedFolderId ?? model.activeFolderId ?? model.defaultFolderId;
   const targetFolder = targetFolderId
     ? (findNodeById(model.root, targetFolderId) ??
       findProjectNodeById(model.projects, targetFolderId))
     : null;
 
-  useEffect(() => {
-    setSelectedFolderId(model.activeFolderId ?? model.defaultFolderId);
-  }, [model.activeFolderId, model.defaultFolderId, selectedDocumentId]);
-
   const handleSelectDocument = (selection: Parameters<typeof selectDocument>[0]) => {
-    setSelectedFolderId(selection.folderId);
+    setSelectedFolder({
+      documentId: selection.documentId,
+      folderId: selection.folderId,
+    });
     selectDocument(selection);
+  };
+  const handleSelectFolder = (folderId: string | null) => {
+    setSelectedFolder({
+      documentId: selectedDocumentId,
+      folderId,
+    });
   };
 
   return (
@@ -104,7 +112,7 @@ export function WorkspaceNavigationSlot({ viewModel }: WorkspaceNavigationSlotPr
               model={model}
               selectedDocumentId={selectedDocumentId}
               selectedFolderId={selectedFolderId}
-              onSelectFolder={setSelectedFolderId}
+              onSelectFolder={handleSelectFolder}
               onSelectDocument={handleSelectDocument}
               onDeleteDocument={(documentId) => model.onDeleteDocument?.(documentId)}
               onDeleteFolder={(folderId) => model.onDeleteFolder?.(folderId)}
@@ -114,7 +122,7 @@ export function WorkspaceNavigationSlot({ viewModel }: WorkspaceNavigationSlotPr
               model={model}
               selectedDocumentId={selectedDocumentId}
               selectedFolderId={selectedFolderId}
-              onSelectFolder={setSelectedFolderId}
+              onSelectFolder={handleSelectFolder}
               onSelectDocument={handleSelectDocument}
               onDeleteDocument={(documentId) => model.onDeleteDocument?.(documentId)}
               onDeleteFolder={(folderId) => model.onDeleteFolder?.(folderId)}

@@ -166,16 +166,31 @@ export const TooltipTrigger = forwardRef<HTMLElement, TooltipTriggerProps>(funct
     const dataAttributes = {
       "data-tooltip-state": context.open ? "open" : "closed",
     };
+    const child = children as React.ReactElement<Record<string, unknown>>;
+    const childProps = typeof child.props === "object" ? child.props : {};
+    const referenceProps = context.getReferenceProps({
+      ...props,
+      ...childProps,
+      ...dataAttributes,
+    });
 
-    return cloneElement(
-      children,
-      context.getReferenceProps({
-        ref,
-        ...props,
-        ...(typeof children.props === "object" ? children.props : {}),
-        ...dataAttributes,
-      }),
-    );
+    return cloneElement(child, {
+      ...referenceProps,
+      onFocus: (event: React.FocusEvent<HTMLElement>) => {
+        ref?.(event.currentTarget);
+        (referenceProps.onFocus as ((event: React.FocusEvent<HTMLElement>) => void) | undefined)?.(
+          event,
+        );
+      },
+      onPointerEnter: (event: React.PointerEvent<HTMLElement>) => {
+        ref?.(event.currentTarget);
+        (
+          referenceProps.onPointerEnter as
+            | ((event: React.PointerEvent<HTMLElement>) => void)
+            | undefined
+        )?.(event);
+      },
+    });
   }
 
   return (

@@ -1,4 +1,4 @@
-import { useEffect, useState, type CSSProperties, type PointerEvent } from "react";
+import { useState, type CSSProperties, type PointerEvent } from "react";
 import type { DocumentId } from "@rme/contracts";
 
 import { DocumentContextSlot } from "@/features/document";
@@ -43,7 +43,11 @@ function ReviewWorkspace({
   const [isHistoryOpen, setIsHistoryOpen] = useState(true);
   const [navigationWidth, setNavigationWidth] = useState(260);
   const [historyWidth, setHistoryWidth] = useState(320);
-  const [historyPreview, setHistoryPreview] = useState<EditorHistoryPreview | null>(null);
+  const [historyPreview, setHistoryPreview] = useState<Readonly<{
+    documentId: string;
+    preview: EditorHistoryPreview;
+  }> | null>(null);
+  const [historyRefreshToken, setHistoryRefreshToken] = useState(0);
   const [titleDrafts, setTitleDrafts] = useState<Readonly<Record<string, string>>>({});
   const [openTabs, setOpenTabs] = useState<readonly EditorTabViewModel[]>([]);
   const activeDocumentId = providers.editorWorkspace.documentId;
@@ -62,19 +66,15 @@ function ReviewWorkspace({
     "--layout-inspector-width": `${historyWidth}px`,
   } as CSSProperties;
 
-  useEffect(() => {
-    setHistoryPreview(null);
-  }, [activeDocumentId]);
-
-  useEffect(() => {
-    if (!activeDocumentId) return;
-    setOpenTabs((current) =>
-      upsertOpenTab(current, {
+  const visibleHistoryPreview = historyPreview
+    ? getVisibleHistoryPreview(historyPreview, activeDocumentId)
+    : null;
+  const displayedOpenTabs = activeDocumentId
+    ? upsertOpenTab(openTabs, {
         documentId: activeDocumentId,
         title: displayedTitle,
-      }),
-    );
-  }, [activeDocumentId, displayedTitle]);
+      })
+    : openTabs;
 
   return (
     <main
@@ -116,15 +116,15 @@ function ReviewWorkspace({
         <EditorTabs
           activeDocumentId={activeDocumentId}
           tabs={
-            openTabs.length
-              ? openTabs
+            displayedOpenTabs.length
+              ? displayedOpenTabs
               : activeDocumentId
                 ? [{ documentId: activeDocumentId, title: displayedTitle }]
                 : []
           }
           onSelectDocument={(documentId) => state.selectDocumentId(documentId as DocumentId)}
           onCloseDocument={(documentId) => {
-            const nextTabs = openTabs.filter((tab) => tab.documentId !== documentId);
+            const nextTabs = displayedOpenTabs.filter((tab) => tab.documentId !== documentId);
             setOpenTabs(nextTabs);
             if (documentId === activeDocumentId && nextTabs[0]) {
               state.selectDocumentId(nextTabs[0].documentId as DocumentId);
@@ -135,9 +135,9 @@ function ReviewWorkspace({
           key={`editor-workspace-${renderedProviders.editorWorkspace.documentId}`}
           viewModel={renderedProviders.editorWorkspace}
           collaborationAdapter={renderedProviders.editorCollaborationAdapter}
-          historyPreview={historyPreview}
+          historyPreview={visibleHistoryPreview}
           onCloseHistoryPreview={() => setHistoryPreview(null)}
-          onSaved={state.reload}
+          onSaved={() => setHistoryRefreshToken((current) => current + 1)}
           headerContent={
             <DocumentContextSlot
               key={`document-context-${renderedProviders.editorWorkspace.documentId}`}
@@ -162,9 +162,14 @@ function ReviewWorkspace({
       {isHistoryOpen ? (
         <HistoryInspectorSlot
           key={`history-inspector-${renderedProviders.editorWorkspace.documentId}`}
+          refreshToken={historyRefreshToken}
           viewModel={renderedProviders.historyInspector}
           onPreviewCheckpoint={(checkpoint) => {
-            setHistoryPreview(createEditorHistoryPreview(checkpoint));
+            if (!activeDocumentId) return;
+            setHistoryPreview({
+              documentId: activeDocumentId,
+              preview: createEditorHistoryPreview(checkpoint),
+            });
           }}
         />
       ) : null}
@@ -190,6 +195,16 @@ function ReviewWorkspace({
   );
 }
 
+function getVisibleHistoryPreview(
+  historyPreview: Readonly<{
+    documentId: string;
+    preview: EditorHistoryPreview;
+  }>,
+  activeDocumentId: string | undefined,
+) {
+  return historyPreview.documentId === activeDocumentId ? historyPreview.preview : null;
+}
+
 function PanelResizeHandle({
   ariaLabel,
   edge,
@@ -204,6 +219,8 @@ function PanelResizeHandle({
   onResizeStart: (event: PointerEvent<HTMLElement>) => void;
 }>) {
   return (
+    // The resize separator is intentionally pointer- and keyboard-draggable.
+    // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
     <div
       aria-label={ariaLabel}
       className={`panel-resize-handle panel-resize-handle--${edge}`}
@@ -214,6 +231,7 @@ function PanelResizeHandle({
       onPointerDown={onResizeStart}
       role="separator"
       style={edge === "left" ? { left: `${offset}px` } : { right: `${offset}px` }}
+      // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex
       tabIndex={0}
     />
   );
