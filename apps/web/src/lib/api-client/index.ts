@@ -4,21 +4,26 @@ import type {
   CheckpointId,
   CheckpointSnapshotInspectDto,
   CreateDocumentRequestDto,
+  CreateFolderRequestDto,
   CreateCheckpointRequestDto,
   CreateCheckpointResponseDto,
   CreateMarkdownExportRequestDto,
   CreateSessionRequestDto,
+  DeletedResourceResponseDto,
   DocumentConnectionsResponseDto,
   DocumentContentResponseDto,
   DocumentId,
   DocumentResponseDto,
+  FolderResponseDto,
   ImageUploadResponseDto,
   ListCheckpointsResponseDto,
   ListWorkspacesResponseDto,
   MarkdownExportResponseDto,
+  ReplaceDocumentPropertiesRequestDto,
   SeedReviewContextDto,
   SessionResponseDto,
   UpdateDocumentContentRequestDto,
+  UpdateDocumentRequestDto,
   UploadedDocumentImageDto,
   WorkspaceId,
   WorkspaceNavigationResponseDto,
@@ -60,6 +65,12 @@ export async function createAuthSession(
   });
 }
 
+export async function deleteAuthSession(client: ApiClient): Promise<void> {
+  return fetchJson(client, "/auth/session", {
+    method: "DELETE",
+  });
+}
+
 export async function fetchWorkspaces(client: ApiClient): Promise<ListWorkspacesResponseDto> {
   return fetchJson(client, "/workspaces");
 }
@@ -76,6 +87,37 @@ export async function fetchDocument(
   documentId: DocumentId,
 ): Promise<DocumentResponseDto> {
   return fetchJson(client, `/documents/${encodeURIComponent(documentId)}`);
+}
+
+export async function updateDocument(
+  client: ApiClient,
+  documentId: DocumentId,
+  request: UpdateDocumentRequestDto,
+): Promise<DocumentResponseDto> {
+  return fetchJson(client, `/documents/${encodeURIComponent(documentId)}`, {
+    method: "PATCH",
+    body: JSON.stringify(request),
+  });
+}
+
+export async function deleteDocument(
+  client: ApiClient,
+  documentId: DocumentId,
+): Promise<DeletedResourceResponseDto> {
+  return fetchJson(client, `/documents/${encodeURIComponent(documentId)}`, {
+    method: "DELETE",
+  });
+}
+
+export async function replaceDocumentProperties(
+  client: ApiClient,
+  documentId: DocumentId,
+  request: ReplaceDocumentPropertiesRequestDto,
+): Promise<DocumentResponseDto> {
+  return fetchJson(client, `/documents/${encodeURIComponent(documentId)}/properties`, {
+    method: "PUT",
+    body: JSON.stringify(request),
+  });
 }
 
 export async function fetchDocumentContent(
@@ -104,6 +146,25 @@ export async function createDocument(
   return fetchJson(client, `/folders/${encodeURIComponent(folderId)}/documents`, {
     method: "POST",
     body: JSON.stringify(request),
+  });
+}
+
+export async function createFolder(
+  client: ApiClient,
+  request: CreateFolderRequestDto,
+): Promise<FolderResponseDto> {
+  return fetchJson(client, "/folders", {
+    method: "POST",
+    body: JSON.stringify(request),
+  });
+}
+
+export async function deleteFolder(
+  client: ApiClient,
+  folderId: string,
+): Promise<DeletedResourceResponseDto> {
+  return fetchJson(client, `/folders/${encodeURIComponent(folderId)}`, {
+    method: "DELETE",
   });
 }
 

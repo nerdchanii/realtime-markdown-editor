@@ -45,6 +45,8 @@ test("CE-05: rich mode is an editable Tiptap surface backed by the same Markdown
   await richEditor.click();
   await page.keyboard.insertText(richText);
 
+  await page.getByTestId("document-publish-toggle").click();
+  await page.getByTestId("markdown-export-menu-item").click();
   await page.getByTestId("markdown-export-button").click();
   await expect(page.getByTestId("markdown-export-output")).toContainText(richText);
 });
@@ -126,6 +128,8 @@ test("CE-05: image insertion uploads through the document artifact API", async (
   });
 
   await expect(richMarkdownEditor(page)).toContainText("toolbar image");
+  await page.getByTestId("document-publish-toggle").click();
+  await page.getByTestId("markdown-export-menu-item").click();
   await page.getByTestId("markdown-export-button").click();
   await expect(page.getByTestId("markdown-export-output")).toContainText("![toolbar image](");
   await expect(page.getByTestId("markdown-export-output")).toContainText(

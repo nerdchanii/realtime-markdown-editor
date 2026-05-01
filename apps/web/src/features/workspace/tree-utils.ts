@@ -22,6 +22,8 @@ export function normalizeViewModel(
     root: fallbackTo(viewModel.root, fallback.root),
     projects: fallbackTo(viewModel.projects, fallback.projects),
     selectedDocumentId: fallbackTo(viewModel.selectedDocumentId, fallback.selectedDocumentId),
+    activeFolderId: fallbackTo(viewModel.activeFolderId, null),
+    defaultFolderId: fallbackTo(viewModel.defaultFolderId, null),
   };
 }
 

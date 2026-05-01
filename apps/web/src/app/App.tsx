@@ -1,53 +1,381 @@
+import { useEffect, useState, type CSSProperties, type PointerEvent } from "react";
+import type { DocumentId } from "@rme/contracts";
+
 import { DocumentContextSlot } from "@/features/document";
-import { EditorWorkspaceSlot } from "@/features/editor";
-import { HistoryInspectorSlot } from "@/features/history";
+import { EditorWorkspaceSlot, type EditorHistoryPreview } from "@/features/editor";
+import { HistoryInspectorSlot, type HistoryCheckpoint } from "@/features/history";
 import { WorkspaceNavigationSlot } from "@/features/workspace";
 
-import type { AppFeatureProviders } from "./mock-providers";
+import { AuthScreen } from "./AuthScreen";
+import { EditorTabs, type EditorTabViewModel } from "./EditorTabs";
+import { TopBar } from "./TopBar";
 import { useProductWorkspaceProviders } from "./product-workspace-providers";
+import type { AppFeatureProviders } from "./mock-providers";
+import type { ProductWorkspaceState } from "./product-workspace-types";
+import type {
+  WorkspaceNavigationNode,
+  WorkspaceNavigationProject,
+  WorkspaceNavigationViewModel,
+} from "@/features/workspace";
 
 export function App() {
   const productWorkspace = useProductWorkspaceProviders();
 
-  if (productWorkspace.status !== "ready") {
-    return <ProductWorkspaceStatus status={productWorkspace.status} />;
+  if (productWorkspace.status === "unauthenticated") {
+    return <AuthScreen apiClient={productWorkspace.apiClient} reload={productWorkspace.reload} />;
   }
 
-  return <ReviewWorkspace providers={productWorkspace.providers} />;
+  if (productWorkspace.status !== "ready") {
+    return <ProductWorkspaceStatus state={productWorkspace} />;
+  }
+
+  return <ReviewWorkspace state={productWorkspace} providers={productWorkspace.providers} />;
 }
 
-function ReviewWorkspace({ providers }: Readonly<{ providers: AppFeatureProviders }>) {
+function ReviewWorkspace({
+  state,
+  providers,
+}: Readonly<{
+  state: Extract<ProductWorkspaceState, { status: "ready" }>;
+  providers: AppFeatureProviders;
+}>) {
+  const [isNavigationOpen, setIsNavigationOpen] = useState(true);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(true);
+  const [navigationWidth, setNavigationWidth] = useState(260);
+  const [historyWidth, setHistoryWidth] = useState(320);
+  const [historyPreview, setHistoryPreview] = useState<EditorHistoryPreview | null>(null);
+  const [titleDrafts, setTitleDrafts] = useState<Readonly<Record<string, string>>>({});
+  const [openTabs, setOpenTabs] = useState<readonly EditorTabViewModel[]>([]);
+  const activeDocumentId = providers.editorWorkspace.documentId;
+  const displayedTitle = activeDocumentId
+    ? (titleDrafts[activeDocumentId] ??
+      providers.documentContext.title ??
+      providers.editorWorkspace.label)
+    : (providers.documentContext.title ?? providers.editorWorkspace.label);
+  const renderedProviders = overrideProviderDocumentTitle(
+    providers,
+    activeDocumentId,
+    displayedTitle,
+  );
+  const appShellStyle = {
+    "--layout-sidebar-width": `${navigationWidth}px`,
+    "--layout-inspector-width": `${historyWidth}px`,
+  } as CSSProperties;
+
+  useEffect(() => {
+    setHistoryPreview(null);
+  }, [activeDocumentId]);
+
+  useEffect(() => {
+    if (!activeDocumentId) return;
+    setOpenTabs((current) =>
+      upsertOpenTab(current, {
+        documentId: activeDocumentId,
+        title: displayedTitle,
+      }),
+    );
+  }, [activeDocumentId, displayedTitle]);
+
   return (
-    <main className="app-shell">
-      <WorkspaceNavigationSlot viewModel={providers.workspaceNavigation} />
+    <main
+      className="app-shell app-shell--workspace"
+      data-nav-open={isNavigationOpen}
+      data-history-open={isHistoryOpen}
+      style={appShellStyle}
+    >
+      <TopBar
+        apiClient={state.apiClient}
+        reload={state.reload}
+        isNavigationOpen={isNavigationOpen}
+        isHistoryOpen={isHistoryOpen}
+        onToggleNavigation={() => setIsNavigationOpen((current) => !current)}
+        onToggleHistory={() => setIsHistoryOpen((current) => !current)}
+      />
+      {isNavigationOpen ? (
+        <WorkspaceNavigationSlot viewModel={renderedProviders.workspaceNavigation} />
+      ) : null}
+      {isNavigationOpen ? (
+        <PanelResizeHandle
+          ariaLabel="Resize left sidebar"
+          edge="left"
+          offset={navigationWidth}
+          onKeyStep={(delta) =>
+            setNavigationWidth((current) => clampPanelWidth(current + delta, 180, 420))
+          }
+          onResizeStart={(event) =>
+            startPanelResize(event, {
+              max: 420,
+              min: 180,
+              onResize: setNavigationWidth,
+              side: "left",
+            })
+          }
+        />
+      ) : null}
       <section className="editor-panel" aria-label="Collaborative Markdown editor workspace">
-        <DocumentContextSlot
-          key={`document-context-${providers.editorWorkspace.documentId}`}
-          viewModel={providers.documentContext}
+        <EditorTabs
+          activeDocumentId={activeDocumentId}
+          tabs={
+            openTabs.length
+              ? openTabs
+              : activeDocumentId
+                ? [{ documentId: activeDocumentId, title: displayedTitle }]
+                : []
+          }
+          onSelectDocument={(documentId) => state.selectDocumentId(documentId as DocumentId)}
+          onCloseDocument={(documentId) => {
+            const nextTabs = openTabs.filter((tab) => tab.documentId !== documentId);
+            setOpenTabs(nextTabs);
+            if (documentId === activeDocumentId && nextTabs[0]) {
+              state.selectDocumentId(nextTabs[0].documentId as DocumentId);
+            }
+          }}
         />
         <EditorWorkspaceSlot
-          key={`editor-workspace-${providers.editorWorkspace.documentId}`}
-          viewModel={providers.editorWorkspace}
-          collaborationAdapter={providers.editorCollaborationAdapter}
+          key={`editor-workspace-${renderedProviders.editorWorkspace.documentId}`}
+          viewModel={renderedProviders.editorWorkspace}
+          collaborationAdapter={renderedProviders.editorCollaborationAdapter}
+          historyPreview={historyPreview}
+          onCloseHistoryPreview={() => setHistoryPreview(null)}
+          onSaved={state.reload}
+          headerContent={
+            <DocumentContextSlot
+              key={`document-context-${renderedProviders.editorWorkspace.documentId}`}
+              viewModel={{
+                ...renderedProviders.documentContext,
+                ...(providers.documentContext.title
+                  ? { persistedTitle: providers.documentContext.title }
+                  : {}),
+                onTitleUpdated: state.reload,
+                onTitleDraftChange: (title) => {
+                  if (!activeDocumentId) return;
+                  setTitleDrafts((current) => ({
+                    ...current,
+                    [activeDocumentId]: title,
+                  }));
+                },
+              }}
+            />
+          }
         />
       </section>
-      <HistoryInspectorSlot
-        key={`history-inspector-${providers.editorWorkspace.documentId}`}
-        viewModel={providers.historyInspector}
-      />
+      {isHistoryOpen ? (
+        <HistoryInspectorSlot
+          key={`history-inspector-${renderedProviders.editorWorkspace.documentId}`}
+          viewModel={renderedProviders.historyInspector}
+          onPreviewCheckpoint={(checkpoint) => {
+            setHistoryPreview(createEditorHistoryPreview(checkpoint));
+          }}
+        />
+      ) : null}
+      {isHistoryOpen ? (
+        <PanelResizeHandle
+          ariaLabel="Resize right sidebar"
+          edge="right"
+          offset={historyWidth}
+          onKeyStep={(delta) =>
+            setHistoryWidth((current) => clampPanelWidth(current - delta, 220, 520))
+          }
+          onResizeStart={(event) =>
+            startPanelResize(event, {
+              max: 520,
+              min: 220,
+              onResize: setHistoryWidth,
+              side: "right",
+            })
+          }
+        />
+      ) : null}
     </main>
   );
 }
 
-function ProductWorkspaceStatus({ status }: Readonly<{ status: "loading" | "empty" | "error" }>) {
+function PanelResizeHandle({
+  ariaLabel,
+  edge,
+  offset,
+  onKeyStep,
+  onResizeStart,
+}: Readonly<{
+  ariaLabel: string;
+  edge: "left" | "right";
+  offset: number;
+  onKeyStep: (delta: number) => void;
+  onResizeStart: (event: PointerEvent<HTMLElement>) => void;
+}>) {
   return (
-    <main className="app-shell">
-      <section className="editor-panel" aria-label="Collaborative Markdown editor workspace">
-        {status === "loading"
-          ? "Loading workspace"
-          : status === "empty"
-            ? "No workspace documents available"
-            : "Workspace unavailable"}
+    <div
+      aria-label={ariaLabel}
+      className={`panel-resize-handle panel-resize-handle--${edge}`}
+      onKeyDown={(event) => {
+        if (event.key === "ArrowLeft") onKeyStep(-16);
+        if (event.key === "ArrowRight") onKeyStep(16);
+      }}
+      onPointerDown={onResizeStart}
+      role="separator"
+      style={edge === "left" ? { left: `${offset}px` } : { right: `${offset}px` }}
+      tabIndex={0}
+    />
+  );
+}
+
+function startPanelResize(
+  event: PointerEvent<HTMLElement>,
+  input: Readonly<{
+    min: number;
+    max: number;
+    side: "left" | "right";
+    onResize: (width: number) => void;
+  }>,
+) {
+  event.preventDefault();
+
+  const handlePointerMove = (moveEvent: globalThis.PointerEvent) => {
+    const nextWidth =
+      input.side === "left" ? moveEvent.clientX : window.innerWidth - moveEvent.clientX;
+    input.onResize(clampPanelWidth(nextWidth, input.min, input.max));
+  };
+
+  const handlePointerUp = () => {
+    document.body.classList.remove("is-resizing-panel");
+    window.removeEventListener("pointermove", handlePointerMove);
+    window.removeEventListener("pointerup", handlePointerUp);
+  };
+
+  document.body.classList.add("is-resizing-panel");
+  window.addEventListener("pointermove", handlePointerMove);
+  window.addEventListener("pointerup", handlePointerUp, { once: true });
+}
+
+function clampPanelWidth(width: number, min: number, max: number) {
+  return Math.min(Math.max(width, min), max);
+}
+
+function upsertOpenTab(
+  tabs: readonly EditorTabViewModel[],
+  nextTab: EditorTabViewModel,
+): readonly EditorTabViewModel[] {
+  const existingIndex = tabs.findIndex((tab) => tab.documentId === nextTab.documentId);
+  if (existingIndex === -1) return [...tabs, nextTab];
+
+  return tabs.map((tab) => (tab.documentId === nextTab.documentId ? nextTab : tab));
+}
+
+function overrideProviderDocumentTitle(
+  providers: AppFeatureProviders,
+  documentId: string | undefined,
+  title: string,
+): AppFeatureProviders {
+  if (!documentId) return providers;
+
+  return {
+    ...providers,
+    workspaceNavigation: overrideWorkspaceNavigationTitle(
+      providers.workspaceNavigation,
+      documentId,
+      title,
+    ),
+    documentContext: {
+      ...providers.documentContext,
+      title,
+    },
+    editorWorkspace: {
+      ...providers.editorWorkspace,
+      label: title,
+    },
+  };
+}
+
+function overrideWorkspaceNavigationTitle(
+  viewModel: WorkspaceNavigationViewModel,
+  documentId: string,
+  title: string,
+): WorkspaceNavigationViewModel {
+  return {
+    ...viewModel,
+    ...(viewModel.root
+      ? { root: overrideWorkspaceNodeTitle(viewModel.root, documentId, title) }
+      : {}),
+    ...(viewModel.projects
+      ? {
+          projects: viewModel.projects.map((project) =>
+            overrideWorkspaceProjectTitle(project, documentId, title),
+          ),
+        }
+      : {}),
+  };
+}
+
+function overrideWorkspaceProjectTitle(
+  project: WorkspaceNavigationProject,
+  documentId: string,
+  title: string,
+): WorkspaceNavigationProject {
+  return {
+    ...project,
+    root: overrideWorkspaceNodeTitle(project.root, documentId, title),
+  };
+}
+
+function overrideWorkspaceNodeTitle(
+  node: WorkspaceNavigationNode,
+  documentId: string,
+  title: string,
+): WorkspaceNavigationNode {
+  const nextName = node.kind === "document" && node.id === documentId ? title : node.name;
+  const nextChildren = node.children?.map((child) =>
+    overrideWorkspaceNodeTitle(child, documentId, title),
+  );
+
+  return {
+    ...node,
+    name: nextName,
+    ...(nextChildren ? { children: nextChildren } : {}),
+  };
+}
+
+function createEditorHistoryPreview(checkpoint: HistoryCheckpoint): EditorHistoryPreview {
+  return {
+    checkpointId: checkpoint.id,
+    label: checkpoint.message.trim() || "Saved revision",
+    markdown: checkpoint.snapshot,
+  };
+}
+
+function ProductWorkspaceStatus({
+  state,
+}: Readonly<{ state: Exclude<ProductWorkspaceState, { status: "ready" | "unauthenticated" }> }>) {
+  return (
+    <main className="app-shell app-shell--workspace">
+      <TopBar
+        apiClient={state.apiClient}
+        reload={state.reload}
+        isNavigationOpen
+        isHistoryOpen
+        onToggleNavigation={() => {}}
+        onToggleHistory={() => {}}
+      />
+      <section
+        className="editor-panel"
+        aria-label="Collaborative Markdown editor workspace"
+        style={{
+          gridColumn: "2 / 3",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        {state.status === "loading" ? (
+          "Loading workspace..."
+        ) : state.status === "empty" ? (
+          "No workspace documents available."
+        ) : state.status === "no-workspace" ? (
+          <div>
+            You don't have any workspaces yet. [Placeholder for REQ-ACCOUNT-WORKSPACE-ONBOARDING]
+          </div>
+        ) : (
+          "Workspace unavailable"
+        )}
       </section>
     </main>
   );

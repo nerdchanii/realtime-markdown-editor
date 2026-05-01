@@ -9,6 +9,13 @@ schema_version: 0.1.0
 이 파일은 상세 요구사항 정본이 아니라 사람이 보는 얇은 지도다. 상세 내용은
 `completed/*.md`, `items/*.md`, `backlog/*.md`의 ID별 파일에 둔다.
 
+## 분류 원칙
+
+CE 요구사항은 과제 요구사항을 사용자 행동 단위로 묶은 product stories다. 제품으로서 자연스럽게
+필요한 auth, membership, workspace lifecycle, data integrity, UX clarity는 각 story를 제품으로
+성립시키는 세부 요구사항이며, "확장"이라는 이유로 낮은 우선순위가 되지 않는다.
+요구사항 category는 구현 순서를 돕는 metadata이며, 제품 품질 gate를 우회하는 근거가 될 수 없다.
+
 상태/범위/타입별 조회는 스크립트를 사용한다.
 
 ```sh
@@ -52,6 +59,7 @@ node scripts/requirements-index.mjs --scope frontend
 - `REQ-COLLABORATIVE-CREATION-VISIBILITY`
 - `REQ-CE-ACCEPTANCE-TEST-DECOUPLING`
 - `REQ-DEV-LOCAL-PRODUCT-SEED-DATA`
+- `REQ-DOCUMENT-TRASH-RESTORE`
 - `REQ-EDITOR-FIRST-UI-REFRESH`
 - `REQ-OFFLINE-INDEXEDDB-DRAFT-RECOVERY`
 - `REQ-PLATFORM-PORTABILITY-GUARDRAIL`
@@ -60,6 +68,10 @@ node scripts/requirements-index.mjs --scope frontend
 - `REQ-RESEARCH-REDIS-SUPPORT`
 - `REQ-WORKSPACE-LIFECYCLE-MANAGEMENT`
 - `REQ-WORKSPACE-MEMBER-MANAGEMENT`
+
+이 중 `REQ-PRODUCTION-ACCOUNT-MANAGEMENT`, `REQ-WORKSPACE-MEMBER-MANAGEMENT`,
+`REQ-WORKSPACE-LIFECYCLE-MANAGEMENT`는 CE stories가 실제 사용자에게 성립하기 위한 세부 제품
+요구사항이다. 이 요구사항 없이 CE 동작만 보인다면 제품 완료가 아니라 미완성 story path로 기록한다.
 
 ## 백로그 요구사항
 

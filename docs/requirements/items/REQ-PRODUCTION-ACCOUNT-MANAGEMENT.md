@@ -2,7 +2,7 @@
 id: REQ-PRODUCTION-ACCOUNT-MANAGEMENT
 title: 사용자가 정상 제품 경로에서 로그인하고 계정을 관리할 수 있어야 한다.
 status: planned
-category: product-extension
+category: product-foundation
 type: functional
 priority: high
 taskability: taskable
@@ -24,6 +24,10 @@ refs:
 Backend session boundary가 있어도 사용자가 normal product path에서 로그인할 방법이 없으면 제품
 요구사항을 충족했다고 보기 어렵다. Product surface는 reviewer/dev seed 선택이 아니라 실제 사용자가
 이해할 수 있는 login, logout, session restore, account management flow를 제공해야 한다.
+
+이 요구사항은 CE stories가 실제 사용자에게 성립하기 위한 세부 제품 요구사항이다. Presence identity,
+checkpoint authorship, workspace access, collaboration session 발급은 신뢰 가능한 account/session
+경계 위에서만 완료된다.
 
 Acceptance:
 

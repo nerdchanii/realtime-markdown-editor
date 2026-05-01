@@ -9,6 +9,8 @@ export const seededNavigationModel = {
   activeMembersLabel: "3 members online",
   currentMemberLabel: "Editing as seeded reviewer",
   selectedDocumentId: "doc:launch-review-plan",
+  activeFolderId: "folder:review-path",
+  defaultFolderId: "folder:project-root",
   root: {
     id: "folder:workspace-root",
     kind: "workspaceRoot",

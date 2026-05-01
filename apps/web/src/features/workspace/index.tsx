@@ -1,10 +1,15 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { FilePlus2, FolderPlus } from "lucide-react";
 
 import { workspaceFeatureId } from "./events";
 import { WorkspaceNodeView } from "./WorkspaceNodeView";
 import { panelStyles } from "./styles";
 import { normalizeViewModel } from "./tree-utils";
-import type { WorkspaceNavigationSelection, WorkspaceNavigationViewModel } from "./types";
+import type {
+  WorkspaceNavigationNode,
+  WorkspaceNavigationSelection,
+  WorkspaceNavigationViewModel,
+} from "./types";
 import { useWorkspaceSelection } from "./useWorkspaceSelection";
 
 export type {
@@ -13,6 +18,7 @@ export type {
   WorkspaceNavigationSelection,
   WorkspaceNavigationViewModel,
   WorkspaceDocumentCreateRequest,
+  WorkspaceFolderCreateRequest,
 } from "./types";
 
 export { workspaceDocumentSelectedEventName, workspaceFeatureId } from "./events";
@@ -22,237 +28,222 @@ export type WorkspaceNavigationSlotProps = Readonly<{
 }>;
 
 export function WorkspaceNavigationSlot({ viewModel }: WorkspaceNavigationSlotProps) {
-  const { model, selectedDocument, selectedDocumentId, selectDocument } =
-    useWorkspaceSelection(viewModel);
+  const { model, selectedDocumentId, selectDocument } = useWorkspaceSelection(viewModel);
+  const [selectedFolderId, setSelectedFolderId] = useState<string | null>(
+    model.activeFolderId ?? model.defaultFolderId,
+  );
+  const targetFolderId = selectedFolderId ?? model.activeFolderId ?? model.defaultFolderId;
+  const targetFolder = targetFolderId
+    ? (findNodeById(model.root, targetFolderId) ??
+      findProjectNodeById(model.projects, targetFolderId))
+    : null;
+
+  useEffect(() => {
+    setSelectedFolderId(model.activeFolderId ?? model.defaultFolderId);
+  }, [model.activeFolderId, model.defaultFolderId, selectedDocumentId]);
+
+  const handleSelectDocument = (selection: Parameters<typeof selectDocument>[0]) => {
+    setSelectedFolderId(selection.folderId);
+    selectDocument(selection);
+  };
 
   return (
     <aside
       className="workspace-panel workspace-navigation"
       aria-label="Workspace navigation"
       data-feature={workspaceFeatureId}
-      data-selected-document-id={selectedDocument?.documentId}
+      style={{ display: "flex", flexDirection: "column", padding: 0 }}
     >
-      <WorkspaceHeader model={model} />
-      <DocumentCreateEntryPoint model={model} selectedDocument={selectedDocument} />
-      <WorkspaceRoot
-        model={model}
-        selectedDocumentId={selectedDocumentId}
-        onSelectDocument={selectDocument}
-      />
-      <ProjectList
-        model={model}
-        selectedDocumentId={selectedDocumentId}
-        onSelectDocument={selectDocument}
-      />
-      <SelectedEditorContext selectedDocument={selectedDocument} />
+      <div style={{ display: "flex", flexDirection: "column", minHeight: 0, flex: 1 }}>
+        {/* Explorer */}
+        <div style={{ display: "flex", flexDirection: "column", minHeight: 0, flex: 1 }}>
+          <div className="workspace-navigation__tabs">
+            <span className="workspace-navigation__tab">Explorer</span>
+            <div className="workspace-navigation__actions">
+              <button
+                type="button"
+                className="workspace-navigation__action"
+                aria-label="New document"
+                disabled={!targetFolderId || !model.onCreateDocument}
+                onClick={() => {
+                  if (!targetFolderId) return;
+                  const title = uniqueChildName(targetFolder, "document", "Untitled document");
+                  if (!title) return;
+                  model.onCreateDocument?.({
+                    folderId: targetFolderId,
+                    title,
+                  });
+                }}
+              >
+                <FilePlus2 size={14} />
+              </button>
+              <button
+                type="button"
+                className="workspace-navigation__action"
+                aria-label="New folder"
+                disabled={!targetFolderId || !model.onCreateFolder}
+                onClick={() => {
+                  if (!targetFolderId) return;
+                  const name = uniqueChildName(targetFolder, "folder", "Untitled folder");
+                  if (!name) return;
+                  model.onCreateFolder?.({
+                    parentFolderId: targetFolderId,
+                    name,
+                  });
+                }}
+              >
+                <FolderPlus size={14} />
+              </button>
+            </div>
+          </div>
+
+          <div className="workspace-navigation__tree">
+            <WorkspaceRoot
+              model={model}
+              selectedDocumentId={selectedDocumentId}
+              selectedFolderId={selectedFolderId}
+              onSelectFolder={setSelectedFolderId}
+              onSelectDocument={handleSelectDocument}
+              onDeleteDocument={(documentId) => model.onDeleteDocument?.(documentId)}
+              onDeleteFolder={(folderId) => model.onDeleteFolder?.(folderId)}
+            />
+            <ProjectList
+              model={model}
+              selectedDocumentId={selectedDocumentId}
+              selectedFolderId={selectedFolderId}
+              onSelectFolder={setSelectedFolderId}
+              onSelectDocument={handleSelectDocument}
+              onDeleteDocument={(documentId) => model.onDeleteDocument?.(documentId)}
+              onDeleteFolder={(folderId) => model.onDeleteFolder?.(folderId)}
+            />
+          </div>
+        </div>
+      </div>
     </aside>
-  );
-}
-
-function WorkspaceHeader({ model }: Readonly<{ model: ReturnType<typeof normalizeViewModel> }>) {
-  return (
-    <div style={panelStyles.header}>
-      <div className="slot-kicker">Workspace</div>
-      <h1 className="slot-title">{model.workspaceName}</h1>
-      <div style={panelStyles.metaRow}>
-        <span style={panelStyles.badge}>{model.activeMembersLabel}</span>
-        <span style={panelStyles.badge}>{model.currentMemberLabel}</span>
-        <span style={panelStyles.badge}>Product workspace</span>
-      </div>
-      <div style={{ color: "var(--color-text-secondary)", fontSize: "13px", lineHeight: 1.45 }}>
-        {model.workspaceDescription}
-      </div>
-    </div>
-  );
-}
-
-function DocumentCreateEntryPoint({
-  model,
-  selectedDocument,
-}: Readonly<{
-  model: ReturnType<typeof normalizeViewModel>;
-  selectedDocument: WorkspaceNavigationSelection | undefined;
-}>) {
-  const [title, setTitle] = useState("Untitled decision note");
-  const createDocument = useDocumentCreateAction(model, selectedDocument, title, setTitle);
-
-  if (!model.onCreateDocument) return null;
-
-  return (
-    <form
-      aria-label="Create Markdown document"
-      style={panelStyles.createForm}
-      onSubmit={(event) => {
-        event.preventDefault();
-        createDocument();
-      }}
-    >
-      <label style={panelStyles.sectionTitle} htmlFor="workspace-new-document-title">
-        New Markdown document
-      </label>
-      <DocumentCreateFields title={title} onTitleChange={setTitle} />
-    </form>
-  );
-}
-
-function useDocumentCreateAction(
-  model: ReturnType<typeof normalizeViewModel>,
-  selectedDocument: WorkspaceNavigationSelection | undefined,
-  title: string,
-  setTitle: (title: string) => void,
-) {
-  return () => {
-    const trimmedTitle = title.trim();
-    if (!trimmedTitle) return;
-
-    model.onCreateDocument?.({
-      title: trimmedTitle,
-      folderId: selectedDocument?.folderId ?? null,
-      projectId: selectedDocument?.projectId ?? null,
-    });
-    setTitle("Untitled decision note");
-  };
-}
-
-function DocumentCreateFields({
-  title,
-  onTitleChange,
-}: Readonly<{ title: string; onTitleChange: (title: string) => void }>) {
-  return (
-    <div style={panelStyles.createRow}>
-      <input
-        id="workspace-new-document-title"
-        aria-label="New document title"
-        value={title}
-        onChange={(event) => onTitleChange(event.currentTarget.value)}
-        style={panelStyles.createInput}
-      />
-      <button type="submit" style={panelStyles.createButton} data-testid="create-document-button">
-        New
-      </button>
-    </div>
   );
 }
 
 function WorkspaceRoot({
   model,
   selectedDocumentId,
+  selectedFolderId,
+  onSelectFolder,
   onSelectDocument,
+  onDeleteDocument,
+  onDeleteFolder,
 }: Readonly<{
   model: ReturnType<typeof normalizeViewModel>;
   selectedDocumentId?: string | null;
+  selectedFolderId?: string | null;
+  onSelectFolder: (folderId: string) => void;
   onSelectDocument: (selection: WorkspaceNavigationSelection) => void;
+  onDeleteDocument: (documentId: string) => void;
+  onDeleteFolder: (folderId: string) => void;
 }>) {
   return (
-    <nav aria-label={`${model.workspaceName} hierarchy`} style={panelStyles.section}>
-      <h2 style={panelStyles.sectionTitle}>Workspace files</h2>
-      <ul style={panelStyles.tree}>
-        <WorkspaceNodeView
-          node={model.root}
-          path={[model.workspaceName]}
-          selectedDocumentId={selectedDocumentId}
-          workspaceId={model.workspaceId}
-          onSelectDocument={onSelectDocument}
-        />
-      </ul>
-    </nav>
+    <ul style={panelStyles.tree}>
+      <WorkspaceNodeView
+        node={model.root}
+        path={[model.workspaceName]}
+        selectedDocumentId={selectedDocumentId}
+        selectedFolderId={selectedFolderId}
+        workspaceId={model.workspaceId}
+        onSelectFolder={onSelectFolder}
+        onSelectDocument={onSelectDocument}
+        onDeleteDocument={onDeleteDocument}
+        onDeleteFolder={onDeleteFolder}
+      />
+    </ul>
   );
 }
 
 function ProjectList({
   model,
   selectedDocumentId,
+  selectedFolderId,
+  onSelectFolder,
   onSelectDocument,
+  onDeleteDocument,
+  onDeleteFolder,
 }: Readonly<{
   model: ReturnType<typeof normalizeViewModel>;
   selectedDocumentId?: string | null;
+  selectedFolderId?: string | null;
+  onSelectFolder: (folderId: string) => void;
   onSelectDocument: (selection: WorkspaceNavigationSelection) => void;
+  onDeleteDocument: (documentId: string) => void;
+  onDeleteFolder: (folderId: string) => void;
 }>) {
   return (
-    <section aria-label="Projects" style={panelStyles.section}>
-      <h2 style={panelStyles.sectionTitle}>Projects</h2>
-      <div style={{ display: "grid", gap: "14px" }}>
-        {model.projects.map((project) => (
-          <ProjectNavigation
-            key={project.id}
-            project={project}
+    <div style={{ display: "grid", gap: "2px" }}>
+      {model.projects.map((project) => (
+        <ul key={project.id} style={panelStyles.tree}>
+          <WorkspaceNodeView
+            node={project.root}
+            path={[model.workspaceName, project.name]}
+            projectId={project.id}
             selectedDocumentId={selectedDocumentId}
+            selectedFolderId={selectedFolderId}
             workspaceId={model.workspaceId}
-            workspaceName={model.workspaceName}
+            onSelectFolder={onSelectFolder}
             onSelectDocument={onSelectDocument}
+            onDeleteDocument={onDeleteDocument}
+            onDeleteFolder={onDeleteFolder}
           />
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function ProjectNavigation({
-  project,
-  selectedDocumentId,
-  workspaceId,
-  workspaceName,
-  onSelectDocument,
-}: Readonly<{
-  project: ReturnType<typeof normalizeViewModel>["projects"][number];
-  selectedDocumentId?: string | null | undefined;
-  workspaceId: string;
-  workspaceName: string;
-  onSelectDocument: (selection: WorkspaceNavigationSelection) => void;
-}>) {
-  return (
-    <article style={panelStyles.project} data-project-id={project.id}>
-      <ProjectHeader name={project.name} keyLabel={project.key} status={project.status} />
-      <ul style={panelStyles.tree}>
-        <WorkspaceNodeView
-          node={project.root}
-          path={[workspaceName, project.name]}
-          projectId={project.id}
-          selectedDocumentId={selectedDocumentId}
-          workspaceId={workspaceId}
-          onSelectDocument={onSelectDocument}
-        />
-      </ul>
-    </article>
-  );
-}
-
-function ProjectHeader({
-  name,
-  keyLabel,
-  status,
-}: Readonly<{ name: string; keyLabel: string; status: string }>) {
-  return (
-    <div style={panelStyles.projectHeader}>
-      <div style={{ color: "var(--color-text-primary)", fontSize: "14px", fontWeight: 700 }}>
-        {name}
-      </div>
-      <div style={panelStyles.nodeMeta}>
-        <span>{keyLabel}</span>
-        <span>{status}</span>
-      </div>
+        </ul>
+      ))}
     </div>
   );
 }
 
-function SelectedEditorContext({
-  selectedDocument,
-}: Readonly<{ selectedDocument: WorkspaceNavigationSelection | undefined }>) {
-  return (
-    <section
-      aria-label="Selected editor context"
-      style={panelStyles.selectedContext}
-      data-workspace-editor-context="selected-document"
-    >
-      <div style={panelStyles.sectionTitle}>Editor context</div>
-      <div style={{ color: "var(--color-text-primary)", fontSize: "14px", fontWeight: 700 }}>
-        {selectedDocument?.title ?? "No document selected"}
-      </div>
-      {selectedDocument ? (
-        <div style={{ color: "var(--color-text-secondary)", fontSize: "12px", lineHeight: 1.45 }}>
-          {selectedDocument.path.join(" / ")}
-        </div>
-      ) : null}
-    </section>
+function findProjectNodeById(
+  projects: ReturnType<typeof normalizeViewModel>["projects"],
+  nodeId: string,
+) {
+  for (const project of projects) {
+    const node = findNodeById(project.root, nodeId);
+    if (node) return node;
+  }
+
+  return null;
+}
+
+function findNodeById(
+  node: WorkspaceNavigationNode,
+  nodeId: string,
+): WorkspaceNavigationNode | null {
+  if (node.id === nodeId) return node;
+
+  for (const child of node.children ?? []) {
+    const matched = findNodeById(child, nodeId);
+    if (matched) return matched;
+  }
+
+  return null;
+}
+
+function uniqueChildName(
+  folder: WorkspaceNavigationNode | null,
+  kind: "document" | "folder",
+  baseName: string,
+) {
+  const existingNames = new Set(
+    (folder?.children ?? [])
+      .filter((child) =>
+        kind === "document" ? child.kind === "document" : child.kind !== "document",
+      )
+      .map((child) => child.name.trim().toLowerCase())
+      .filter(Boolean),
   );
+
+  const normalizedBaseName = baseName.trim();
+  if (!normalizedBaseName) return "";
+  if (!existingNames.has(normalizedBaseName.toLowerCase())) return normalizedBaseName;
+
+  for (let index = 2; index < 1000; index += 1) {
+    const candidate = `${normalizedBaseName} ${index}`;
+    if (!existingNames.has(candidate.toLowerCase())) return candidate;
+  }
+
+  return "";
 }

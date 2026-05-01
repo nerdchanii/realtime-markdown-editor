@@ -2,6 +2,7 @@ import { HocuspocusProvider } from "@hocuspocus/provider";
 import type { AnyExtension } from "@tiptap/core";
 import Collaboration from "@tiptap/extension-collaboration";
 import CollaborationCaret from "@tiptap/extension-collaboration-caret";
+import { TaskItem, TaskList } from "@tiptap/extension-list";
 import Link from "@tiptap/extension-link";
 import StarterKit from "@tiptap/starter-kit";
 import * as Y from "yjs";
@@ -58,23 +59,53 @@ function createExtensions(
   return [
     StarterKit.configure({ undoRedo: false, link: false }),
     Link.configure({ openOnClick: false }),
+    TaskList,
+    TaskItem.configure({ nested: true }),
     Collaboration.configure({ document }),
     CollaborationCaret.configure({
       provider,
       user: { id: member.id, name: member.displayName, color: member.color },
-      render: (user) => createCollaborationCaretMarker(user.color),
+      render: (user) => createCollaborationCaretMarker(user.color, user.name),
     }),
   ];
 }
 
-function createCollaborationCaretMarker(color: string): HTMLElement {
+function createCollaborationCaretMarker(color: string, name: string): HTMLElement {
   const marker = globalThis.document.createElement("span");
+  marker.classList.add("collaboration-carets__caret");
   marker.style.borderLeft = `2px solid ${color}`;
   marker.style.marginLeft = "-1px";
   marker.style.marginRight = "-1px";
   marker.style.pointerEvents = "none";
   marker.setAttribute("aria-hidden", "true");
+
+  const label = globalThis.document.createElement("span");
+  label.classList.add("collaboration-carets__label");
+  label.style.backgroundColor = color;
+  label.style.color = getReadableTextColor(color);
+  label.textContent = name;
+  marker.append(label);
+
   return marker;
+}
+
+function getReadableTextColor(backgroundColor: string) {
+  const rgb = parseHexColor(backgroundColor);
+  if (!rgb) return "#ffffff";
+
+  const luminance = (0.2126 * rgb.r + 0.7152 * rgb.g + 0.0722 * rgb.b) / 255;
+  return luminance > 0.58 ? "#1f2328" : "#ffffff";
+}
+
+function parseHexColor(color: string): { r: number; g: number; b: number } | null {
+  const normalized = color.trim().replace(/^#/, "");
+  if (!/^[0-9a-fA-F]{6}$/.test(normalized)) return null;
+
+  return {
+    r: Number.parseInt(normalized.slice(0, 2), 16),
+    g: Number.parseInt(normalized.slice(2, 4), 16),
+    b: Number.parseInt(normalized.slice(4, 6), 16),
+  };
 }
 
 function findCurrentMember(session: CollaborationSessionDto): RealtimeMemberDto {

@@ -4,6 +4,7 @@ import type { ApiClient } from "@/lib/api-client";
 
 export type HistoryCheckpoint = Readonly<{
   id: string;
+  kind?: "save" | "autosave";
   documentId?: DocumentId;
   message: string;
   author: string;

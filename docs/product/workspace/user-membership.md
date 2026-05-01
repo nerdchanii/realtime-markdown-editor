@@ -8,6 +8,7 @@ related_requirements:
   - REQ-WORKSPACE-MEMBER-MANAGEMENT
 related_adrs:
   - ADR-0001
+  - ADR-0008
 ---
 
 # docs/product/workspace/user-membership.md
@@ -24,9 +25,8 @@ related_adrs:
 - Product session은 current user와 current workspace membership을 결정한다.
 - 사용자는 normal product UI에서 로그인하고 로그아웃할 수 있어야 한다.
 - Workspace owner는 member를 추가, 역할 변경, 제거할 수 있어야 한다.
-- Local development에서는 seeded reviewer membership을 bootstrap 용도로만 허용한다.
-- Reviewer route의 `?member=alice`, `?member=bob` 값은 production login이 아니라 legacy local review
-  identity 선택이며, product reviewer flow는 session 기반으로 이동해야 한다.
+- Local seeded account도 product credential과 membership boundary를 가져야 한다.
+- URL parameter나 client-supplied member id는 product identity source of truth가 아니다.
 
 ## 보류
 
@@ -36,4 +36,6 @@ related_adrs:
 
 ## 인증 메모
 
-Backend session boundary는 존재하지만, 사용자가 이해할 수 있는 login/account/member management product flow는 별도 high-priority requirement로 추적한다.
+Backend session boundary와 사용자가 이해할 수 있는 login/account/member management flow는 모두 product
+foundation이다. Account management의 상세 운영 범위는 별도 requirement로 나누더라도, 현재 제품
+경로가 신뢰할 수 없는 identity를 사용하면 완료로 보지 않는다.

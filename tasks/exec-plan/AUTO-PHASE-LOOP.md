@@ -26,7 +26,7 @@ official requirements and task-boundary checkpoints.
 ## 3. Phase Selection
 
 - Select one small phase at a time, preferably one to three tasks.
-- Prioritize CE evidence/reviewer clarity, then small independent product surfaces, clear
+- Track CE story acceptance/reviewer clarity, then small independent product surfaces, clear
   verification, and low write-set collision risk.
 
 ## 4. Phase Plan
@@ -64,7 +64,7 @@ official requirements and task-boundary checkpoints.
 - Close completed, failed, blocked, or stale subagents after collecting final reports.
 - Keep only subagents directly needed for the current phase.
 - At phase end, record active subagents, completed tasks, commits, verification, blockers,
-  CE evidence status, and next recommended action.
+  CE story status, and next recommended action.
 
 ## 9. Stop Conditions
 

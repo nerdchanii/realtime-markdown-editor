@@ -7,7 +7,8 @@ status: active
 
 ## 계약
 
-Document는 workspace hierarchy 안에 존재한다. First skeleton은 하나의 seeded hierarchy를 둘 수 있지만, model이 single-document-only design으로 고정되면 안 된다.
+Document는 workspace hierarchy 안에 존재한다. 현재 제품 범위가 하나의 기본 hierarchy를 제공하더라도,
+model이 single-document-only design으로 고정되면 안 된다.
 
 ADR-0006 이후 domain source of truth는 strict `Workspace > Project > Folder > Document` chain이 아니라 hidden root folder를 가진 filesystem-like folder tree다.
 

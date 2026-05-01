@@ -17,13 +17,13 @@ status: active
 - Membership과 member identity를 scope한다.
 - Workspace-level folder/document tree의 root를 제공한다.
 - Project를 직접 소유한다.
-- Seeded workspace/project/root-folder/document path가 CE-01부터 CE-05까지의 reviewer path가 되게 한다.
+- Workspace/project/root-folder/document path가 CE-01부터 CE-05까지의 product acceptance path가 되게 한다.
 
 ## 책임이 아닌 것
 
 - Billing과 provisioning.
 - Enterprise identity provider 연동.
-- First skeleton의 fine-grained permission policy.
+- 현재 제품 범위를 넘어서는 fine-grained permission policy.
 - Project를 Folder처럼 이동하거나 삭제하는 containment behavior.
 
 ## 규칙

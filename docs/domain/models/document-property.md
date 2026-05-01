@@ -18,5 +18,5 @@ status: active
 
 ## 경계
 
-- Property template, inheritance, formula, relation, rollup은 first skeleton 범위가 아니다.
+- Property template, inheritance, formula, relation, rollup은 현재 제품 범위가 아니다.
 - Internal property storage가 frontmatter 안에 있다는 뜻이 아니다. Frontmatter는 export representation이다.

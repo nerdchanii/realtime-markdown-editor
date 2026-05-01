@@ -68,6 +68,7 @@ await fetch("http://127.0.0.1:4000/auth/session", {
   headers: { "content-type": "application/json" },
   body: JSON.stringify({
     email: "alice@example.test",
+    password: "password",
     workspaceId: "workspace_review",
   }),
 });

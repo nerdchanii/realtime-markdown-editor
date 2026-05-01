@@ -7,19 +7,24 @@ status: active
 
 ## 목적
 
-Backend architecture는 CE-01부터 CE-05까지의 walking skeleton을 먼저 증명하면서 domain ownership이 흐려지지 않게 한다. 현재 기준은 TF architecture review의 결론처럼 `Workspace`, `Identity`, `Documents`, `Collaboration` capability를 최소 module skeleton으로 유지하는 것이다.
+Backend architecture는 CE-01부터 CE-05까지의 product stories를 제품 경계 위에서 증명한다. 현재 기준은
+`Workspace`, `Identity`, `Documents`, `Collaboration` capability가 테스트 통과용 shortcut이 아니라
+신뢰 가능한 product boundary로 동작하는 것이다.
 
 ## Module Ownership
 
-| Module | Ownership |
-| --- | --- |
-| `WorkspaceModule` | `Workspace`, `Project`, `Folder`, hidden root folder policy, folder lifecycle invariant |
-| `IdentityModule` | `User`, `WorkspaceMembership`, membership display identity, role value |
-| `DocumentsModule` | `Document`, body reference, `DocumentProperty`, `DocumentState`, checkpoint metadata use cases, CE-04 history read path |
-| `CollaborationModule` | collaboration provider adapters, sync orchestration ports, artifact extraction/storage ports |
-| `apps/collab` runtime | Hocuspocus/Yjs websocket runtime, live collaboration provider state, realtime adapter execution |
+| Module                | Ownership                                                                                                               |
+| --------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `WorkspaceModule`     | `Workspace`, `Project`, `Folder`, hidden root folder policy, folder lifecycle invariant                                 |
+| `IdentityModule`      | `User`, `WorkspaceMembership`, membership display identity, role value                                                  |
+| `DocumentsModule`     | `Document`, body reference, `DocumentProperty`, `DocumentState`, checkpoint metadata use cases, CE-04 history read path |
+| `CollaborationModule` | collaboration provider adapters, sync orchestration ports, artifact extraction/storage ports                            |
+| `apps/collab` runtime | Hocuspocus/Yjs websocket runtime, live collaboration provider state, realtime adapter execution                         |
 
-`HistoryModule`, workflow hooks module, and projection-only module are deferred. They must not become required walking-skeleton boundaries just because a file or empty module exists in current code.
+`HistoryModule`, workflow hooks module, and projection-only module are deferred. They must not become
+required boundaries just because a file or empty module exists in current code. Deferral does not
+apply to auth, authorization, persistence integrity, or runtime validation required for current
+product routes.
 
 ## Dependency Direction
 
@@ -33,7 +38,10 @@ The cross-module domain import ban is an enforcement target for dependency-cruis
 
 ## App-Private Domain
 
-The first TypeScript monorepo keeps domain entities and values app-private under `apps/api/src/modules/**/domain`. Do not create `packages/domain`, `packages/application`, `packages/shared`, or shared domain/application utility packages for the walking skeleton.
+The TypeScript monorepo keeps domain entities and values app-private under
+`apps/api/src/modules/**/domain`. Do not create `packages/domain`, `packages/application`,
+`packages/shared`, or shared domain/application utility packages until a concrete product boundary
+requires that promotion.
 
 `packages/contracts` is for provider-neutral HTTP/realtime wire contracts, including API request/response DTOs shared by frontend and backend. It must not expose backend domain internals as frontend view models.
 
@@ -43,17 +51,17 @@ The first TypeScript monorepo keeps domain entities and values app-private under
 implementation tasks. API controllers may split implementation by Nest module, but route
 ownership follows the table below.
 
-| Area | Canonical routes | Owner | Notes |
-| --- | --- | --- | --- |
-| Auth/session | `POST /auth/session`, `GET /auth/session`, `DELETE /auth/session` | `IdentityModule` | Current user and workspace membership come from the httpOnly session boundary. Product actions do not trust public `memberId` or `authorMembershipId` request fields. |
-| Workspace/project/folder | `/workspaces`, `/workspaces/:workspaceId/navigation`, `/workspaces/:workspaceId/projects`, `/projects/:projectId`, `/folders`, `/folders/:folderId/*` | `WorkspaceModule` | Preserves hidden workspace/project root folder policy and root immutability. |
-| Document metadata and properties | `/folders/:folderId/documents`, `/documents/:documentId`, `/documents/:documentId/move`, `/documents/:documentId/properties` | `DocumentsModule` | Every document has exactly one folder. Properties remain outside the Markdown body. |
-| Current Markdown projection | `GET /documents/:documentId/content`, `PUT /documents/:documentId/content` | `DocumentsModule` | Stores the server-resolved portable Markdown projection derived from the live collaboration document. It is used by export, checkpoint creation, and fallback bootstrap only when live Yjs state is absent or uninitialized. |
-| Links/backlinks | `GET /documents/:documentId/connections` | `DocumentsModule` | Projection read model derived from standard Markdown links. |
-| Checkpoints/history | `GET /documents/:documentId/checkpoints`, `POST /documents/:documentId/checkpoints`, `GET /documents/checkpoints/:checkpointId/snapshot` | `DocumentsModule` | `POST /documents/:documentId/checkpoints` is the canonical checkpoint creation route. The server resolves current author membership and current Markdown content. |
-| Markdown export | `POST /documents/:documentId/export` | `DocumentsModule` | The server resolves current Markdown body and properties, then returns frontmatter plus body as the portable file boundary. |
-| Image upload | `POST /documents/:documentId/images` | `DocumentsModule` | Returns an editor-insertable image reference without exposing object-storage provider internals. |
-| Collaboration session | `POST /documents/:documentId/collaboration-sessions` | `CollaborationModule` | Issues provider-neutral realtime session data. It must not create checkpoints or expose provider-specific Yjs/Hocuspocus state. |
+| Area                             | Canonical routes                                                                                                                                      | Owner                 | Notes                                                                                                                                                                                                                        |
+| -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Auth/session                     | `POST /auth/session`, `GET /auth/session`, `DELETE /auth/session`                                                                                     | `IdentityModule`      | Current user and workspace membership come from the httpOnly session boundary. Password credentials are verified server-side. Product actions do not trust public `memberId` or `authorMembershipId` request fields.         |
+| Workspace/project/folder         | `/workspaces`, `/workspaces/:workspaceId/navigation`, `/workspaces/:workspaceId/projects`, `/projects/:projectId`, `/folders`, `/folders/:folderId/*` | `WorkspaceModule`     | Preserves hidden workspace/project root folder policy and root immutability.                                                                                                                                                 |
+| Document metadata and properties | `/folders/:folderId/documents`, `/documents/:documentId`, `/documents/:documentId/move`, `/documents/:documentId/properties`                          | `DocumentsModule`     | Every document has exactly one folder. Properties remain outside the Markdown body.                                                                                                                                          |
+| Current Markdown projection      | `GET /documents/:documentId/content`, `PUT /documents/:documentId/content`                                                                            | `DocumentsModule`     | Stores the server-resolved portable Markdown projection derived from the live collaboration document. It is used by export, checkpoint creation, and fallback bootstrap only when live Yjs state is absent or uninitialized. |
+| Links/backlinks                  | `GET /documents/:documentId/connections`                                                                                                              | `DocumentsModule`     | Projection read model derived from standard Markdown links.                                                                                                                                                                  |
+| Checkpoints/history              | `GET /documents/:documentId/checkpoints`, `POST /documents/:documentId/checkpoints`, `GET /documents/checkpoints/:checkpointId/snapshot`              | `DocumentsModule`     | `POST /documents/:documentId/checkpoints` is the canonical checkpoint creation route. The server resolves current author membership and current Markdown content.                                                            |
+| Markdown export                  | `POST /documents/:documentId/export`                                                                                                                  | `DocumentsModule`     | The server resolves current Markdown body and properties, then returns frontmatter plus body as the portable file boundary.                                                                                                  |
+| Image upload                     | `POST /documents/:documentId/images`                                                                                                                  | `DocumentsModule`     | Returns an editor-insertable image reference without exposing object-storage provider internals.                                                                                                                             |
+| Collaboration session            | `POST /documents/:documentId/collaboration-sessions`                                                                                                  | `CollaborationModule` | Issues provider-neutral realtime session data. It must not create checkpoints or expose provider-specific Yjs/Hocuspocus state.                                                                                              |
 
 The following routes are explicitly dev-only bootstrap routes and must not be required by the
 normal product runtime path:
@@ -89,6 +97,20 @@ Contract rules:
 - Export and checkpoint creation do not accept arbitrary full-body client snapshots in the product
   contract. They resolve current Markdown content server-side from the document content projection
   and collaboration serialization boundary.
+
+## Product Quality Boundary
+
+Backend tasks are not complete when a CE path merely returns successful responses. Product routes
+must satisfy these boundary rules:
+
+- Public routes are limited to credential/session bootstrap and explicitly documented public reads.
+- Workspace, document, checkpoint, export, image, and collaboration session routes derive access from
+  the current session and workspace membership.
+- Runtime validation rejects malformed input before use-case execution.
+- Missing infrastructure configuration should fail during startup or preflight when practical, not as
+  opaque request-time 500s.
+- Service-internal routes must be identified as service-internal and protected before being treated as
+  product-ready.
 
 ## Collaboration Runtime Topology
 

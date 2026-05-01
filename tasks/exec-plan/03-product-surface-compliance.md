@@ -180,7 +180,7 @@ Acceptance:
 
 - Reviewer can start at workspace navigation, open seeded document, edit collaboratively, inspect properties/backlinks, switch preview modes, create history checkpoint, inspect snapshot, and export Markdown.
 - CE selectors remain stable.
-- No product extension hides the CE-01 through CE-05 path.
+- No secondary product surface hides the CE-01 through CE-05 story path.
 
 Verification:
 
@@ -201,7 +201,7 @@ Write set:
 Acceptance:
 
 - README explains install, run, seeded identities, reviewer URL, and CE scenario order.
-- README identifies which product extensions are included and which are intentionally deferred.
+- README identifies which product capabilities are included and which are intentionally deferred.
 - Subject matrix evidence statements reference product behavior that exists.
 - README does not cite `.note/**`.
 

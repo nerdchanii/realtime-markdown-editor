@@ -1,10 +1,21 @@
-import { useState } from "react";
+/* eslint-disable max-lines-per-function */
+import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
+import { CalendarDays, CircleDashed, CheckSquare, Tag, Text, UserRound } from "lucide-react";
+import type {
+  DocumentId,
+  DocumentPropertyDto,
+  DocumentPropertyValueDto,
+  WorkspaceMembershipId,
+} from "@rme/contracts";
 
-import { MarkdownExportSurface } from "./MarkdownExportSurface";
+import { replaceDocumentProperties, updateDocument } from "@/lib/api-client";
+
 import { PropertiesSurface } from "./PropertiesSurface";
-import type { DocumentBacklink, DocumentContextViewModel, DocumentProperty } from "./types";
+import type { DocumentContextViewModel, DocumentProperty } from "./types";
 
 export const documentFeatureId = "document";
+
+type DocumentPropertyValueType = NonNullable<DocumentProperty["valueType"]>;
 
 export type { DocumentBacklink, DocumentContextViewModel, DocumentProperty } from "./types";
 
@@ -12,37 +23,10 @@ export type DocumentContextSlotProps = Readonly<{
   viewModel: DocumentContextViewModel;
 }>;
 
-const fallbackProperties: readonly DocumentProperty[] = [
-  { key: "State", label: "State", value: "Review", valueType: "status", tone: "warning" },
-  { key: "Owner", label: "Owner", value: "Mina Park", valueType: "member" },
-  {
-    key: "Project",
-    label: "Project",
-    value: "Realtime editor walking skeleton",
-    valueType: "text",
-  },
-  { key: "Updated", label: "Updated", value: "Today 10:24", valueType: "date" },
-];
-
-const fallbackBacklinks: readonly DocumentBacklink[] = [
-  {
-    title: "Sprint review notes",
-    source: "/workspace/engineering/reviews/sprint-review.md",
-    excerpt: "References the editor workspace decision and CE evidence checklist.",
-  },
-  {
-    title: "Collaboration engine ADR",
-    source: "/workspace/engineering/adrs/adr-0002.md",
-    excerpt: "Links to this document as the reviewer-facing Markdown scenario.",
-  },
-];
-
 export function DocumentContextSlot({ viewModel }: DocumentContextSlotProps) {
-  const title = viewModel.title ?? "Collaborative editor review plan";
-  const path = viewModel.path ?? "Acme Workspace / Editor / Review plan";
-  const { properties, addProperty, deleteProperty, updateProperty } = useDocumentProperties(
-    viewModel.properties,
-  );
+  const title = viewModel.title ?? "Untitled";
+  const properties = viewModel.properties ?? [];
+  const canEditProperties = Boolean(viewModel.apiClient && viewModel.documentId);
 
   return (
     <header
@@ -50,125 +34,448 @@ export function DocumentContextSlot({ viewModel }: DocumentContextSlotProps) {
       aria-label="Document context"
       data-testid="document-header"
     >
-      <DocumentTitle title={title} path={path} />
-      <PropertiesSurface
-        properties={properties}
-        onPropertyAdd={addProperty}
-        onPropertyChange={updateProperty}
-        onPropertyDelete={deleteProperty}
-      />
-      <MarkdownExportSurface
-        documentId={viewModel.documentId}
-        title={title}
-        properties={properties}
-      />
-      <BacklinksSurface backlinks={viewModel.backlinks ?? fallbackBacklinks} />
+      <EditableDocumentTitle title={title} viewModel={viewModel} />
+
+      {canEditProperties ? (
+        <EditableDocumentProperties properties={properties} viewModel={viewModel} />
+      ) : properties.length ? (
+        <div className="document-context__properties">
+          {properties.map((property) => (
+            <PropertyField key={property.key ?? property.label} property={property} />
+          ))}
+        </div>
+      ) : null}
     </header>
   );
 }
 
-function DocumentTitle({ title, path }: Readonly<{ title: string; path: string }>) {
+function EditableDocumentProperties({
+  properties,
+  viewModel,
+}: Readonly<{
+  properties: readonly DocumentProperty[];
+  viewModel: DocumentContextViewModel;
+}>) {
+  const [draftProperties, setDraftProperties] = useState(properties);
+  const [pendingProperties, setPendingProperties] = useState<readonly DocumentProperty[] | null>(
+    null,
+  );
+  const [status, setStatus] = useState<"idle" | "saving" | "failed">("idle");
+
+  useEffect(() => {
+    setDraftProperties(properties);
+    setPendingProperties(null);
+    setStatus("idle");
+  }, [properties]);
+
+  useEffect(() => {
+    if (!pendingProperties) return undefined;
+
+    const timer = window.setTimeout(() => {
+      void persistProperties({
+        properties: pendingProperties,
+        viewModel,
+        setStatus,
+      });
+    }, 450);
+
+    return () => window.clearTimeout(timer);
+  }, [pendingProperties, viewModel]);
+
+  return (
+    <div className="document-context__editable-properties">
+      <PropertiesSurface
+        properties={draftProperties}
+        onPropertyAdd={() => {
+          const nextProperties = addProperty(draftProperties);
+          setDraftProperties(nextProperties);
+          setPendingProperties(nextProperties);
+        }}
+        onPropertyKeyChange={(index, key) => {
+          const nextProperties = draftProperties.map((property, propertyIndex) =>
+            propertyIndex === index ? { ...property, key, label: key } : property,
+          );
+          setDraftProperties(nextProperties);
+          if (key.trim()) setPendingProperties(nextProperties);
+        }}
+        onPropertyTypeChange={(index, valueType) => {
+          const nextProperties = draftProperties.map((property, propertyIndex) =>
+            propertyIndex === index ? convertPropertyType(property, valueType) : property,
+          );
+          setDraftProperties(nextProperties);
+          setPendingProperties(nextProperties);
+        }}
+        onPropertyValueChange={(index, value) => {
+          const nextProperties = draftProperties.map((property, propertyIndex) =>
+            propertyIndex === index ? { ...property, value, rawValue: value } : property,
+          );
+          setDraftProperties(nextProperties);
+          setPendingProperties(nextProperties);
+        }}
+        onPropertyDelete={(index) => {
+          const nextProperties = draftProperties.filter(
+            (_, propertyIndex) => propertyIndex !== index,
+          );
+          setDraftProperties(nextProperties);
+          setPendingProperties(nextProperties);
+        }}
+      />
+      {status === "failed" ? (
+        <span role="alert" style={{ color: "var(--color-danger)", fontSize: "12px" }}>
+          Property update failed.
+        </span>
+      ) : null}
+    </div>
+  );
+}
+
+function EditableDocumentTitle({
+  title,
+  viewModel,
+}: Readonly<{
+  title: string;
+  viewModel: DocumentContextViewModel;
+}>) {
+  const [draftTitle, setDraftTitle] = useState(title);
+  const [status, setStatus] = useState<"idle" | "saving" | "failed">("idle");
+  const canEdit = Boolean(viewModel.apiClient && viewModel.documentId);
+  const trimmedDraftTitle = draftTitle.trim();
+  const persistedTitle = viewModel.persistedTitle ?? title;
+  const titleInputRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    setDraftTitle(title);
+    setStatus("idle");
+  }, [title]);
+
+  useEffect(() => {
+    if (!canEdit) return undefined;
+    if (!trimmedDraftTitle || trimmedDraftTitle === persistedTitle) return undefined;
+
+    const timer = window.setTimeout(() => {
+      void persistTitleChange({
+        nextTitle: trimmedDraftTitle,
+        viewModel,
+        setStatus,
+      });
+    }, 500);
+
+    return () => window.clearTimeout(timer);
+  }, [canEdit, persistedTitle, trimmedDraftTitle, viewModel]);
+
+  useEffect(() => {
+    if (!canEdit || !viewModel.documentId) return;
+    if (
+      globalThis.sessionStorage?.getItem("rme.focus-title-document-id") !== viewModel.documentId
+    ) {
+      return;
+    }
+
+    globalThis.sessionStorage.removeItem("rme.focus-title-document-id");
+    titleInputRef.current?.focus();
+    titleInputRef.current?.select();
+  }, [canEdit, viewModel.documentId]);
+
+  if (!canEdit) {
+    return (
+      <h1 className="slot-title" data-testid="document-title" style={{ marginBottom: "32px" }}>
+        {title}
+      </h1>
+    );
+  }
+
+  return (
+    <div style={{ display: "grid", gap: "4px", marginBottom: "32px" }}>
+      <input
+        aria-label="Document title"
+        className="document-title-input"
+        data-testid="document-title"
+        ref={titleInputRef}
+        onChange={(event) => {
+          const nextTitle = event.target.value;
+          setDraftTitle(nextTitle);
+          viewModel.onTitleDraftChange?.(nextTitle);
+        }}
+        onKeyDown={(event) =>
+          handleTitleKeyDown(event, {
+            originalTitle: persistedTitle,
+            nextTitle: trimmedDraftTitle,
+            setDraftTitle,
+            setStatus,
+            viewModel,
+          })
+        }
+        onBlur={() => {
+          if (!trimmedDraftTitle) {
+            setDraftTitle(persistedTitle);
+            viewModel.onTitleDraftChange?.(persistedTitle);
+            setStatus("idle");
+            return;
+          }
+          if (trimmedDraftTitle === persistedTitle) return;
+          void persistTitleChange({
+            nextTitle: trimmedDraftTitle,
+            viewModel,
+            setStatus,
+          });
+        }}
+        value={draftTitle}
+      />
+      {status === "failed" ? (
+        <span role="alert" style={{ color: "var(--color-danger)", fontSize: "12px" }}>
+          Title update failed.
+        </span>
+      ) : null}
+    </div>
+  );
+}
+
+function PropertyField({ property }: Readonly<{ property: DocumentProperty }>) {
   return (
     <>
-      <div className="slot-kicker">Document</div>
-      <h2 className="slot-title" data-testid="document-title">
-        {title}
-      </h2>
-      <p style={metadataStyle}>{path}</p>
+      <FieldLabel icon={propertyIcon(property)} label={property.label} />
+      <div>{propertyValue(property)}</div>
     </>
   );
 }
 
-function useDocumentProperties(initialProperties: readonly DocumentProperty[] | undefined) {
-  const [properties, setProperties] = useState(() => [
-    ...(initialProperties ?? fallbackProperties),
-  ]);
-  const updateProperty = (key: string, value: string) => {
-    setProperties((current) =>
-      current.map((property) => (propertyId(property) === key ? { ...property, value } : property)),
-    );
-  };
-  const addProperty = (label: string) => {
-    const trimmedLabel = label.trim();
-    if (!trimmedLabel) return;
-
-    setProperties((current) => [
-      ...current,
-      {
-        key: `${trimmedLabel}-${current.length + 1}`,
-        label: trimmedLabel,
-        value: "",
-        valueType: "text",
-      },
-    ]);
-  };
-  const deleteProperty = (key: string) => {
-    setProperties((current) => current.filter((property) => propertyId(property) !== key));
-  };
-
-  return { properties, addProperty, deleteProperty, updateProperty };
+function propertyIcon(property: DocumentProperty) {
+  if (property.valueType === "date") return <CalendarDays size={14} />;
+  if (property.valueType === "member") return <UserRound size={14} />;
+  if (property.valueType === "status") return <CircleDashed size={14} />;
+  if (property.valueType === "checkbox") return <CheckSquare size={14} />;
+  if (property.label.toLowerCase().includes("tag")) return <Tag size={14} />;
+  return <Text size={14} />;
 }
 
-function propertyId(property: DocumentProperty) {
+function propertyValue(property: DocumentProperty) {
+  if (property.valueType === "status") {
+    return (
+      <span style={statusChipStyle}>
+        <span style={statusDotStyle} />
+        {property.value}
+      </span>
+    );
+  }
+
+  if (property.valueType === "member") {
+    return (
+      <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
+        <span style={avatarStyle} aria-hidden="true" />
+        <span style={{ color: "#314158", fontWeight: 500 }}>{property.value}</span>
+      </span>
+    );
+  }
+
+  return <span style={{ color: "#45556c", fontWeight: 500 }}>{property.value}</span>;
+}
+
+function handleTitleKeyDown(
+  event: KeyboardEvent<HTMLInputElement>,
+  input: Readonly<{
+    originalTitle: string;
+    nextTitle: string;
+    setDraftTitle: (title: string) => void;
+    setStatus: (status: "idle" | "saving" | "failed") => void;
+    viewModel: DocumentContextViewModel;
+  }>,
+) {
+  if (event.key === "Enter") {
+    if (!input.nextTitle) {
+      input.setDraftTitle(input.originalTitle);
+      input.viewModel.onTitleDraftChange?.(input.originalTitle);
+      input.setStatus("idle");
+      event.currentTarget.blur();
+      return;
+    }
+    if (input.nextTitle && input.nextTitle !== input.originalTitle) {
+      void persistTitleChange({
+        nextTitle: input.nextTitle,
+        viewModel: input.viewModel,
+        setStatus: input.setStatus,
+      });
+    }
+    event.currentTarget.blur();
+    return;
+  }
+
+  if (event.key === "Escape") {
+    input.setDraftTitle(input.originalTitle);
+    input.viewModel.onTitleDraftChange?.(input.originalTitle);
+    input.setStatus("idle");
+    event.currentTarget.blur();
+  }
+}
+
+async function commitTitleChange(
+  input: Readonly<{
+    nextTitle: string;
+    viewModel: DocumentContextViewModel;
+    setStatus: (status: "idle" | "saving" | "failed") => void;
+  }>,
+) {
+  if (!input.viewModel.apiClient || !input.viewModel.documentId) return;
+
+  input.setStatus("saving");
+  try {
+    await updateDocument(input.viewModel.apiClient, input.viewModel.documentId as DocumentId, {
+      title: input.nextTitle,
+    });
+    input.viewModel.onTitleUpdated?.();
+    input.setStatus("idle");
+  } catch {
+    input.setStatus("failed");
+  }
+}
+
+const persistTitleChange = commitTitleChange;
+
+async function persistProperties(
+  input: Readonly<{
+    properties: readonly DocumentProperty[];
+    viewModel: DocumentContextViewModel;
+    setStatus: (status: "idle" | "saving" | "failed") => void;
+  }>,
+) {
+  if (!input.viewModel.apiClient || !input.viewModel.documentId) return;
+
+  input.setStatus("saving");
+  try {
+    await replaceDocumentProperties(
+      input.viewModel.apiClient,
+      input.viewModel.documentId as DocumentId,
+      {
+        properties: input.properties
+          .filter((property) => propertyKey(property).trim())
+          .map(toDocumentPropertyDto),
+      },
+    );
+    input.setStatus("idle");
+  } catch {
+    input.setStatus("failed");
+  }
+}
+
+function addProperty(properties: readonly DocumentProperty[]) {
+  const key = uniquePropertyKey(properties, "Property");
+  return [
+    ...properties,
+    {
+      key,
+      label: key,
+      value: "",
+      rawValue: "",
+      valueType: "text" as const,
+      tone: "neutral" as const,
+    },
+  ];
+}
+
+function uniquePropertyKey(properties: readonly DocumentProperty[], label: string) {
+  const baseKey = label.trim();
+  if (!baseKey) return "Property";
+  const existingKeys = new Set(properties.map(propertyKey));
+  if (!existingKeys.has(baseKey)) return baseKey;
+
+  let suffix = 2;
+  while (existingKeys.has(`${baseKey} ${suffix}`)) {
+    suffix += 1;
+  }
+  return `${baseKey} ${suffix}`;
+}
+
+function convertPropertyType(
+  property: DocumentProperty,
+  valueType: DocumentPropertyValueType,
+): DocumentProperty {
+  const value = valueForType(property, valueType);
+  return {
+    ...property,
+    value,
+    rawValue: rawValueForType(value, valueType),
+    valueType,
+    tone: valueType === "status" ? "warning" : "neutral",
+  };
+}
+
+function valueForType(property: DocumentProperty, valueType: DocumentPropertyValueType) {
+  if (valueType === "checkbox") {
+    return property.value === "true" ? "true" : "false";
+  }
+
+  if (valueType === "date") {
+    return isDateTimeInputValue(property.value) ? property.value : "";
+  }
+
+  return property.value === "false" && property.valueType === "checkbox" ? "" : property.value;
+}
+
+function rawValueForType(value: string, valueType: DocumentPropertyValueType) {
+  if (valueType === "checkbox") return value === "true";
+  return value;
+}
+
+function isDateTimeInputValue(value: string) {
+  return /^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2})?$/.test(value);
+}
+
+function propertyKey(property: DocumentProperty) {
   return property.key ?? property.label;
 }
 
-function BacklinksSurface({ backlinks }: { backlinks: readonly DocumentBacklink[] }) {
+function toDocumentPropertyDto(property: DocumentProperty): DocumentPropertyDto {
+  return {
+    key: propertyKey(property).trim(),
+    value: toDocumentPropertyValueDto(property),
+  };
+}
+
+function toDocumentPropertyValueDto(property: DocumentProperty): DocumentPropertyValueDto {
+  const type = property.valueType ?? "text";
+  const rawValue = property.rawValue ?? property.value;
+
+  if (type === "checkbox") {
+    return { type, value: rawValue === true || property.value === "true" };
+  }
+
+  if (type === "date") return { type, value: String(rawValue) };
+  if (type === "member") return { type, value: String(rawValue) as WorkspaceMembershipId };
+  if (type === "status") return { type, value: String(rawValue) };
+  return { type: "text", value: property.value };
+}
+
+function FieldLabel({ icon, label }: Readonly<{ icon: ReactNode; label: string }>) {
   return (
-    <section aria-label="Backlinks" data-testid="document-backlinks">
-      <div style={sectionTitleStyle}>Backlinks</div>
-      <ul style={backlinkListStyle}>
-        {backlinks.map((backlink) => (
-          <li
-            key={backlink.source}
-            style={backlinkItemStyle}
-            data-source-document={backlink.sourceDocumentId}
-            data-target-document={backlink.targetDocumentId}
-          >
-            <strong>{backlink.title}</strong>
-            <a href={backlink.source} style={backlinkSourceStyle}>
-              {backlink.source}
-            </a>
-            <span>{backlink.excerpt}</span>
-          </li>
-        ))}
-      </ul>
-    </section>
+    <div style={{ color: "#90a1b9", display: "flex", alignItems: "center", gap: "8px" }}>
+      {icon}
+      {label}
+    </div>
   );
 }
 
-const metadataStyle = {
-  margin: "4px 0 12px",
-  color: "var(--color-text-secondary)",
-  fontSize: "13px",
-};
-
-const sectionTitleStyle = {
-  marginTop: "12px",
-  color: "var(--color-text-secondary)",
+const statusChipStyle = {
+  display: "inline-flex",
+  alignItems: "center",
+  gap: "6px",
+  borderRadius: "4px",
+  padding: "2px 8px",
+  background: "#fffbeb",
+  color: "#bb4d00",
   fontSize: "12px",
-  fontWeight: 650,
+  fontWeight: 500,
 };
 
-const backlinkListStyle = {
-  display: "grid",
-  gap: "8px",
-  margin: "8px 0 0",
-  padding: 0,
-  listStyle: "none",
+const statusDotStyle = {
+  width: "6px",
+  height: "6px",
+  borderRadius: "50%",
+  background: "#fe9a00",
 };
 
-const backlinkItemStyle = {
-  display: "grid",
-  gap: "2px",
-  padding: "8px",
-  border: "1px solid var(--color-border)",
-  borderRadius: "6px",
-  fontSize: "13px",
-};
-
-const backlinkSourceStyle = {
-  color: "var(--color-text-muted)",
-  fontSize: "12px",
-  overflowWrap: "anywhere" as const,
+const avatarStyle = {
+  width: "16px",
+  height: "16px",
+  borderRadius: "50%",
+  background: "linear-gradient(180deg, #d0d7de 0%, #b4bfcb 100%)",
+  border: "1px solid #e2e8f0",
 };

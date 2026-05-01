@@ -13,6 +13,20 @@ import {
 
 import type { ProductWorkspaceModel } from "./product-workspace-types";
 
+export class UnauthenticatedError extends Error {
+  constructor() {
+    super("Authentication is required.");
+    this.name = "UnauthenticatedError";
+  }
+}
+
+export class NoWorkspaceError extends Error {
+  constructor() {
+    super("User has no workspaces.");
+    this.name = "NoWorkspaceError";
+  }
+}
+
 export async function loadProductWorkspace(
   apiClient: ApiClient,
   selectedDocumentId: DocumentId | null,
@@ -20,9 +34,11 @@ export async function loadProductWorkspace(
 ): Promise<ProductWorkspaceModel | null> {
   const session = await resolveProductSession(apiClient);
   if (signal.aborted) return null;
+  if (!session) throw new UnauthenticatedError();
 
   const workspaceId = await resolveWorkspaceId(apiClient, session);
-  if (!workspaceId || signal.aborted) return null;
+  if (signal.aborted) return null;
+  if (!workspaceId) throw new NoWorkspaceError();
 
   const navigation = await fetchWorkspaceNavigation(apiClient, workspaceId as WorkspaceId);
   const documentId = selectProductDocumentId(

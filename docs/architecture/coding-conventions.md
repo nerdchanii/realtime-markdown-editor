@@ -12,21 +12,22 @@ approved_at: 2026-04-29
 이 문서는 이 저장소의 현재 coding convention이다. 컨벤션은 취향보다 자동 강제 가능한 규칙을
 우선하며, `pre-commit`, `commit-msg`, `pnpm check`가 같은 기준을 보게 한다.
 
-최상위 평가 기준은 여전히 `subject.md`의 CE-01부터 CE-05까지와
-`docs/compliance/subject-matrix.md`다. 이 문서는 CE 요구사항을 재정의하지 않고, reviewer가
-과제 핵심 경로를 확인하는 데 방해되는 코드 품질 저하와 architecture boundary drift를 막는다.
+CE story acceptance는 `subject.md`의 CE-01부터 CE-05까지와
+`docs/compliance/subject-matrix.md`에서 추적한다. 제품 완료 판단은
+`docs/product/product-quality-gates.md`를 함께 따른다. 이 문서는 CE 요구사항을 재정의하지 않고,
+제품 품질을 낮추는 코드 품질 저하와 architecture boundary drift를 막는다.
 
 ## 적용 범위
 
-현재 convention은 walking skeleton 단계의 repo-wide baseline이다. 원격 CI와 pre-push 강제는
-아직 baseline에 포함하지 않는다. 로컬에서 다음 기준을 항상 유지한다.
+현재 convention은 repo-wide baseline이다. 원격 CI와 pre-push 강제는 아직 baseline에 포함하지
+않는다. 로컬에서 다음 기준을 항상 유지한다.
 
 - Commit message는 conventional commit 형식을 따른다.
 - Commit 전에는 format, lint, typecheck, architecture check, test를 통과해야 한다.
-- 작업 완료 전에는 `pnpm check` 또는 해당 CE 범위의 더 좁은 명시적 검증 명령을 실행한다.
+- 작업 완료 전에는 `pnpm check` 또는 해당 변경 범위의 더 좁은 명시적 검증 명령을 실행한다.
 - CSS, spacing, color, typography, layout polish 같은 순수 시각 변경을 제외한 동작 변경은 TDD를
   따른다.
-- CE-01부터 CE-05까지의 검증 경로를 흐리는 제품 확장은 backlog 또는 별도 task로 분리한다.
+- Product-facing 변경은 관련 product quality gate를 약화하지 않는지 확인한다.
 
 ## 로컬 게이트
 
@@ -47,15 +48,15 @@ approved_at: 2026-04-29
 
 각 도구는 하나의 주 책임을 가진다.
 
-| Tool | 책임 |
-| --- | --- |
-| ESLint | 코드 품질, naming, import pattern, React, hooks, a11y 규칙 |
-| dependency-cruiser | 의존성 그래프, cycle, module boundary, package boundary |
-| TypeScript | strict type safety |
-| Prettier | 코드, 설정, script, task Markdown formatting |
-| Tests | TDD와 동작 보증 |
-| Husky | 로컬 강제 진입점 |
-| commitlint | conventional commit message 검사 |
+| Tool               | 책임                                                       |
+| ------------------ | ---------------------------------------------------------- |
+| ESLint             | 코드 품질, naming, import pattern, React, hooks, a11y 규칙 |
+| dependency-cruiser | 의존성 그래프, cycle, module boundary, package boundary    |
+| TypeScript         | strict type safety                                         |
+| Prettier           | 코드, 설정, script, task Markdown formatting               |
+| Tests              | TDD와 동작 보증                                            |
+| Husky              | 로컬 강제 진입점                                           |
+| commitlint         | conventional commit message 검사                           |
 
 Custom architecture script는 저장소 고유 architecture invariant만 맡는다. 예를 들어 금지된 shared
 domain/application package, deferred module, backend domain purity는 저장소 고유 규칙이다. 파일

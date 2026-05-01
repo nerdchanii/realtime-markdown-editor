@@ -11,6 +11,7 @@ export function EditorWorkspaceBody({
   onEditorChange,
   collaborationExtensions,
   bootstrapMarkdown,
+  editable = true,
 }: {
   markdown: string;
   onMarkdownChange: (markdown: string) => void;
@@ -18,6 +19,7 @@ export function EditorWorkspaceBody({
   onEditorChange?: ((editor: Editor | null) => void) | undefined;
   collaborationExtensions?: readonly AnyExtension[] | undefined;
   bootstrapMarkdown?: string | undefined;
+  editable?: boolean | undefined;
 }) {
   return (
     <div style={workspaceSinglePaneStyle} data-testid="editor-rich-view">
@@ -28,6 +30,7 @@ export function EditorWorkspaceBody({
         onEditorChange={onEditorChange}
         collaborationExtensions={collaborationExtensions}
         bootstrapMarkdown={bootstrapMarkdown}
+        editable={editable}
       />
     </div>
   );

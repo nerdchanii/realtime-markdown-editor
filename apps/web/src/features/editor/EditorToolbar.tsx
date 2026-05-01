@@ -1,226 +1,448 @@
-import type { ReactNode, RefObject } from "react";
+import type { Editor } from "@tiptap/core";
+import { useState } from "react";
+import type { DocumentId } from "@rme/contracts";
 
-import { Button, type ButtonProps } from "@/components/ui";
+import { ChevronDownIcon } from "@/components/tiptap-icons/chevron-down-icon";
+import { HeadingButton } from "@/components/tiptap-ui/heading-button";
+import { useHeadingDropdownMenu } from "@/components/tiptap-ui/heading-dropdown-menu";
+import { BlockquoteButton } from "@/components/tiptap-ui/blockquote-button";
+import { CodeBlockButton } from "@/components/tiptap-ui/code-block-button";
+import { LinkPopover } from "@/components/tiptap-ui/link-popover";
+import { ListButton } from "@/components/tiptap-ui/list-button";
+import { MarkButton } from "@/components/tiptap-ui/mark-button";
+import { UndoRedoButton } from "@/components/tiptap-ui/undo-redo-button";
+import { Button as TiptapButton } from "@/components/tiptap-ui-primitive/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/tiptap-ui-primitive/dropdown-menu";
+import { Spacer } from "@/components/tiptap-ui-primitive/spacer";
+import { Toolbar, ToolbarGroup, ToolbarSeparator } from "@/components/tiptap-ui-primitive/toolbar";
+import {
+  createCollaborationCheckpoint,
+  createMarkdownExport,
+  updateDocumentContent,
+  type ApiClient,
+} from "@/lib/api-client";
 
-import {
-  bullet,
-  code,
-  codeBlock,
-  h1,
-  ordered,
-  redo,
-  task,
-  undo,
-  useEditorToolbarActions,
-  type EditorRef,
-  type RunEditorCommand,
-} from "./EditorToolbarActions";
-import type { SyncStatusViewModel } from "./ports/collaboration-adapter";
-import {
-  syncStatusStyle,
-  toolbarActionsStyle,
-  toolbarGroupStyle,
-  toolbarStyle,
-  visuallyHiddenInputStyle,
-} from "./styles";
+import type { PresenceMember } from "./ports/collaboration-adapter";
 
 export function EditorToolbar({
-  label,
-  syncStatus,
-  editorRef,
+  editor,
+  markdown,
+  presence,
+  apiClient,
   documentId,
-}: {
-  label: string;
-  syncStatus: SyncStatusViewModel;
-  editorRef: EditorRef;
-  documentId: string;
-}) {
-  return (
-    <div style={toolbarStyle}>
-      <EditorTitle label={label} />
-      <EditorFormatControls editorRef={editorRef} documentId={documentId} />
-      <SyncStatusSlot status={syncStatus} />
-    </div>
-  );
-}
-
-function EditorTitle({ label }: Readonly<{ label: string }>) {
-  return (
-    <div>
-      <div className="slot-kicker">Editor</div>
-      <div className="slot-title">{label}</div>
-    </div>
-  );
-}
-
-function EditorFormatControls(props: Readonly<{ editorRef: EditorRef; documentId: string }>) {
-  const actions = useEditorToolbarActions(props);
-
-  return (
-    <div
-      aria-label="Editor formatting toolbar"
-      data-testid="editor-format-toolbar"
-      style={toolbarActionsStyle}
-    >
-      <HistoryControlGroup runCommand={actions.runCommand} />
-      <BlockControlGroup runCommand={actions.runCommand} />
-      <InlineControlGroup actions={actions} />
-      <ImageUploadStatus status={actions.imageStatus} />
-    </div>
-  );
-}
-
-function HistoryControlGroup({ runCommand }: Readonly<{ runCommand: RunEditorCommand }>) {
-  return (
-    <ToolbarGroup label="History controls">
-      <ToolbarButton
-        data-undo-source="collaboration"
-        label="Undo"
-        testId="editor-undo-button"
-        onClick={() => runCommand(undo)}
-      />
-      <ToolbarButton
-        data-undo-source="collaboration"
-        label="Redo"
-        testId="editor-redo-button"
-        onClick={() => runCommand(redo)}
-      />
-    </ToolbarGroup>
-  );
-}
-
-function BlockControlGroup({ runCommand }: Readonly<{ runCommand: RunEditorCommand }>) {
-  return (
-    <ToolbarGroup label="Block controls">
-      <ToolbarButton label="Heading" testId="editor-heading-button" onClick={() => runCommand(h1)}>
-        H1
-      </ToolbarButton>
-      <ToolbarButton
-        label="Bullet list"
-        testId="editor-bullet-list-button"
-        onClick={() => runCommand(bullet)}
-      >
-        -
-      </ToolbarButton>
-      <ToolbarButton
-        label="Numbered list"
-        testId="editor-ordered-list-button"
-        onClick={() => runCommand(ordered)}
-      >
-        1.
-      </ToolbarButton>
-      <ToolbarButton label="Task item" testId="editor-task-button" onClick={() => runCommand(task)}>
-        []
-      </ToolbarButton>
-    </ToolbarGroup>
-  );
-}
-
-type ToolbarActions = ReturnType<typeof useEditorToolbarActions>;
-
-function InlineControlGroup({ actions }: Readonly<{ actions: ToolbarActions }>) {
-  return (
-    <ToolbarGroup label="Inline controls">
-      <ToolbarButton label="Add link" testId="editor-link-button" onClick={actions.handleLink}>
-        L
-      </ToolbarButton>
-      <ToolbarButton
-        label="Inline code"
-        testId="editor-inline-code-button"
-        onClick={() => actions.runCommand(code)}
-      >
-        &lt;/&gt;
-      </ToolbarButton>
-      <ToolbarButton
-        label="Code block"
-        testId="editor-code-block-button"
-        onClick={() => actions.runCommand(codeBlock)}
-      >
-        {"{}"}
-      </ToolbarButton>
-      <ImageButton
-        handleImageFile={actions.handleImageFile}
-        imageInputRef={actions.imageInputRef}
-      />
-    </ToolbarGroup>
-  );
-}
-
-function ImageButton({
-  handleImageFile,
-  imageInputRef,
+  exportTitle,
+  isReadOnly = false,
+  onSaved,
 }: Readonly<{
-  handleImageFile: ToolbarActions["handleImageFile"];
-  imageInputRef: RefObject<HTMLInputElement | null>;
+  editor: Editor | null;
+  markdown: string;
+  presence: readonly PresenceMember[];
+  apiClient?: ApiClient | undefined;
+  documentId?: string | undefined;
+  exportTitle: string;
+  isReadOnly?: boolean | undefined;
+  onSaved?: (() => void) | undefined;
 }>) {
   return (
-    <>
-      <ToolbarButton
-        label="Insert image"
-        testId="editor-image-button"
-        onClick={() => imageInputRef.current?.click()}
-      >
-        IMG
-      </ToolbarButton>
-      <input
-        ref={imageInputRef}
-        accept="image/png,image/jpeg,image/webp"
-        data-testid="editor-image-input"
-        onChange={handleImageFile}
-        style={visuallyHiddenInputStyle}
-        type="file"
-      />
-    </>
-  );
-}
-
-function ToolbarGroup({ label, children }: Readonly<{ label: string; children: ReactNode }>) {
-  return (
-    <div aria-label={label} style={toolbarGroupStyle}>
-      {children}
-    </div>
-  );
-}
-
-function ToolbarButton({
-  label,
-  testId,
-  children,
-  onMouseDown,
-  ...props
-}: ButtonProps & Readonly<{ label: string; testId: string }>) {
-  return (
-    <Button
-      aria-label={label}
-      data-testid={testId}
-      onMouseDown={(event) => {
-        event.preventDefault();
-        onMouseDown?.(event);
-      }}
-      size="icon"
-      title={label}
-      variant="ghost"
-      {...props}
+    <Toolbar
+      aria-label="Editor formatting toolbar"
+      data-testid="editor-format-toolbar"
+      style={{ minHeight: "48px", padding: "0 16px", gap: "8px" }}
+      variant="fixed"
     >
-      {children ?? label.slice(0, 1)}
-    </Button>
+      <ToolbarGroup>
+        <TextStyleDropdown editor={editor} />
+      </ToolbarGroup>
+
+      <ToolbarSeparator />
+
+      <ToolbarGroup>
+        <MarkButton data-testid="editor-bold-button" editor={editor} type="bold" />
+        <MarkButton data-testid="editor-italic-button" editor={editor} type="italic" />
+        <MarkButton data-testid="editor-strike-button" editor={editor} type="strike" />
+        <MarkButton data-testid="editor-inline-code-button" editor={editor} type="code" />
+        <LinkPopover data-testid="editor-link-button" editor={editor} />
+      </ToolbarGroup>
+
+      <ToolbarSeparator />
+
+      <ToolbarGroup>
+        <ListButton data-testid="editor-bullet-list-button" editor={editor} type="bulletList" />
+        <ListButton data-testid="editor-task-button" editor={editor} type="taskList" />
+        <ListButton data-testid="editor-ordered-list-button" editor={editor} type="orderedList" />
+        <BlockquoteButton data-testid="editor-quote-button" editor={editor} />
+        <CodeBlockButton editor={editor} />
+      </ToolbarGroup>
+
+      <ToolbarSeparator />
+
+      <ToolbarGroup>
+        <UndoRedoButton action="undo" data-testid="editor-undo-button" editor={editor} />
+        <UndoRedoButton action="redo" data-testid="editor-redo-button" editor={editor} />
+      </ToolbarGroup>
+
+      <Spacer />
+
+      <ToolbarGroup aria-label="Collaborators" style={{ gap: "0", marginRight: "4px" }}>
+        <CollaboratorStack members={presence} />
+      </ToolbarGroup>
+
+      <ToolbarGroup>
+        <CheckpointSaveButton
+          apiClient={apiClient}
+          documentId={documentId}
+          isReadOnly={isReadOnly}
+          markdown={markdown}
+          onSaved={onSaved}
+        />
+        <ExportMenuButton
+          apiClient={apiClient}
+          documentId={documentId}
+          isReadOnly={isReadOnly}
+          markdown={markdown}
+          title={exportTitle}
+        />
+      </ToolbarGroup>
+    </Toolbar>
   );
 }
 
-function ImageUploadStatus({ status }: Readonly<{ status: string }>) {
+function CheckpointSaveButton({
+  apiClient,
+  documentId,
+  isReadOnly,
+  markdown,
+  onSaved,
+}: Readonly<{
+  apiClient?: ApiClient | undefined;
+  documentId?: string | undefined;
+  isReadOnly: boolean;
+  markdown: string;
+  onSaved?: (() => void) | undefined;
+}>) {
+  const [status, setStatus] = useState<"idle" | "saving" | "saved" | "failed">("idle");
+  const canSave = Boolean(apiClient && documentId && status !== "saving");
+
+  if (!apiClient || !documentId || isReadOnly) return null;
+
   return (
-    <span aria-live="polite" data-testid="editor-image-upload-status" className="replacement-point">
-      {status}
-    </span>
+    <TiptapButton
+      aria-label={saveAriaLabel(status)}
+      data-disabled={!canSave}
+      disabled={!canSave}
+      onClick={() => {
+        void saveCheckpoint({
+          apiClient,
+          documentId,
+          markdown,
+          onSaved,
+          setStatus,
+        });
+      }}
+      role="button"
+      tabIndex={-1}
+      type="button"
+      variant="ghost"
+    >
+      <span className="tiptap-button-text">{saveLabel(status)}</span>
+    </TiptapButton>
   );
 }
 
-function SyncStatusSlot({ status }: { status: SyncStatusViewModel }) {
+async function saveCheckpoint(
+  input: Readonly<{
+    apiClient: ApiClient;
+    documentId: string;
+    markdown: string;
+    onSaved?: (() => void) | undefined;
+    setStatus: (status: "idle" | "saving" | "saved" | "failed") => void;
+  }>,
+) {
+  input.setStatus("saving");
+
+  try {
+    await updateDocumentContent(input.apiClient, input.documentId as DocumentId, {
+      markdownBody: input.markdown,
+      source: "collaboration-projection",
+    });
+    await createCollaborationCheckpoint(input.apiClient, input.documentId, {
+      message: "Manual checkpoint",
+    });
+    input.setStatus("saved");
+    input.onSaved?.();
+  } catch {
+    input.setStatus("failed");
+  }
+}
+
+function saveLabel(status: "idle" | "saving" | "saved" | "failed") {
+  if (status === "saving") return "Saving...";
+  if (status === "saved") return "Saved";
+  if (status === "failed") return "Retry save";
+  return "Save";
+}
+
+function saveAriaLabel(status: "idle" | "saving" | "saved" | "failed") {
+  if (status === "saving") return "Saving document checkpoint";
+  if (status === "saved") return "Document checkpoint saved";
+  if (status === "failed") return "Retry saving document checkpoint";
+  return "Save document checkpoint";
+}
+
+function ExportMenuButton({
+  apiClient,
+  documentId,
+  isReadOnly,
+  markdown,
+  title,
+}: Readonly<{
+  apiClient?: ApiClient | undefined;
+  documentId?: string | undefined;
+  isReadOnly: boolean;
+  markdown: string;
+  title: string;
+}>) {
+  const [status, setStatus] = useState<"idle" | "exporting" | "failed">("idle");
+
+  if (!apiClient || !documentId || isReadOnly) return null;
+
   return (
-    <div aria-label="Sync status" data-testid="sync-status" style={syncStatusStyle}>
-      <strong>{status.label}</strong>
-      <span>{status.detail}</span>
-      <span>{status.pendingEdits} pending</span>
+    <DropdownMenu modal={false}>
+      <DropdownMenuTrigger asChild>
+        <TiptapButton
+          aria-label="Document actions"
+          disabled={status === "exporting"}
+          role="button"
+          tabIndex={-1}
+          type="button"
+          variant="ghost"
+        >
+          <span aria-hidden="true" className="tiptap-button-text">
+            ...
+          </span>
+        </TiptapButton>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuGroup>
+          <DropdownMenuItem
+            disabled={status === "exporting"}
+            onClick={() => {
+              void exportMarkdown({
+                apiClient,
+                documentId,
+                markdown,
+                title,
+                setStatus,
+              });
+            }}
+          >
+            {status === "exporting" ? "Exporting..." : "Export Markdown"}
+          </DropdownMenuItem>
+          {status === "failed" ? <DropdownMenuItem disabled>Export failed</DropdownMenuItem> : null}
+        </DropdownMenuGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+async function exportMarkdown(
+  input: Readonly<{
+    apiClient: ApiClient;
+    documentId: string;
+    markdown: string;
+    title: string;
+    setStatus: (status: "idle" | "exporting" | "failed") => void;
+  }>,
+) {
+  input.setStatus("exporting");
+
+  try {
+    await updateDocumentContent(input.apiClient, input.documentId as DocumentId, {
+      markdownBody: input.markdown,
+      source: "collaboration-projection",
+    });
+    const result = await createMarkdownExport(input.apiClient, input.documentId, {
+      filename: `${slugify(input.title)}.md`,
+    });
+    downloadMarkdownFile(result.filename, result.fileContents);
+    input.setStatus("idle");
+  } catch {
+    input.setStatus("failed");
+  }
+}
+
+function downloadMarkdownFile(filename: string, fileContents: string) {
+  if (typeof window === "undefined") return;
+
+  const blob = new Blob([fileContents], { type: "text/markdown;charset=utf-8" });
+  const url = window.URL.createObjectURL(blob);
+  const anchor = window.document.createElement("a");
+  anchor.href = url;
+  anchor.download = filename;
+  window.document.body.append(anchor);
+  anchor.click();
+  anchor.remove();
+  window.URL.revokeObjectURL(url);
+}
+
+function slugify(value: string) {
+  return value.trim().toLowerCase().replaceAll(/\s+/g, "-") || "document";
+}
+
+function TextStyleDropdown({ editor }: Readonly<{ editor: Editor | null }>) {
+  const { activeLevel, canToggle, isVisible } = useHeadingDropdownMenu({
+    editor,
+    levels: [1, 2],
+    hideWhenUnavailable: false,
+  });
+  const isParagraphActive = Boolean(
+    editor?.isEditable && !activeLevel && editor.isActive("paragraph"),
+  );
+  const isDisabled = !editor || !editor.isEditable || !canToggle;
+  const label = activeLevel
+    ? `Heading ${activeLevel}`
+    : isParagraphActive
+      ? "Paragraph"
+      : "Text style";
+
+  if (!isVisible) return null;
+
+  return (
+    <DropdownMenu modal={false}>
+      <DropdownMenuTrigger asChild>
+        <TiptapButton
+          aria-label="Text style"
+          data-active-state={activeLevel || isParagraphActive ? "on" : "off"}
+          data-disabled={isDisabled}
+          disabled={isDisabled}
+          role="button"
+          tabIndex={-1}
+          tooltip="Text style"
+          type="button"
+          variant="ghost"
+        >
+          <span className="tiptap-button-text">{label}</span>
+          <ChevronDownIcon className="tiptap-button-dropdown-small" />
+        </TiptapButton>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start">
+        <DropdownMenuGroup>
+          <DropdownMenuItem asChild>
+            <ParagraphButton editor={editor} />
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <HeadingButton editor={editor} level={1} showTooltip={false} text="Heading 1" />
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <HeadingButton editor={editor} level={2} showTooltip={false} text="Heading 2" />
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+function ParagraphButton({ editor }: Readonly<{ editor: Editor | null }>) {
+  const isActive = Boolean(
+    editor?.isEditable && editor.isActive("paragraph") && !editor.isActive("heading"),
+  );
+  const canSetParagraph = Boolean(editor?.isEditable && editor.can().setParagraph());
+
+  return (
+    <TiptapButton
+      aria-label="Paragraph"
+      aria-pressed={isActive}
+      data-active-state={isActive ? "on" : "off"}
+      data-disabled={!canSetParagraph}
+      disabled={!canSetParagraph}
+      onClick={() => {
+        editor?.chain().focus().setParagraph().run();
+      }}
+      role="button"
+      showTooltip={false}
+      tabIndex={-1}
+      type="button"
+      variant="ghost"
+    >
+      <span className="tiptap-button-text">Paragraph</span>
+    </TiptapButton>
+  );
+}
+
+function CollaboratorStack({
+  members,
+}: Readonly<{
+  members: readonly PresenceMember[];
+}>) {
+  const visibleMembers = members.slice(0, 3);
+  const overflowCount = Math.max(0, members.length - visibleMembers.length);
+
+  if (visibleMembers.length === 0) return null;
+
+  return (
+    <div style={{ display: "flex", alignItems: "center" }}>
+      {visibleMembers.map((member, index) => (
+        <span
+          key={member.id}
+          aria-label={member.name}
+          title={member.name}
+          style={{
+            alignItems: "center",
+            background: member.color,
+            border: "2px solid var(--color-surface)",
+            borderRadius: "999px",
+            color: "white",
+            display: "inline-flex",
+            fontSize: "10px",
+            fontWeight: 700,
+            height: "24px",
+            justifyContent: "center",
+            marginLeft: index === 0 ? "0" : "-8px",
+            width: "24px",
+          }}
+        >
+          {initials(member.name)}
+        </span>
+      ))}
+      {overflowCount > 0 ? (
+        <span
+          aria-label={`${overflowCount} more collaborators`}
+          style={{
+            alignItems: "center",
+            background: "#f1f5f9",
+            border: "2px solid var(--color-surface)",
+            borderRadius: "999px",
+            color: "var(--color-text-secondary)",
+            display: "inline-flex",
+            fontSize: "10px",
+            fontWeight: 700,
+            height: "24px",
+            justifyContent: "center",
+            marginLeft: "-8px",
+            width: "24px",
+          }}
+        >
+          +{overflowCount}
+        </span>
+      ) : null}
     </div>
   );
+}
+
+function initials(name: string) {
+  const characters = name
+    .trim()
+    .split(/\s+/)
+    .map((part) => part[0] ?? "")
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+
+  return characters || "?";
 }

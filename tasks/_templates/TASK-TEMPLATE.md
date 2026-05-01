@@ -23,6 +23,7 @@ review_required: true
 ## 배경
 
 - 공식 기준 문서: `subject.md`, `docs/compliance/subject-matrix.md`, `docs/requirements/registry.md`.
+- 제품 품질 기준: `docs/product/product-quality-gates.md`.
 - `.note/**`는 scratch context이며 공식 요구사항 출처로 인용하지 않는다.
 
 ## 범위
@@ -59,11 +60,13 @@ review_required: true
 
 - 검증 가능한 완료 조건을 적는다.
 - CE/REQ와 관련되면 관련 ID와 evidence 기준을 적는다.
+- 관련 product quality gate를 적고, gate를 낮추지 않았음을 설명한다.
 
 ## 검증
 
 - 실행 명령: `pnpm format:check`
 - 기대 결과: formatting check가 통과한다.
+- Product quality gate 확인: 관련 gate가 없으면 "해당 없음"과 이유를 적는다.
 
 ## Review
 
@@ -78,6 +81,7 @@ review_required: true
 - [ ] 파일을 `tasks/archive/`로 이동했다.
 - [ ] 검증 결과를 이 문서에 기록했다.
 - [ ] 필요한 공식 문서 업데이트를 완료했다.
+- [ ] 관련 product quality gate 결과 또는 follow-up을 기록했다.
 - [ ] follow-up 또는 blocker를 기록했다.
 
 ## 메모

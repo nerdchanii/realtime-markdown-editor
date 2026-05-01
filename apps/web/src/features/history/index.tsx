@@ -6,248 +6,210 @@ export type { HistoryCheckpoint, HistoryInspectorViewModel } from "./types";
 
 export type HistoryInspectorSlotProps = Readonly<{
   viewModel: HistoryInspectorViewModel;
+  onPreviewCheckpoint?: ((checkpoint: HistoryCheckpoint) => void) | undefined;
 }>;
 
-const fallbackCheckpoints: readonly HistoryCheckpoint[] = [
-  {
-    id: "checkpoint-003",
-    message: "Prepared reviewer CE path",
-    author: "Mina Park",
-    createdAt: "Today 10:24",
-    snapshot: "# Collaborative editor review plan\n\nProperties stay outside this body.",
-  },
-  {
-    id: "checkpoint-002",
-    message: "Added backlinks surface",
-    author: "Jules Chen",
-    createdAt: "Yesterday 17:40",
-    snapshot: "# Review plan\n\nAdded standard Markdown link context.",
-  },
-  {
-    id: "checkpoint-001",
-    message: "Created walking skeleton document",
-    author: "Rina Sato",
-    createdAt: "Yesterday 09:05",
-    snapshot: "# Review plan\n\nInitial editor workspace scaffold.",
-  },
-];
-
-export function HistoryInspectorSlot({ viewModel }: HistoryInspectorSlotProps) {
-  const history = useHistoryInspectorState(viewModel, fallbackCheckpoints);
+export function HistoryInspectorSlot({
+  viewModel,
+  onPreviewCheckpoint,
+}: HistoryInspectorSlotProps) {
+  const history = useHistoryInspectorState(viewModel, []);
+  const usesProductHistory = Boolean(viewModel.apiClient && viewModel.documentId);
+  const timelineEntries = history.checkpoints.length
+    ? history.checkpoints.map((checkpoint, index) => {
+        const detail = checkpoint.message?.trim();
+        return {
+          key: checkpoint.id,
+          checkpoint,
+          actor: checkpoint.author,
+          action: checkpoint.kind === "autosave" ? "autosaved" : "saved",
+          time: formatCheckpointTime(checkpoint.createdAt),
+          color: index === 0 ? "#2b7fff" : "#cad5e2",
+          ...(detail ? { detail } : {}),
+        };
+      })
+    : usesProductHistory
+      ? []
+      : [];
 
   return (
-    <aside className="inspector-panel" aria-label="History inspector" data-testid="history-slot">
-      <div className="slot-kicker">History</div>
-      <h2 className="slot-title">{viewModel.label}</h2>
-      <RevisionComposer
-        message={history.revisionMessage}
-        onMessageChange={history.setRevisionMessage}
-        onPublishRevision={history.publishRevision}
-      />
-      <div style={sectionHeadingStyle}>Revisions</div>
-      <CheckpointList
-        checkpoints={history.checkpoints}
-        selectedCheckpointId={history.selectedCheckpointId}
-        onSelectCheckpoint={history.setSelectedCheckpointId}
-      />
-      {history.selected ? <SnapshotPreview checkpoint={history.selected} /> : <EmptyHistory />}
+    <aside
+      className="inspector-panel"
+      aria-label="History inspector"
+      data-testid="history-slot"
+      style={{ display: "flex", flexDirection: "column", padding: 0 }}
+    >
+      <InspectorTabs />
+      <div
+        className="app-scroll-area"
+        style={{
+          flex: 1,
+          padding: "24px 16px",
+          overflowY: "auto",
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
+        {timelineEntries.length > 0 ? (
+          <HistoryTimeline
+            entries={timelineEntries}
+            selectedCheckpointId={history.selectedCheckpointId}
+            onSelect={(checkpoint) => {
+              history.setSelectedCheckpointId(checkpoint.id);
+              onPreviewCheckpoint?.(checkpoint);
+            }}
+          />
+        ) : (
+          <EmptyHistoryState />
+        )}
+      </div>
     </aside>
   );
 }
 
-function RevisionComposer({
-  message,
-  onMessageChange,
-  onPublishRevision,
-}: Readonly<{
-  message: string;
-  onMessageChange: (message: string) => void;
-  onPublishRevision: () => void;
-}>) {
+function InspectorTabs() {
   return (
-    <section aria-label="Create checkpoint" style={composerStyle}>
-      <div style={snapshotHeaderStyle}>Create checkpoint</div>
-      <RevisionMessageInput message={message} onMessageChange={onMessageChange} />
-      <RevisionActions onPublishRevision={onPublishRevision} />
-    </section>
+    <div className="inspector-tabs">
+      <div className="inspector-tab">History</div>
+    </div>
   );
 }
 
-function RevisionMessageInput({
-  message,
-  onMessageChange,
-}: Readonly<{ message: string; onMessageChange: (message: string) => void }>) {
-  return (
-    <input
-      aria-label="Checkpoint message"
-      data-testid="revision-message-input"
-      placeholder="What changed?"
-      value={message}
-      onChange={(event) => onMessageChange(event.currentTarget.value)}
-      style={inputStyle}
-    />
-  );
-}
-
-function RevisionActions({ onPublishRevision }: Readonly<{ onPublishRevision: () => void }>) {
-  return (
-    <>
-      <button
-        type="button"
-        data-testid="confirm-publish-revision-button"
-        onClick={onPublishRevision}
-        style={primaryButtonStyle}
-      >
-        Save checkpoint
-      </button>
-      <button type="button" data-testid="publish-revision-button" style={secondaryButtonStyle}>
-        Checkpoint draft
-      </button>
-    </>
-  );
-}
-
-function CheckpointList({
-  checkpoints,
+function HistoryTimeline({
+  entries,
   selectedCheckpointId,
-  onSelectCheckpoint,
+  onSelect,
 }: Readonly<{
-  checkpoints: readonly HistoryCheckpoint[];
-  selectedCheckpointId: string | undefined;
-  onSelectCheckpoint: (checkpointId: string) => void;
+  entries: readonly {
+    key: string;
+    checkpoint: HistoryCheckpoint;
+    actor: string;
+    action: string;
+    time: string;
+    color: string;
+    detail?: string;
+  }[];
+  selectedCheckpointId?: string | undefined;
+  onSelect: (checkpoint: HistoryCheckpoint) => void;
 }>) {
   return (
-    <section aria-label="Revision history" data-testid="revision-history-list" style={sectionStyle}>
-      {checkpoints.map((checkpoint) => (
-        <button
-          key={checkpoint.id}
-          type="button"
-          style={checkpointStyle(checkpoint.id === selectedCheckpointId)}
-          data-testid="revision-history-item"
-          aria-pressed={checkpoint.id === selectedCheckpointId}
-          onClick={() => onSelectCheckpoint(checkpoint.id)}
-        >
-          <strong>{checkpoint.message}</strong>
-          <span style={metadataStyle}>
-            {checkpoint.author} · {checkpoint.createdAt}
-          </span>
-        </button>
-      ))}
-    </section>
+    <div style={{ position: "relative", paddingLeft: "8px" }}>
+      <div
+        style={{
+          position: "absolute",
+          top: "8px",
+          bottom: 0,
+          left: "11px",
+          width: "1px",
+          background: "var(--color-border)",
+        }}
+      />
+      <div style={{ display: "flex", flexDirection: "column", gap: "28px" }}>
+        {entries.map((entry) => (
+          <TimelineItem
+            key={entry.key}
+            actor={entry.actor}
+            action={entry.action}
+            time={entry.time}
+            dotColor={entry.color}
+            isSelected={entry.checkpoint.id === selectedCheckpointId}
+            onSelect={() => onSelect(entry.checkpoint)}
+            {...(entry.detail ? { content: entry.detail } : {})}
+          />
+        ))}
+      </div>
+    </div>
   );
 }
 
-function SnapshotPreview({ checkpoint }: { checkpoint: HistoryCheckpoint }) {
+function TimelineItem({
+  actor,
+  action,
+  time,
+  dotColor,
+  isSelected,
+  onSelect,
+  content,
+}: {
+  actor: string;
+  action: string;
+  time: string;
+  dotColor: string;
+  isSelected: boolean;
+  onSelect: () => void;
+  content?: string;
+}) {
   return (
-    <section
-      aria-label="Checkpoint snapshot"
-      data-testid="revision-snapshot-viewer"
-      style={snapshotStyle}
+    <button
+      aria-current={isSelected ? "true" : undefined}
+      onClick={onSelect}
+      style={{
+        background: isSelected ? "#f1f7ff" : "transparent",
+        border: "0",
+        borderRadius: "6px",
+        color: "inherit",
+        cursor: "pointer",
+        font: "inherit",
+        margin: "0 -8px",
+        padding: "6px 8px 6px 24px",
+        position: "relative",
+        textAlign: "left",
+      }}
+      type="button"
     >
-      <div style={snapshotHeaderStyle}>Read-only snapshot</div>
-      <pre style={snapshotBodyStyle}>{checkpoint.snapshot}</pre>
-    </section>
+      <div
+        style={{
+          position: "absolute",
+          left: "-1px",
+          top: "4px",
+          width: "8px",
+          height: "8px",
+          borderRadius: "50%",
+          background: dotColor,
+          border: "2px solid var(--color-background)",
+        }}
+      />
+      <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+        <div style={{ fontSize: "13px", lineHeight: "16px", color: "#1d293d" }}>
+          <span style={{ fontWeight: 600 }}>{actor}</span> {action}
+        </div>
+        {content ? <div style={historyDetailStyle}>{content}</div> : null}
+        <div style={{ fontSize: "11px", color: "#90a1b9", marginTop: "2px" }}>{time}</div>
+      </div>
+    </button>
   );
 }
 
-function EmptyHistory() {
+function EmptyHistoryState() {
   return (
-    <section
-      aria-label="Checkpoint snapshot"
-      data-testid="revision-snapshot-viewer"
-      style={snapshotStyle}
-    >
-      <div style={snapshotHeaderStyle}>No checkpoints yet</div>
-    </section>
+    <div style={{ color: "#90a1b9", fontSize: "12px", lineHeight: "18px" }}>
+      No saved revisions yet.
+    </div>
   );
 }
 
-const sectionStyle = {
-  display: "grid",
-  gap: "8px",
-  marginTop: "14px",
-};
-
-const composerStyle = {
-  display: "grid",
-  gap: "8px",
-  marginTop: "14px",
-  paddingBottom: "14px",
-  borderBottom: "1px solid var(--color-border)",
-};
-
-const sectionHeadingStyle = {
-  marginTop: "14px",
-  color: "var(--color-text-secondary)",
-  fontSize: "12px",
-  fontWeight: 650,
-};
-
-function checkpointStyle(selected: boolean) {
-  return {
-    display: "grid",
-    gap: "4px",
-    border: `1px solid ${selected ? "var(--color-accent)" : "var(--color-border)"}`,
-    borderRadius: "6px",
-    padding: "10px",
-    background: selected ? "var(--color-accent-muted)" : "var(--color-surface)",
-    color: "var(--color-text-primary)",
-    textAlign: "left" as const,
-    fontSize: "13px",
-  };
+function formatCheckpointTime(createdAt: string) {
+  const timestamp = new Date(createdAt);
+  if (Number.isNaN(timestamp.getTime())) return "Recently";
+  return formatRelativeTime(timestamp);
 }
 
-const metadataStyle = {
-  color: "var(--color-text-muted)",
+const historyDetailStyle = {
+  marginTop: "4px",
+  color: "#45556c",
   fontSize: "12px",
+  lineHeight: "18px",
 };
 
-const snapshotStyle = {
-  marginTop: "14px",
-  border: "1px solid var(--color-border)",
-  borderRadius: "6px",
-  padding: "10px",
-};
+function formatRelativeTime(timestamp: Date) {
+  const diffMs = Date.now() - timestamp.getTime();
+  const diffMinutes = Math.max(0, Math.round(diffMs / 60000));
+  if (diffMinutes < 1) return "just now";
+  if (diffMinutes < 60) return `${diffMinutes} min${diffMinutes === 1 ? "" : "s"} ago`;
 
-const inputStyle = {
-  boxSizing: "border-box" as const,
-  width: "100%",
-  border: "1px solid var(--color-border)",
-  borderRadius: "4px",
-  padding: "7px 8px",
-  color: "var(--color-text-primary)",
-  font: "inherit",
-};
+  const diffHours = Math.round(diffMinutes / 60);
+  if (diffHours < 24) return `${diffHours} hour${diffHours === 1 ? "" : "s"} ago`;
 
-const primaryButtonStyle = {
-  border: "1px solid var(--color-accent)",
-  borderRadius: "4px",
-  padding: "7px 9px",
-  color: "#ffffff",
-  background: "var(--color-accent)",
-  font: "inherit",
-  fontWeight: 650,
-};
-
-const secondaryButtonStyle = {
-  border: "1px solid var(--color-border)",
-  borderRadius: "4px",
-  padding: "7px 9px",
-  color: "var(--color-text-secondary)",
-  background: "var(--color-surface)",
-  font: "inherit",
-};
-
-const snapshotHeaderStyle = {
-  color: "var(--color-text-secondary)",
-  fontSize: "12px",
-  fontWeight: 650,
-};
-
-const snapshotBodyStyle = {
-  margin: "8px 0 0",
-  whiteSpace: "pre-wrap" as const,
-  color: "var(--color-text-primary)",
-  fontSize: "12px",
-  lineHeight: 1.55,
-};
+  const diffDays = Math.round(diffHours / 24);
+  return `${diffDays} day${diffDays === 1 ? "" : "s"} ago`;
+}

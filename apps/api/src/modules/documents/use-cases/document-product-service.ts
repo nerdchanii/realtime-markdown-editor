@@ -1,4 +1,4 @@
-import { Inject, Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Inject, Injectable, NotFoundException } from "@nestjs/common";
 import type {
   CreateDocumentRequestDto,
   DeletedResourceResponseDto,
@@ -34,9 +34,11 @@ export class DocumentProductService {
     folderId: string,
     input: CreateDocumentRequestDto,
   ): Promise<DocumentResponseDto> {
+    const title = normalizeTitle(input.title);
+    await this.assertUniqueTitle(folderId, title);
     return {
       document: required(
-        await this.repository.createInFolder(folderId, input),
+        await this.repository.createInFolder(folderId, { ...input, title }),
         "Folder not found.",
       ),
     };
@@ -52,9 +54,22 @@ export class DocumentProductService {
     documentId: string,
     input: UpdateDocumentRequestDto,
   ): Promise<DocumentResponseDto> {
+    const current = required(await this.repository.findDetail(documentId), "Document not found.");
+    const title = input.title === undefined ? undefined : normalizeTitle(input.title);
+    if (title !== undefined) {
+      await this.assertUniqueTitle(current.folderId, title, documentId);
+    }
+    const updateInput =
+      title === undefined
+        ? input
+        : {
+            ...input,
+            title,
+          };
+
     return {
       document: required(
-        await this.repository.updateDocument(documentId, input),
+        await this.repository.updateDocument(documentId, updateInput),
         "Document not found.",
       ),
     };
@@ -116,9 +131,30 @@ export class DocumentProductService {
       documentId: connections.documentId as DocumentConnectionsResponseDto["documentId"],
     };
   }
+
+  private async assertUniqueTitle(
+    folderId: string,
+    title: string,
+    currentDocumentId?: string,
+  ): Promise<void> {
+    const documents = required(await this.repository.listByFolder(folderId), "Folder not found.");
+    const normalizedTitle = title.toLowerCase();
+    const duplicate = documents.some(
+      (document) =>
+        document.id !== currentDocumentId &&
+        document.title.trim().toLowerCase() === normalizedTitle,
+    );
+    if (duplicate) throw new BadRequestException("Document title must be unique in the folder.");
+  }
 }
 
 function required<T>(value: T | null, message: string): T {
   if (value === null) throw new NotFoundException(message);
   return value;
+}
+
+function normalizeTitle(title: string): string {
+  const trimmed = title.trim();
+  if (!trimmed) throw new BadRequestException("Document title is required.");
+  return trimmed;
 }

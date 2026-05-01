@@ -1,6 +1,8 @@
 # tasks
 
-이 디렉터리는 구현 작업을 작게 나누고 현재 상태를 추적한다. 과제 충족 기준은 여전히 `docs/compliance/subject-matrix.md`가 최상위 기준이다.
+이 디렉터리는 구현 작업을 작게 나누고 현재 상태를 추적한다. CE story acceptance는
+`docs/compliance/subject-matrix.md`를 기준으로 추적하고, 작업 완료 판단은
+`docs/product/product-quality-gates.md`를 함께 통과해야 한다.
 
 ## 상태
 
@@ -19,7 +21,9 @@
 
 - 한 task는 하나의 실행 가능한 작업 단위여야 한다.
 - task가 domain model, architecture boundary, UI surface를 바꾸면 관련 문서를 먼저 업데이트한다.
-- CE-01부터 CE-05까지의 검증 경로를 흐리는 제품 확장은 backlog로 둔다.
+- CE-01부터 CE-05까지의 검증 경로는 제품 품질 gate 위에서만 완료로 인정한다.
+- Auth, authorization, workspace membership, persistence integrity, UX clarity는 CE stories를 실제
+  제품으로 성립시키는 세부 요구사항과 품질 기준이다.
 - POC와 sync engine 결정은 `docs/research/poc-001-collaboration-engine/`와 ADR-0002에서 추적한다.
 - 공식 요구사항과 acceptance는 `.note/**`가 아니라 `subject.md`, `docs/compliance/subject-matrix.md`, `docs/requirements/registry.md`를 기준으로 둔다.
 - Checklist는 최대 2단까지만 둔다. 3단 이상의 의존성이나 실행 순서는 checklist가 아니라 dependency table로 표현한다.
@@ -79,6 +83,7 @@ Phase orchestrator는 task를 만들 때 execution graph를 table로 적는다.
 
 각 task는 `## 검증`에 실행할 명령과 기대 결과를 적는다.
 
+- 모든 product-facing 작업은 관련 product quality gate 확인을 포함한다.
 - boundary-adjacent 작업은 `pnpm arch:check`를 포함한다.
 - TypeScript/API/Web contract 변경은 관련 `typecheck`를 포함한다.
 - CE 작업은 관련 e2e 또는 수동 검증 증거를 포함한다.
@@ -92,6 +97,7 @@ Phase orchestrator는 task를 만들 때 execution graph를 table로 적는다.
 - task 파일을 `tasks/archive/`로 이동했다.
 - 검증 명령과 결과를 기록했다.
 - 필요한 문서 업데이트를 완료했다.
+- 관련 product quality gate를 통과했거나, 남은 gap을 follow-up으로 기록했다.
 - 관련 CE/REQ evidence 또는 follow-up을 기록했다.
 
 ## Subagent Delegation

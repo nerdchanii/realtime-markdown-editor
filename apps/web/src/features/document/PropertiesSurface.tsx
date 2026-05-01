@@ -1,234 +1,342 @@
-import { useState } from "react";
+import { CalendarDays, CheckSquare, Plus, Trash2, Type } from "lucide-react";
+import type { KeyboardEvent } from "react";
+
+import {
+  Calendar,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+} from "@/components/ui";
 
 import type { DocumentProperty } from "./types";
+
+type EditablePropertyType = "text" | "date" | "checkbox";
 
 export function PropertiesSurface({
   properties,
   onPropertyAdd,
-  onPropertyChange,
+  onPropertyKeyChange,
+  onPropertyTypeChange,
+  onPropertyValueChange,
   onPropertyDelete,
-}: {
+}: Readonly<{
   properties: readonly DocumentProperty[];
-  onPropertyAdd: (label: string) => void;
-  onPropertyChange: (key: string, value: string) => void;
-  onPropertyDelete: (key: string) => void;
-}) {
+  onPropertyAdd: () => void;
+  onPropertyKeyChange: (index: number, key: string) => void;
+  onPropertyTypeChange: (index: number, valueType: EditablePropertyType) => void;
+  onPropertyValueChange: (index: number, value: string) => void;
+  onPropertyDelete: (index: number) => void;
+}>) {
   return (
-    <section aria-label="Document properties" data-testid="document-properties">
-      <div style={headerStyle}>
-        <div style={sectionTitleStyle}>Properties</div>
-        <PropertyAddForm onPropertyAdd={onPropertyAdd} />
-      </div>
-      <PropertyList
-        properties={properties}
-        onPropertyChange={onPropertyChange}
-        onPropertyDelete={onPropertyDelete}
-      />
+    <section
+      className="document-properties"
+      aria-label="Document properties"
+      data-testid="document-properties"
+    >
+      {properties.map((property, index) => (
+        <PropertyRow
+          index={index}
+          key={index}
+          property={property}
+          onPropertyDelete={onPropertyDelete}
+          onPropertyKeyChange={onPropertyKeyChange}
+          onPropertyTypeChange={onPropertyTypeChange}
+          onPropertyValueChange={onPropertyValueChange}
+        />
+      ))}
+      <button
+        type="button"
+        className="document-property-add"
+        aria-label="Add document property"
+        onClick={onPropertyAdd}
+      >
+        <Plus size={14} aria-hidden="true" />
+        <span>Add property</span>
+      </button>
     </section>
   );
 }
 
-function PropertyAddForm({ onPropertyAdd }: { onPropertyAdd: (label: string) => void }) {
-  const [newPropertyLabel, setNewPropertyLabel] = useState("Evidence");
-
-  return (
-    <form
-      aria-label="Add document property"
-      style={addFormStyle}
-      onSubmit={(event) => {
-        event.preventDefault();
-        onPropertyAdd(newPropertyLabel);
-        setNewPropertyLabel("Evidence");
-      }}
-    >
-      <input
-        aria-label="New property name"
-        value={newPropertyLabel}
-        onChange={(event) => setNewPropertyLabel(event.currentTarget.value)}
-        style={propertyInputStyle}
-      />
-      <button type="submit" style={propertyActionStyle}>
-        Add
-      </button>
-    </form>
-  );
-}
-
-function PropertyList({
-  properties,
-  onPropertyChange,
-  onPropertyDelete,
-}: {
-  properties: readonly DocumentProperty[];
-  onPropertyChange: (key: string, value: string) => void;
-  onPropertyDelete: (key: string) => void;
-}) {
-  return (
-    <dl style={propertyGridStyle}>
-      {properties.map((property) => (
-        <PropertyField
-          key={property.key ?? property.label}
-          property={property}
-          onPropertyChange={onPropertyChange}
-          onPropertyDelete={onPropertyDelete}
-        />
-      ))}
-    </dl>
-  );
-}
-
-function PropertyField({
+function PropertyRow({
+  index,
   property,
-  onPropertyChange,
   onPropertyDelete,
-}: {
+  onPropertyKeyChange,
+  onPropertyTypeChange,
+  onPropertyValueChange,
+}: Readonly<{
+  index: number;
   property: DocumentProperty;
-  onPropertyChange: (key: string, value: string) => void;
-  onPropertyDelete: (key: string) => void;
-}) {
-  const propertyKey = property.key ?? property.label;
+  onPropertyKeyChange: (index: number, key: string) => void;
+  onPropertyTypeChange: (index: number, valueType: EditablePropertyType) => void;
+  onPropertyValueChange: (index: number, value: string) => void;
+  onPropertyDelete: (index: number) => void;
+}>) {
+  const propertyLabel = property.key ?? property.label;
 
   return (
-    <div style={propertyItemStyle}>
-      <PropertyLabel label={property.label} onDelete={() => onPropertyDelete(propertyKey)} />
-      <dd style={propertyValueStyle} data-tone={property.tone ?? "neutral"}>
-        <PropertyInput
-          property={property}
-          onChange={(nextValue) => onPropertyChange(propertyKey, nextValue)}
+    <div className="document-property-row">
+      <label className="document-property-key">
+        <PropertyTypeSelect
+          label={propertyLabel}
+          onChange={(valueType) => onPropertyTypeChange(index, valueType)}
+          value={editablePropertyType(property)}
         />
-      </dd>
+        <input
+          aria-label={`Property key ${index + 1}`}
+          className="document-property-key-input"
+          data-property-field="key"
+          data-property-index={index}
+          onKeyDown={(event) => {
+            if (isPlainEnter(event)) {
+              event.preventDefault();
+              focusPropertyField(index, "value");
+            }
+          }}
+          onChange={(event) => onPropertyKeyChange(index, event.currentTarget.value)}
+          placeholder="Property"
+          value={propertyLabel}
+        />
+      </label>
+      <div className="document-property-value">
+        <PropertyValueInput
+          index={index}
+          property={property}
+          onChange={(value) => onPropertyValueChange(index, value)}
+        />
+        <button
+          type="button"
+          className="document-property-delete"
+          aria-label={`Remove ${propertyLabel || "property"}`}
+          onClick={() => onPropertyDelete(index)}
+        >
+          <Trash2 size={13} aria-hidden="true" />
+        </button>
+      </div>
     </div>
   );
 }
 
-function PropertyLabel({ label, onDelete }: { label: string; onDelete: () => void }) {
-  return (
-    <dt style={propertyLabelStyle}>
-      <span>{label}</span>
-      <button
-        type="button"
-        aria-label="Remove property"
-        data-testid={`delete-property-${slugify(label)}`}
-        style={propertyDeleteStyle}
-        onClick={onDelete}
-      >
-        Delete
-      </button>
-    </dt>
-  );
-}
-
-function slugify(value: string) {
-  return value.trim().toLowerCase().replaceAll(/\s+/g, "-");
-}
-
-function PropertyInput({
+function PropertyValueInput({
+  index,
   property,
   onChange,
-}: {
+}: Readonly<{
+  index: number;
   property: DocumentProperty;
   onChange: (value: string) => void;
-}) {
-  const valueType = property.valueType ?? inferPropertyType(property);
+}>) {
+  const valueType = property.valueType ?? "text";
 
   if (valueType === "checkbox") {
     return (
       <input
-        aria-label={property.label}
-        type="checkbox"
+        aria-label={`${property.key ?? property.label} value`}
+        className="document-property-checkbox"
         checked={property.value === "true"}
+        data-property-field="value"
+        data-property-index={index}
         onChange={(event) => onChange(String(event.currentTarget.checked))}
+        onKeyDown={(event) => {
+          if (isPlainEnter(event)) {
+            event.preventDefault();
+            focusNextPropertyKey(index);
+          }
+        }}
+        type="checkbox"
       />
     );
   }
 
+  if (valueType === "date") {
+    return <DateTimePicker index={index} property={property} onChange={onChange} />;
+  }
+
   return (
     <input
-      aria-label={property.label}
+      aria-label={`${property.key ?? property.label} value`}
+      className="document-property-value-input"
+      data-property-field="value"
+      data-property-index={index}
       data-property-type={valueType}
-      type={valueType === "date" ? "date" : "text"}
-      value={property.value}
       onChange={(event) => onChange(event.currentTarget.value)}
-      style={propertyInputStyle}
+      onKeyDown={(event) => {
+        if (isPlainEnter(event)) {
+          event.preventDefault();
+          focusNextPropertyKey(index);
+        }
+      }}
+      placeholder="Empty"
+      type="text"
+      value={property.value}
     />
   );
 }
 
-function inferPropertyType(property: DocumentProperty) {
-  const label = property.label.toLowerCase();
-  if (label.includes("date")) return "date";
-  if (label.includes("owner")) return "member";
-  if (label.includes("evidence")) return "checkbox";
-  if (property.tone === "warning") return "status";
+function PropertyTypeSelect({
+  label,
+  onChange,
+  value,
+}: Readonly<{
+  label: string;
+  onChange: (value: EditablePropertyType) => void;
+  value: EditablePropertyType;
+}>) {
+  return (
+    <Select
+      onValueChange={(nextValue) => onChange(nextValue as EditablePropertyType)}
+      value={value}
+    >
+      <SelectTrigger
+        className="document-property-type-trigger"
+        aria-label={`${label || "Property"} type`}
+      >
+        <PropertyTypeIcon value={value} />
+      </SelectTrigger>
+      <SelectContent className="document-property-type-content">
+        <SelectItem value="text">
+          <span className="document-property-type-option">
+            <Type size={13} aria-hidden="true" />
+            Text
+          </span>
+        </SelectItem>
+        <SelectItem value="date">
+          <span className="document-property-type-option">
+            <CalendarDays size={13} aria-hidden="true" />
+            DateTime
+          </span>
+        </SelectItem>
+        <SelectItem value="checkbox">
+          <span className="document-property-type-option">
+            <CheckSquare size={13} aria-hidden="true" />
+            Checkbox
+          </span>
+        </SelectItem>
+      </SelectContent>
+    </Select>
+  );
+}
+
+function PropertyTypeIcon({ value }: Readonly<{ value: EditablePropertyType }>) {
+  if (value === "date") return <CalendarDays size={14} aria-hidden="true" />;
+  if (value === "checkbox") return <CheckSquare size={14} aria-hidden="true" />;
+  return <Type size={14} aria-hidden="true" />;
+}
+
+function DateTimePicker({
+  index,
+  property,
+  onChange,
+}: Readonly<{
+  index: number;
+  property: DocumentProperty;
+  onChange: (value: string) => void;
+}>) {
+  const parsed = parseDateTimeValue(property.value);
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          className="document-property-datetime-trigger"
+          data-property-field="value"
+          data-property-index={index}
+          aria-label={`${property.key ?? property.label} datetime`}
+        >
+          {formatDateTimeLabel(property.value)}
+        </button>
+      </PopoverTrigger>
+      <PopoverContent className="document-property-datetime-popover" align="start">
+        <Calendar
+          mode="single"
+          selected={parsed.date}
+          onSelect={(date) => {
+            if (!date) return;
+            onChange(toDateTimeValue(date, parsed.time));
+          }}
+        />
+        <label className="document-property-time-field">
+          <span>Time</span>
+          <input
+            type="time"
+            value={parsed.time}
+            onChange={(event) => {
+              const date = parsed.date ?? new Date();
+              onChange(toDateTimeValue(date, event.currentTarget.value));
+            }}
+          />
+        </label>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+function editablePropertyType(property: DocumentProperty): EditablePropertyType {
+  if (property.valueType === "date") return "date";
+  if (property.valueType === "checkbox") return "checkbox";
   return "text";
 }
 
-const sectionTitleStyle = {
-  color: "var(--color-text-secondary)",
-  fontSize: "12px",
-  fontWeight: 650,
-};
+function parseDateTimeValue(value: string) {
+  const [datePart, timePart] = value.split("T");
+  const date =
+    datePart && /^\d{4}-\d{2}-\d{2}$/.test(datePart) ? createLocalDate(datePart) : undefined;
+  const time = timePart && /^\d{2}:\d{2}/.test(timePart) ? timePart.slice(0, 5) : "09:00";
+  return { date, time };
+}
 
-const headerStyle = {
-  display: "grid",
-  gap: "8px",
-  marginTop: "12px",
-};
+function createLocalDate(value: string) {
+  const [year, month, day] = value.split("-").map(Number);
+  return new Date(year ?? 1970, (month ?? 1) - 1, day ?? 1);
+}
 
-const addFormStyle = {
-  display: "grid",
-  gridTemplateColumns: "minmax(0, 1fr) auto",
-  gap: "6px",
-};
+function toDateTimeValue(date: Date, time: string) {
+  return `${formatDateValue(date)}T${time || "09:00"}`;
+}
 
-const propertyGridStyle = {
-  display: "grid",
-  gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))",
-  gap: "8px",
-  margin: "8px 0 0",
-};
+function formatDateValue(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
 
-const propertyItemStyle = {
-  minWidth: 0,
-  display: "grid",
-  gap: "4px",
-};
+function formatDateTimeLabel(value: string) {
+  const { date, time } = parseDateTimeValue(value);
+  if (!date) return "Empty";
+  return `${formatDateValue(date)} ${time}`;
+}
 
-const propertyLabelStyle = {
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "space-between",
-  gap: "8px",
-  color: "var(--color-text-muted)",
-  fontSize: "12px",
-};
+function isPlainEnter(event: KeyboardEvent<HTMLElement>) {
+  return (
+    event.key === "Enter" && !event.shiftKey && !event.altKey && !event.metaKey && !event.ctrlKey
+  );
+}
 
-const propertyValueStyle = {
-  margin: "2px 0 0",
-};
+function focusPropertyField(index: number, field: "key" | "value") {
+  requestAnimationFrame(() => {
+    const target = document.querySelector<HTMLElement>(
+      `[data-property-index="${index}"][data-property-field="${field}"]`,
+    );
+    target?.focus();
+  });
+}
 
-const propertyInputStyle = {
-  boxSizing: "border-box" as const,
-  width: "100%",
-  minWidth: 0,
-  color: "var(--color-text-primary)",
-  font: "inherit",
-};
+function focusNextPropertyKey(index: number) {
+  requestAnimationFrame(() => {
+    const nextKey = document.querySelector<HTMLElement>(
+      `[data-property-index="${index + 1}"][data-property-field="key"]`,
+    );
+    if (nextKey) {
+      nextKey.focus();
+      return;
+    }
 
-const propertyActionStyle = {
-  border: "1px solid var(--color-border)",
-  borderRadius: "4px",
-  padding: "5px 8px",
-  color: "var(--color-text-primary)",
-  background: "var(--color-surface)",
-  font: "inherit",
-};
-
-const propertyDeleteStyle = {
-  border: "0",
-  padding: 0,
-  color: "var(--color-danger)",
-  background: "transparent",
-  font: "inherit",
-  fontSize: "11px",
-};
+    document.querySelector<HTMLElement>(".document-property-add")?.focus();
+  });
+}

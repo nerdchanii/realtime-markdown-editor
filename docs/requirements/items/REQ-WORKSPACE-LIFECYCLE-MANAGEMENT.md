@@ -2,7 +2,7 @@
 id: REQ-WORKSPACE-LIFECYCLE-MANAGEMENT
 title: Workspace와 하위 project/folder/document lifecycle을 제품 UI에서 추가, 수정, 삭제할 수 있어야 한다.
 status: planned
-category: product-extension
+category: product-foundation
 type: functional
 priority: high
 taskability: taskable
@@ -22,6 +22,10 @@ refs:
 
 Workspace hierarchy는 탐색만 가능하면 부족하다. 사용자는 normal product UI에서 workspace,
 project, folder, document를 만들고 이름/metadata를 수정하고 삭제 또는 archive할 수 있어야 한다.
+
+이 요구사항은 협업 문서 product story를 실제 사용자에게 성립시키는 세부 제품 요구사항이다. 사용자가
+문서를 만들고, 찾고, 상태를 이해하고, 삭제/보존 정책을 신뢰할 수 있어야 협업 editor path가 제품으로
+성립한다.
 
 Acceptance:
 

@@ -39,6 +39,11 @@ export type WorkspaceDocumentCreateRequest = Readonly<{
   projectId?: string | null;
 }>;
 
+export type WorkspaceFolderCreateRequest = Readonly<{
+  name: string;
+  parentFolderId: string;
+}>;
+
 export type WorkspaceNavigationViewModel = Readonly<{
   replacementPoint: string;
   label: string;
@@ -50,11 +55,30 @@ export type WorkspaceNavigationViewModel = Readonly<{
   root?: WorkspaceNavigationNode;
   projects?: readonly WorkspaceNavigationProject[];
   selectedDocumentId?: string | null;
+  activeFolderId?: string | null;
+  defaultFolderId?: string | null;
   onSelectDocument?: (selection: WorkspaceNavigationSelection) => void;
   onCreateDocument?: (request: WorkspaceDocumentCreateRequest) => void;
+  onCreateFolder?: (request: WorkspaceFolderCreateRequest) => void;
+  onDeleteDocument?: (documentId: string) => void;
+  onDeleteFolder?: (folderId: string) => void;
 }>;
 
 export type NormalizedWorkspaceNavigationViewModel = Required<
-  Omit<WorkspaceNavigationViewModel, "onSelectDocument" | "onCreateDocument">
+  Omit<
+    WorkspaceNavigationViewModel,
+    | "onSelectDocument"
+    | "onCreateDocument"
+    | "onCreateFolder"
+    | "onDeleteDocument"
+    | "onDeleteFolder"
+  >
 > &
-  Pick<WorkspaceNavigationViewModel, "onSelectDocument" | "onCreateDocument">;
+  Pick<
+    WorkspaceNavigationViewModel,
+    | "onSelectDocument"
+    | "onCreateDocument"
+    | "onCreateFolder"
+    | "onDeleteDocument"
+    | "onDeleteFolder"
+  >;

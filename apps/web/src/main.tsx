@@ -2,6 +2,8 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 
 import { App } from "@/app/App.js";
+import "@/styles/_variables.scss";
+import "@/styles/_keyframe-animations.scss";
 import "@/styles/global.css";
 
 const root = document.getElementById("root");

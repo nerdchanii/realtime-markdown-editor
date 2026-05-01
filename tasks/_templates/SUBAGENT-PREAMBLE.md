@@ -35,7 +35,7 @@ During work:
 - stop if a contract change is needed but not assigned,
 - stop if another in-flight task owns the same path,
 - do not implement deferred product scope unless the task explicitly promotes it,
-- keep CE-01 through CE-05 evidence paths visible.
+- keep CE-01 through CE-05 story paths visible.
 
 Completion report must include:
 

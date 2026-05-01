@@ -91,11 +91,20 @@ test("workspace product API creates hierarchy and protects root folders", async 
       parentFolderId: folder.id,
       name: "Nested",
     });
-    const nonEmptyDelete = await fetch(`${baseUrl}/folders/${folder.id}`, {
+    const nestedDelete = await fetch(`${baseUrl}/folders/${folder.id}`, {
       method: "DELETE",
       headers: authHeaders(),
     });
-    assert.equal(nonEmptyDelete.status, 400, await nonEmptyDelete.text());
+    assert.equal(nestedDelete.status, 200, await nestedDelete.text());
+
+    const afterDeleteNavigation = await getJson<WorkspaceNavigationResponseDto>(
+      baseUrl,
+      `/workspaces/${workspace.id}/navigation`,
+    );
+    assert.deepEqual(
+      afterDeleteNavigation.folders.map((item) => item.name).sort(),
+      ["Project root", "Workspace root"].sort(),
+    );
   } finally {
     await app.close();
   }
@@ -264,8 +273,24 @@ class InMemoryWorkspaceProductRepository implements WorkspaceProductRepository {
     const folder = await this.findFolder(folderId);
     if (!folder) return null;
     const deletedAt = new Date("2026-04-30T00:00:00.000Z").toISOString();
-    this.folders.set(folderId, { ...folder, deletedAt });
+    const folderIds = this.collectFolderTreeIds(folderId);
+    for (const childFolderId of folderIds) {
+      const childFolder = this.folders.get(childFolderId);
+      if (childFolder) this.folders.set(childFolderId, { ...childFolder, deletedAt });
+    }
     return { id: folderId, deletedAt };
+  }
+
+  private collectFolderTreeIds(rootFolderId: string): string[] {
+    const folderIds = [rootFolderId];
+    for (let index = 0; index < folderIds.length; index += 1) {
+      folderIds.push(
+        ...[...this.folders.values()]
+          .filter((folder) => folder.parentFolderId === folderIds[index] && !folder.deletedAt)
+          .map((folder) => folder.id),
+      );
+    }
+    return folderIds;
   }
 
   private id(prefix: string): string {

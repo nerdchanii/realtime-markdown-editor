@@ -14,9 +14,10 @@ status: active
 - Account/auth 작업을 위한 stable identity를 제공한다.
 - 한 user가 나중에 여러 workspace에 참여할 수 있게 한다.
 - Workspace-specific display detail은 membership에 둔다.
+- Product session, authorship, presence identity, workspace authorization이 참조할 수 있는 신뢰
+  가능한 account boundary를 제공한다.
 
 ## 책임이 아닌 것
 
-- First skeleton의 authorization과 role enforcement.
-- Production authentication flow는 첫 skeleton 책임이 아니다.
 - Presence color 자체. Presence color는 membership의 책임이다.
+- Enterprise SSO, SCIM, organization administration 같은 advanced identity provider 운영.

@@ -8,12 +8,14 @@
     "node": ">=24 <25"
   },
   "scripts": {
-    "dev": "pnpm --parallel --filter @rme/api --filter @rme/collab --filter @rme/web dev",
+    "dev": "node scripts/dev-local.mjs",
+    "dev:runtimes": "pnpm --parallel --filter @rme/api --filter @rme/collab --filter @rme/web dev",
     "dev:api": "pnpm --filter @rme/api dev",
     "dev:collab": "pnpm --filter @rme/collab dev",
     "dev:web": "pnpm --filter @rme/web dev",
     "db:up": "node scripts/db-bootstrap.mjs",
     "db:migrate": "node scripts/db-bootstrap.mjs --migrate",
+    "db:seed:local": "node scripts/seed-local-product.mjs",
     "db:generate": "pnpm --filter @rme/api db:generate",
     "build": "pnpm -r --if-present build",
     "typecheck": "tsc -b",

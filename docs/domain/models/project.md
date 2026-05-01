@@ -22,7 +22,7 @@ status: active
 
 - Folder move 대상이 되는 containment node.
 - Markdown body나 checkpoint content 소유.
-- First skeleton의 project-level workflow state와 hooks.
+- 현재 제품 범위를 넘어서는 project-level workflow state와 hooks.
 - Project 간 fine-grained permission policy.
 
 ## 규칙

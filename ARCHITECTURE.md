@@ -15,7 +15,10 @@ related_documents:
 
 ## Architecture Purpose
 
-The architecture must prove the collaboration requirements in `subject.md` while allowing the product to grow into a team workspace document tool. The first architecture priority is the CE-01 through CE-05 review path, not speculative product expansion.
+The architecture must turn the collaboration requirements in `subject.md` into a trustworthy team
+workspace document product. CE-01 through CE-05 are product stories from `subject.md`; detailed
+requirements such as identity, authorization, persistence, and UX quality make those stories usable
+as a real product.
 
 Key quality goals:
 
@@ -23,7 +26,9 @@ Key quality goals:
 - Make collaboration state observable without manual refresh.
 - Keep the Markdown body portable and define the export policy clearly.
 - Keep the domain model independent from editor, sync, storage, browser, and deployment providers.
-- Let local reviewers run the product without production operations complexity.
+- Keep login, session, workspace membership, authorship, and document access trustworthy.
+- Fail clearly when local runtime prerequisites such as database configuration or migrations are
+  missing.
 
 ## System Context
 
@@ -49,7 +54,8 @@ The system is a browser-based collaborative Markdown editor backed by server-sid
 
 ## Core Runtime Scenario
 
-The first end-to-end product skeleton follows the subject requirement flow.
+The first end-to-end product path follows the subject requirement flow on top of product-shaped
+identity, workspace, document, persistence, and UI boundaries.
 
 1. Two members open the same workspace-scoped document from a seeded workspace/project/root-folder context.
 2. Two members edit the same Markdown document at the same time.

@@ -232,6 +232,7 @@ function mapCheckpoint(
 ): HistoryCheckpoint {
   return {
     id: checkpoint.id,
+    kind: "save",
     documentId: checkpoint.documentId,
     message: checkpoint.message,
     author: fallback.author,

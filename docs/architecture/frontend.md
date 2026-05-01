@@ -7,7 +7,9 @@ status: active
 
 ## 목적
 
-Frontend architecture는 editor-first product experience를 유지한다. Product extensions can support the editor, but they must not hide or complicate the CE-01 through CE-05 reviewer path.
+Frontend architecture는 editor-first product experience를 유지한다. CE-01부터 CE-05까지의 stories는
+사용자가 이해할 수 있는 제품 흐름 안에서 완료되어야 하며, CE 검증 편의를 위해 UX 일관성이나 account
+flow를 낮추지 않는다.
 
 ## First Screen Rule
 
@@ -42,7 +44,8 @@ Each feature exposes a public slot from its package root:
 
 ## Mock Replacement Points
 
-The walking skeleton uses named mock providers so later integration tasks can replace data sources without moving UI ownership:
+The current product slice uses named mock providers only where integration tasks need replacement
+points without moving UI ownership:
 
 - `app.providers.mock` wires slot view models for the current app shell.
 - `lib.api-client.mock` is the API client replacement point.
@@ -51,8 +54,16 @@ The walking skeleton uses named mock providers so later integration tasks can re
 - `features.editor.provider.mock` feeds editor mode, sync status, presence, source, and preview placeholders.
 - `features.history.provider.mock` feeds checkpoint history.
 
-## Product Extension Rule
+## Product Quality Rule
 
-Properties, links/backlinks, `DocumentState`, workspace navigation, and future workflow controls support the editor-first flow. They must not become the primary screen until CE-01 through CE-05 are stable and reviewable.
+Properties, links/backlinks, `DocumentState`, workspace navigation, account controls, and future
+workflow controls support the editor-first flow. They are not decorative extensions when they make the
+product understandable, trustworthy, or recoverable.
 
-`DocumentState` controls are allowed as direct value/state changes in the walking skeleton. Transition policy, publish/draft visibility, ownership-based visibility, and external workflow execution are deferred until workflow capability promotion.
+`DocumentState` controls are allowed as direct value/state changes in the current product slice.
+Transition policy, publish/draft visibility, ownership-based visibility, and external workflow
+execution are deferred until workflow capability promotion.
+
+Frontend work is not complete when an e2e selector can click through a path. The UI must make the
+current workspace/document/member context visible enough for a user to understand where edits,
+presence, history, export, and recovery belong.

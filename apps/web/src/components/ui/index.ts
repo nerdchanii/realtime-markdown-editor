@@ -1,5 +1,6 @@
 export { Badge, type BadgeProps } from "./badge.js";
 export { Button, type ButtonProps } from "./button.js";
+export { Calendar, type CalendarProps } from "./calendar.js";
 export { Checkbox, type CheckboxProps } from "./checkbox.js";
 export {
   Dialog,
@@ -28,7 +29,27 @@ export {
   type DropdownMenuTriggerProps,
 } from "./dropdown-menu.js";
 export { Input, Textarea, type InputProps, type TextareaProps } from "./input.js";
+export {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+  type PopoverContentProps,
+  type PopoverProps,
+  type PopoverTriggerProps,
+} from "./popover.js";
 export { ScrollArea, type ScrollAreaProps } from "./scroll-area.js";
+export {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  type SelectContentProps,
+  type SelectItemProps,
+  type SelectProps,
+  type SelectTriggerProps,
+  type SelectValueProps,
+} from "./select.js";
 export { Separator, type SeparatorProps } from "./separator.js";
 export { Switch, type SwitchProps } from "./switch.js";
 export {

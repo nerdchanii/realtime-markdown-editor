@@ -1,4 +1,5 @@
 import type { AnyExtension, Editor } from "@tiptap/core";
+import { TaskItem, TaskList } from "@tiptap/extension-list";
 import Link from "@tiptap/extension-link";
 import { Markdown } from "@tiptap/markdown";
 import { EditorContent, useEditor } from "@tiptap/react";
@@ -7,6 +8,12 @@ import { useEffect, useRef, type MutableRefObject } from "react";
 
 import type { EditorSelectionSnapshot } from "./ports/collaboration-adapter";
 import { richEditorPaneStyle } from "./styles";
+
+import "@/components/tiptap-node/blockquote-node/blockquote-node.scss";
+import "@/components/tiptap-node/code-block-node/code-block-node.scss";
+import "@/components/tiptap-node/heading-node/heading-node.scss";
+import "@/components/tiptap-node/list-node/list-node.scss";
+import "@/components/tiptap-node/paragraph-node/paragraph-node.scss";
 
 type MarkdownCapableEditor = Editor & {
   getMarkdown?: () => string;
@@ -24,6 +31,7 @@ export function RichEditorPane({
   onEditorChange,
   collaborationExtensions,
   bootstrapMarkdown,
+  editable = true,
 }: Readonly<{
   markdown: string;
   onMarkdownChange: (markdown: string) => void;
@@ -31,6 +39,7 @@ export function RichEditorPane({
   onEditorChange?: ((editor: Editor | null) => void) | undefined;
   collaborationExtensions?: readonly AnyExtension[] | undefined;
   bootstrapMarkdown?: string | undefined;
+  editable?: boolean | undefined;
 }>) {
   const editor = useRichMarkdownEditor({
     markdown,
@@ -39,6 +48,7 @@ export function RichEditorPane({
     onEditorChange,
     collaborationExtensions,
     bootstrapMarkdown,
+    editable,
   });
 
   return (
@@ -55,6 +65,7 @@ function useRichMarkdownEditor({
   onEditorChange,
   collaborationExtensions,
   bootstrapMarkdown,
+  editable,
 }: RichMarkdownEditorOptions) {
   const bootstrappedMarkdownRef = useRef<string | null>(null);
   const editor = useEditor(
@@ -62,8 +73,9 @@ function useRichMarkdownEditor({
       onMarkdownChange,
       onSelectionChange,
       collaborationExtensions,
+      editable,
     }),
-    [collaborationExtensions],
+    [collaborationExtensions, editable],
   );
 
   useExternalMarkdownSync(editor, markdown, collaborationExtensions);
@@ -85,6 +97,7 @@ type RichMarkdownEditorOptions = Readonly<{
   onEditorChange?: ((editor: Editor | null) => void) | undefined;
   collaborationExtensions?: readonly AnyExtension[] | undefined;
   bootstrapMarkdown?: string | undefined;
+  editable: boolean;
 }>;
 
 function useExternalMarkdownSync(
@@ -142,6 +155,7 @@ function createRichEditorOptions(
     onMarkdownChange: (markdown: string) => void;
     onSelectionChange: (selection: EditorSelectionSnapshot) => void;
     collaborationExtensions?: readonly AnyExtension[] | undefined;
+    editable: boolean;
   }>,
 ) {
   const hasCollaborationExtensionList = hasCollaborationExtensions(
@@ -153,6 +167,7 @@ function createRichEditorOptions(
     ...(hasCollaborationExtensionList
       ? {}
       : { content: markdown, contentType: "markdown" as const }),
+    editable: handlers.editable,
     immediatelyRender: false,
     editorProps: { attributes: createRichEditorAttributes() },
     onUpdate: ({ editor }: { editor: Editor }) => publishRichMarkdown(editor, handlers),
@@ -176,6 +191,8 @@ export function createRichEditorExtensions(
   return [
     StarterKit.configure({ undoRedo: false, link: false }),
     Link.configure({ autolink: true, openOnClick: false }),
+    TaskList,
+    TaskItem.configure({ nested: true }),
     Markdown.configure({
       markedOptions: { gfm: true, breaks: false },
       indentation: { style: "space", size: 2 },
@@ -187,7 +204,7 @@ function createRichEditorAttributes() {
   return {
     "aria-label": "Rich Markdown editor",
     "data-testid": "rich-markdown-editor",
-    class: "tiptap-rich-editor",
+    class: "tiptap-rich-editor simple-editor",
     style: richEditorPaneStyle,
   };
 }

@@ -142,6 +142,10 @@ export type PrismaWorkspaceProductPersistenceClient = Readonly<{
       data: { name?: string; parentFolderId?: string | null; deletedAt?: Date };
       select: FolderSelect & { deletedAt?: true };
     }): Promise<(FolderRecord & { deletedAt?: Date | null }) | null>;
+    updateMany(args: {
+      where: { id: { in: readonly string[] }; deletedAt: null };
+      data: { deletedAt: Date };
+    }): Promise<unknown>;
   };
   document: {
     findMany(args: {
@@ -153,6 +157,10 @@ export type PrismaWorkspaceProductPersistenceClient = Readonly<{
       select: DocumentSummarySelect;
       orderBy: { title: "asc" };
     }): Promise<DocumentSummaryRecord[]>;
+    updateMany(args: {
+      where: { folderId: { in: readonly string[] }; archivedAt: null };
+      data: { archivedAt: Date };
+    }): Promise<unknown>;
   };
   workspaceMembership: {
     create(args: {
@@ -401,10 +409,16 @@ export class PrismaWorkspaceProductRepository implements WorkspaceProductReposit
   async deleteFolder(folderId: string): Promise<DeletedResourceResponseDto | null> {
     if (!(await this.findFolder(folderId))) return null;
     const deletedAt = new Date();
-    await this.client.folder.update({
-      where: { id: folderId },
-      data: { deletedAt },
-      select: { ...folderSelect, deletedAt: true },
+    await this.client.$transaction(async (transaction) => {
+      const folderIds = await collectFolderTreeIds(transaction, folderId);
+      await transaction.document.updateMany({
+        where: { folderId: { in: folderIds }, archivedAt: null },
+        data: { archivedAt: deletedAt },
+      });
+      await transaction.folder.updateMany({
+        where: { id: { in: folderIds }, deletedAt: null },
+        data: { deletedAt },
+      });
     });
     return { id: folderId, deletedAt: deletedAt.toISOString() };
   }
@@ -455,6 +469,24 @@ async function createWorkspaceRoot(
       select: workspaceSelect,
     }),
   );
+}
+
+async function collectFolderTreeIds(
+  client: PrismaWorkspaceProductPersistenceClient,
+  rootFolderId: string,
+): Promise<string[]> {
+  const folderIds = [rootFolderId];
+  for (let index = 0; index < folderIds.length; index += 1) {
+    const parentFolderId = folderIds[index];
+    if (!parentFolderId) continue;
+    const children = await client.folder.findMany({
+      where: { parentFolderId, deletedAt: null },
+      select: folderSelect,
+      orderBy: { name: "asc" },
+    });
+    folderIds.push(...children.map((child) => child.id));
+  }
+  return folderIds;
 }
 
 async function createOwnerMembership(

@@ -38,6 +38,8 @@ test("TASK-045: reviewer workspace flow reaches product surfaces without hiding 
   await page.getByTestId("revision-history-item").filter({ hasText: checkpointMessage }).click();
   await expect(page.getByTestId("revision-snapshot-viewer")).toContainText(reviewerLine);
 
+  await page.getByTestId("document-publish-toggle").click();
+  await page.getByTestId("markdown-export-menu-item").click();
   await page.getByTestId("markdown-export-button").click();
   await expect(page.getByTestId("markdown-export-filename")).toHaveText("review-plan.md");
   await expect(page.getByTestId("markdown-export-output")).toContainText("---");

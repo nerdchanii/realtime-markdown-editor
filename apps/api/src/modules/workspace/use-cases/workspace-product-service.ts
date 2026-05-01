@@ -120,10 +120,6 @@ export class WorkspaceProductService {
   async deleteFolder(folderId: string): Promise<DeletedResourceResponseDto> {
     const folder = await this.getFolder(folderId);
     assertMutableFolder(folder);
-    const children = await this.getFolderChildren(folderId);
-    if (children.folders.length > 0 || children.documents.length > 0) {
-      throw new BadRequestException("Folder must be empty before it can be deleted.");
-    }
 
     return required(await this.repository.deleteFolder(folderId), "Folder not found.");
   }

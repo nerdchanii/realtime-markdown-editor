@@ -3,6 +3,9 @@ import { fileURLToPath, URL } from "node:url";
 import { defineConfig } from "vite";
 
 export default defineConfig({
+  define: {
+    __FEATURE__DM__: JSON.stringify(process.env.__FEATURE__DM__ ?? "false"),
+  },
   plugins: [react()],
   resolve: {
     alias: {

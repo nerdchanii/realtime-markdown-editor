@@ -34,6 +34,11 @@ type WorkspaceScaffold = Readonly<{
 export const reviewerWorkspaceId = "workspace_review";
 export const reviewerProjectRootFolderId = "folder_project_root";
 
+const localProductPassword = "password";
+const localProductPasswordSalt = "local-review-password-salt";
+const localProductPasswordHash =
+  "3bbff257761674495c3ad315d62259d7d7f1b13901c9c63eac6cb9bf189cc2f49d5254e6f2858b69cf2ac9cae04982f423a3253b239d3c450cb8c72785057e81";
+
 const apiRequire = createRequire(new URL("../../apps/api/package.json", import.meta.url));
 const { PrismaClient } = apiRequire("@prisma/client") as {
   PrismaClient: new () => PrismaFixtureClient;
@@ -41,7 +46,7 @@ const { PrismaClient } = apiRequire("@prisma/client") as {
 
 export async function createProductSession(page: Page, email: string, workspaceId: string) {
   const response = await page.request.post(`${apiBaseUrl()}/auth/session`, {
-    data: { email, workspaceId },
+    data: { email, password: localProductPassword, workspaceId },
   });
 
   expect(response.ok(), await response.text()).toBeTruthy();
@@ -210,8 +215,18 @@ async function seedMember(
 ) {
   await prisma.user.upsert({
     where: { email: member.email },
-    update: { name: member.displayName },
-    create: { id: member.userId, email: member.email, name: member.displayName },
+    update: {
+      name: member.displayName,
+      passwordHash: localProductPasswordHash,
+      passwordSalt: localProductPasswordSalt,
+    },
+    create: {
+      id: member.userId,
+      email: member.email,
+      name: member.displayName,
+      passwordHash: localProductPasswordHash,
+      passwordSalt: localProductPasswordSalt,
+    },
   });
   await prisma.workspaceMembership.upsert({
     where: { id: member.membershipId },

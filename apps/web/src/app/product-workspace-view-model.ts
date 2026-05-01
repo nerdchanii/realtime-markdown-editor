@@ -13,6 +13,7 @@ import type { DocumentBacklink, DocumentProperty } from "@/features/document";
 import { createTiptapYjsCollaborationAdapter } from "@/features/editor";
 import type {
   WorkspaceDocumentCreateRequest,
+  WorkspaceFolderCreateRequest,
   WorkspaceNavigationNode,
   WorkspaceNavigationSelection,
 } from "@/features/workspace";
@@ -24,12 +25,23 @@ export function createProductProviders(
   model: ProductWorkspaceModel,
   onSelectDocument: (selection: WorkspaceNavigationSelection) => void,
   onCreateDocument: (request: WorkspaceDocumentCreateRequest) => void,
+  onCreateFolder: (request: WorkspaceFolderCreateRequest) => void,
+  onDeleteDocument: (documentId: string) => void,
+  onDeleteFolder: (folderId: string) => void,
+  onDocumentPropertiesUpdated: () => void,
 ): AppFeatureProviders {
   const context = createProviderContext(model);
 
   return {
-    workspaceNavigation: createWorkspaceNavigation(model, onSelectDocument, onCreateDocument),
-    documentContext: createDocumentContext(model, context.memberships),
+    workspaceNavigation: createWorkspaceNavigation(
+      model,
+      onSelectDocument,
+      onCreateDocument,
+      onCreateFolder,
+      onDeleteDocument,
+      onDeleteFolder,
+    ),
+    documentContext: createDocumentContext(model, context.memberships, onDocumentPropertiesUpdated),
     editorWorkspace: createEditorWorkspace(model, context.memberships, context.currentMemberId),
     editorCollaborationAdapter: createTiptapYjsCollaborationAdapter(),
     historyInspector: createHistoryInspector(model, context.memberships, context.currentMemberId),
@@ -84,6 +96,9 @@ function createWorkspaceNavigation(
   model: ProductWorkspaceModel,
   onSelectDocument: (selection: WorkspaceNavigationSelection) => void,
   onCreateDocument: (request: WorkspaceDocumentCreateRequest) => void,
+  onCreateFolder: (request: WorkspaceFolderCreateRequest) => void,
+  onDeleteDocument: (documentId: string) => void,
+  onDeleteFolder: (folderId: string) => void,
 ) {
   const memberships = model.session?.memberships ?? [];
   const currentMember = model.session?.currentMembership ?? null;
@@ -101,24 +116,33 @@ function createWorkspaceNavigation(
       createNavigationProject(model.navigation, project),
     ),
     selectedDocumentId: model.selectedDocument.id,
+    activeFolderId: model.selectedDocument.folderId,
+    defaultFolderId:
+      model.navigation.projects[0]?.rootFolderId ?? model.navigation.workspace.rootFolderId,
     onSelectDocument,
     onCreateDocument,
+    onCreateFolder,
+    onDeleteDocument,
+    onDeleteFolder,
   };
 }
 
 function createDocumentContext(
   model: ProductWorkspaceModel,
   memberships: readonly WorkspaceMemberDto[],
+  onPropertiesUpdated: () => void,
 ) {
   return {
     replacementPoint: "features.document.provider.product-api",
     label: "Document context",
     documentId: model.selectedDocument.id,
     title: model.selectedDocument.title,
+    apiClient: model.apiClient,
     path: createDocumentPath(model.navigation, model.selectedDocument).join(" / "),
     properties: model.selectedDocument.properties.map((property) =>
       mapDocumentProperty(property, memberships),
     ),
+    onPropertiesUpdated,
     backlinks: model.backlinks.map(mapBacklink),
   };
 }
@@ -223,6 +247,7 @@ function mapDocumentProperty(
     key: property.key,
     label: property.key,
     value,
+    rawValue: property.value.value,
     valueType: property.value.type,
     tone: property.value.type === "status" ? "warning" : "neutral",
   };

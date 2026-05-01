@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { resolveActiveEditorDocumentId } from "@/features/editor";
+import { resolveActiveEditorDocumentId } from "@/features/editor/active-document-id";
 import { loadProductWorkspace } from "./product-workspace-loader";
 
 test("loadProductWorkspace prefers the authenticated current workspace over the route workspace", async () => {
@@ -124,7 +124,26 @@ test("loadProductWorkspace selects a route document only when it belongs to the 
     const url = new URL(String(input));
 
     if (url.pathname === "/auth/session") {
-      return jsonResponse({ session: null });
+      return jsonResponse({
+        session: {
+          currentMembership: {
+            id: "member_alice",
+            workspaceId: "workspace_a",
+            displayName: "Alice",
+            color: "#0969da",
+            role: "owner",
+          },
+          memberships: [
+            {
+              id: "member_alice",
+              workspaceId: "workspace_a",
+              displayName: "Alice",
+              color: "#0969da",
+              role: "owner",
+            },
+          ],
+        },
+      });
     }
 
     if (url.pathname === "/workspaces") {

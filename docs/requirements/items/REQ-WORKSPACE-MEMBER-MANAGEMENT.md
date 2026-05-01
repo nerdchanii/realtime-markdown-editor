@@ -2,7 +2,7 @@
 id: REQ-WORKSPACE-MEMBER-MANAGEMENT
 title: Workspace member를 추가, 수정, 제거할 수 있어야 한다.
 status: planned
-category: product-extension
+category: product-foundation
 type: functional
 priority: high
 taskability: taskable
@@ -23,6 +23,10 @@ refs:
 Workspace collaboration은 seeded member만으로는 제품 흐름이 부족하다. Workspace owner는 normal
 product UI에서 member를 추가하고, owner/member 역할을 관리하고, 더 이상 접근하면 안 되는 member를
 제거할 수 있어야 한다.
+
+이 요구사항은 CE stories가 실제 사용자에게 성립하기 위한 세부 제품 요구사항이다. CE-01부터 CE-04까지의
+collaboration, presence, history는 workspace member가 누구인지와 접근 가능한 document가 무엇인지
+신뢰할 수 있어야 완료된다.
 
 Acceptance:
 
