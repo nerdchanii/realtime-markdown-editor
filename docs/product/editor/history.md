@@ -5,6 +5,7 @@ related_requirements:
   - CE-04-REVISION-HISTORY
   - REQ-HISTORY-CHECKPOINTS
   - REQ-HISTORY-AUTOSAVE-SEPARATION
+  - REQ-COLLABORATIVE-CREATION-VISIBILITY
 related_adrs:
   - ADR-0003
   - ADR-0004
@@ -27,6 +28,7 @@ History는 ordinary autosave/sync와 intentional checkpoint를 구분하면서 r
 - Checkpoint 생성은 server-resolved author membership, timestamp, reviewer message, snapshot artifact reference를 metadata로 저장한다.
 - Checkpoint Markdown snapshot은 client가 보낸 full-body snapshot이 아니라 server-resolved current Markdown projection에서 만들어진다.
 - First skeleton의 local-compatible artifact adapter는 inspectable Markdown snapshot을 저장하며, autosave/sync event를 user-authored checkpoint로 승격하지 않는다.
+- Checkpoint 생성 결과는 생성자 view에만 머물지 않고 같은 workspace document를 보는 다른 member의 history list에도 표시되어야 한다.
 
 ## 보류
 
@@ -37,4 +39,4 @@ History는 ordinary autosave/sync와 intentional checkpoint를 구분하면서 r
 
 ## 검증
 
-Reviewer가 checkpoint를 만들거나 선택하고, metadata를 본 뒤 read-only snapshot viewer에서 저장된 Markdown content를 확인한다.
+Reviewer가 checkpoint를 만들거나 선택하고, metadata를 본 뒤 read-only snapshot viewer에서 저장된 Markdown content를 확인한다. 다른 member session도 생성된 checkpoint를 normal product path에서 볼 수 있어야 한다.

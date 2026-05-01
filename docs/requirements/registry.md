@@ -6,71 +6,64 @@ schema_version: 0.1.0
 
 # docs/requirements/registry.md
 
-## 필드 정의
+이 파일은 상세 요구사항 정본이 아니라 사람이 보는 얇은 지도다. 상세 내용은
+`completed/*.md`, `items/*.md`, `backlog/*.md`의 ID별 파일에 둔다.
 
-| Field                  | 의미                                                                      |
-| ---------------------- | ------------------------------------------------------------------------- |
-| `id`                   | 안정적인 요구사항 ID                                                      |
-| `origin`               | `subject`, `subject-derived`, `product-extension`, `research`, `deferred` |
-| `type`                 | `functional`, `non-functional`, `ux`, `architecture`, `ops`               |
-| `decision_status`      | `confirmed`, `research-needed`, `foundation`, `deferred`                  |
-| `delivery_phase`       | `poc`, `walking-skeleton`, `mvp`, `post-mvp`, `future`                    |
-| `derived_from`         | 출처가 되는 subject 또는 requirement ID                                   |
-| `statement`            | 검증 가능한 요구사항 문장                                                 |
-| `acceptance`           | 충족 여부를 확인하는 기준                                                 |
-| `related_product_docs` | 맥락을 설명하는 product/domain/compliance 문서                            |
-| `related_adrs`         | 관련 ADR ID                                                               |
+상태/범위/타입별 조회는 스크립트를 사용한다.
 
-## 과제 요구사항
+```sh
+node scripts/requirements-index.mjs
+node scripts/requirements-index.mjs --status done
+node scripts/requirements-index.mjs --category backlog
+node scripts/requirements-index.mjs --scope frontend
+```
 
-| id                         | origin  | type       | decision_status | delivery_phase   | derived_from | statement                                                                       | acceptance                                                                                   | related_product_docs                                                             | related_adrs       |
-| -------------------------- | ------- | ---------- | --------------- | ---------------- | ------------ | ------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- | ------------------ |
-| `CE-01-CONCURRENT-EDITING` | subject | functional | confirmed       | walking-skeleton | `subject.md` | 2명 이상이 동일한 Markdown 문서를 동시에 편집할 수 있어야 한다.                 | 두 client가 하나의 workspace document를 편집하고 manual refresh 없이 같은 내용으로 수렴한다. | `docs/product/editor/concurrent-editing.md`, `docs/compliance/subject-matrix.md` | ADR-0001, ADR-0002 |
-| `CE-02-PRESENCE`           | subject | functional | confirmed       | walking-skeleton | `subject.md` | 타 사용자의 cursor 위치와 selection range가 realtime으로 표시되어야 한다.       | remote cursor/selection 변경이 member identity와 함께 표시된다.                              | `docs/product/editor/presence.md`                                                | ADR-0001, ADR-0005 |
-| `CE-03-OFFLINE-MERGE`      | subject | functional | confirmed       | walking-skeleton | `subject.md` | network 단절 후 reconnect 시 local edits와 server state가 자동 병합되어야 한다. | 이미 열린 editor가 offline edit를 받고 reconnect 후 고유 텍스트 손실 없이 병합된다.          | `docs/product/editor/offline-merge.md`                                           | ADR-0002, ADR-0003 |
-| `CE-04-REVISION-HISTORY`   | subject | functional | confirmed       | walking-skeleton | `subject.md` | 사용자는 document revision history를 조회할 수 있어야 한다.                     | reviewer가 history/checkpoint 목록을 열고 이전 document state를 확인한다.                    | `docs/product/editor/history.md`                                                 | ADR-0003, ADR-0004 |
-| `CE-05-RICH-PREVIEW`       | subject | functional | confirmed       | walking-skeleton | `subject.md` | editor는 Markdown rich preview를 제공해야 한다.                                 | 현재 Markdown content가 TipTap rich editor surface에서 content loss 없이 rich-rendered 상태로 작성된다. | `docs/product/editor/rich-preview.md`                                            | ADR-0002, ADR-0005, ADR-0007 |
+## 완료된 요구사항
 
-## 파생 요구사항
+완료된 항목은 `docs/requirements/completed/`에 둔다. 이 디렉터리는 "이미 작업한 것"의
+정본이다.
 
-| id                                | origin          | type           | decision_status | delivery_phase   | derived_from                                       | statement                                                                                                            | acceptance                                                                                                                              | related_product_docs                                                                           | related_adrs                 |
-| --------------------------------- | --------------- | -------------- | --------------- | ---------------- | -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- | ---------------------------- |
-| `REQ-COLLAB-ENGINE-ADAPTER`       | subject-derived | architecture   | confirmed       | walking-skeleton | `CE-01-CONCURRENT-EDITING`, `CE-03-OFFLINE-MERGE`  | Collaboration engine 내부 구현은 adapter boundary 뒤에 있어야 한다.                                                  | product/domain API가 provider-specific CRDT 또는 editor internals를 노출하지 않는다.                                                    | `docs/domain/rules/collaboration-boundaries.md`                                                | ADR-0001, ADR-0002           |
-| `REQ-WORKSPACE-DOCUMENT-SCOPE`    | subject-derived | functional     | confirmed       | walking-skeleton | `CE-01-CONCURRENT-EDITING`                         | Collaborative editing은 anonymous single-page scratch document가 아니라 workspace-scoped document 기준으로 검증한다. | review를 위한 seeded 또는 real workspace/project/root-folder/document context가 존재하고, 모든 Document는 non-null `folderId`를 가진다. | `docs/product/workspace/workspace-hierarchy.md`, `docs/domain/relations/workspace-document.md` | ADR-0001, ADR-0005, ADR-0006 |
-| `REQ-PRESENCE-MEMBER-AWARENESS`   | subject-derived | ux             | confirmed       | walking-skeleton | `CE-02-PRESENCE`                                   | Presence는 workspace membership display name과 color로 remote user를 식별해야 한다.                                  | remote cursor와 selection이 stable member label/color로 표시된다.                                                                       | `docs/product/editor/presence.md`, `docs/domain/relations/user-workspace.md`                   | ADR-0001, ADR-0005           |
-| `REQ-IDENTITY-MEMBERSHIP`         | subject-derived | architecture   | confirmed       | walking-skeleton | `CE-02-PRESENCE`, `CE-04-REVISION-HISTORY`         | `User`와 `WorkspaceMembership`은 분리된 domain concept이어야 한다.                                                   | presence와 checkpoint authorship이 temporary local label이 아니라 workspace member를 참조할 수 있다.                                    | `docs/product/workspace/user-membership.md`, `docs/domain/models/user.md`                      | ADR-0001                     |
-| `REQ-OFFLINE-LOCAL-PERSISTENCE`   | subject-derived | architecture   | confirmed       | walking-skeleton | `CE-03-OFFLINE-MERGE`                              | Open-page offline editing은 reconnect 전까지 local document state를 보존해야 한다.                                   | 이미 열린 editor가 disconnected 상태가 되어도 local edits가 사라지지 않는다.                                                            | `docs/product/editor/offline-merge.md`                                                         | ADR-0002, ADR-0003           |
-| `REQ-OFFLINE-RECONNECT-MERGE`     | subject-derived | functional     | confirmed       | walking-skeleton | `CE-03-OFFLINE-MERGE`, `REQ-COLLAB-ENGINE-ADAPTER` | Reconnect 시 Tiptap + Yjs + Hocuspocus adapter를 통해 local/remote edits가 병합되어야 한다.                          | POC와 구현이 reconnect 후 local/remote 고유 텍스트 보존을 증명한다.                                                                     | `docs/product/editor/offline-merge.md`, `docs/research/poc-001-collaboration-engine/README.md` | ADR-0002                     |
-| `REQ-HISTORY-CHECKPOINTS`         | subject-derived | functional     | confirmed       | walking-skeleton | `CE-04-REVISION-HISTORY`                           | User-visible history는 explicit checkpoint로 표현한다.                                                               | History entry가 author, time, message, inspectable content state를 보여준다.                                                            | `docs/product/editor/history.md`                                                               | ADR-0003, ADR-0004           |
-| `REQ-HISTORY-AUTOSAVE-SEPARATION` | subject-derived | ux             | confirmed       | walking-skeleton | `CE-04-REVISION-HISTORY`                           | Autosave/sync state와 intentional checkpoint history는 별도 개념이어야 한다.                                         | ordinary sync가 명시적 생성 없이 user-authored checkpoint처럼 보이지 않는다.                                                            | `docs/product/editor/history.md`, `docs/domain/rules/document-lifecycle.md`                    | ADR-0004                     |
-| `REQ-EDITOR-RICH-AUTHORING-SURFACE` | subject-derived | functional     | confirmed       | walking-skeleton | `CE-05-RICH-PREVIEW`                               | editor는 TipTap 기반 rich Markdown authoring surface를 기본 편집 경험으로 제공해야 한다.                             | heading, list, code, link 같은 Markdown authoring이 editable rich surface에서 rendering되고 동일 body가 export/history로 보존된다.       | `docs/product/editor/rich-preview.md`                                                          | ADR-0002, ADR-0005, ADR-0007 |
-| `REQ-EDITOR-RICH-SOURCE-SPLIT`    | subject-derived | functional     | deferred        | future           | `CE-05-RICH-PREVIEW`                               | editor는 Rich, Markdown source, Split mode를 지원할 수 있다.                                                         | raw Markdown source editor와 source/preview split은 first submission 이후 별도 user evidence와 editor stack 검토를 거쳐 승격한다.        | `docs/backlog/README.md`, `docs/product/editor/rich-preview.md`                                | ADR-0005, ADR-0007           |
-| `REQ-MARKDOWN-PORTABILITY`        | subject-derived | non-functional | confirmed       | mvp              | `CE-05-RICH-PREVIEW`                               | Markdown body는 editor, link, export, history 전반에서 portable해야 한다.                                            | core body content가 product-only syntax에 의존하지 않고 standard Markdown으로 round-trip된다.                                           | `docs/product/editor/markdown-export.md`                                                       | ADR-0002, ADR-0005, ADR-0007 |
+- `CE-01-CONCURRENT-EDITING`
+- `CE-02-PRESENCE`
+- `CE-03-OFFLINE-MERGE`
+- `CE-04-REVISION-HISTORY`
+- `CE-05-RICH-PREVIEW`
+- `REQ-COLLAB-ENGINE-ADAPTER`
+- `REQ-DOCUMENT-STATE-FOUNDATION`
+- `REQ-EDITOR-RICH-AUTHORING-SURFACE`
+- `REQ-HISTORY-AUTOSAVE-SEPARATION`
+- `REQ-HISTORY-CHECKPOINTS`
+- `REQ-IDENTITY-MEMBERSHIP`
+- `REQ-LINKS-BACKLINKS-STANDARD-MARKDOWN`
+- `REQ-MARKDOWN-EXPORT-FRONTMATTER`
+- `REQ-MARKDOWN-PORTABILITY`
+- `REQ-OFFLINE-LOCAL-PERSISTENCE`
+- `REQ-OFFLINE-RECONNECT-MERGE`
+- `REQ-PRESENCE-MEMBER-AWARENESS`
+- `REQ-PROPERTIES-OUTSIDE-BODY`
+- `REQ-RESEARCH-COLLAB-ENGINE-POC`
+- `REQ-WORKSPACE-DOCUMENT-SCOPE`
+- `REQ-WORKSPACE-HIERARCHY`
 
-## 제품 확장 요구사항
+## 채택되었지만 아직 닫지 않은 요구사항
 
-| id                                      | origin            | type         | decision_status | delivery_phase | derived_from                                              | statement                                                                                                                                               | acceptance                                                                                                                                                           | related_product_docs                                                                                                                                | related_adrs                 |
-| --------------------------------------- | ----------------- | ------------ | --------------- | -------------- | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------- |
-| `REQ-WORKSPACE-HIERARCHY`               | product-extension | functional   | confirmed       | mvp            | `subject.md free area`                                    | 제품은 Workspace를 최상위 team context로 두고, WorkspaceRootFolder와 ProjectRootFolder를 가진 filesystem-like folder tree로 folder/document를 조직한다. | Workspace는 hidden `workspaceRoot` folder를 가지고, Project는 hidden `projectRoot` folder를 가지며, Project는 Folder subtype이나 WorkspaceRootFolder child가 아니다. | `docs/product/workspace/workspace-hierarchy.md`, `docs/domain/models/workspace.md`, `docs/domain/models/project.md`, `docs/domain/models/folder.md` | ADR-0001, ADR-0005, ADR-0006 |
-| `REQ-PROPERTIES-OUTSIDE-BODY`           | product-extension | functional   | confirmed       | mvp            | `subject.md free area`                                    | Document properties는 Markdown body storage 밖에 있고 title 근처에서 편집한다.                                                                          | Markdown body가 internal property value를 body text로 포함하지 않는다.                                                                                               | `docs/product/editor/properties.md`, `docs/domain/models/document.md`                                                                               | ADR-0001, ADR-0005           |
-| `REQ-MARKDOWN-EXPORT-FRONTMATTER`       | product-extension | functional   | confirmed       | mvp            | `REQ-PROPERTIES-OUTSIDE-BODY`, `REQ-MARKDOWN-PORTABILITY` | Markdown export는 properties를 YAML frontmatter representation으로 포함한다.                                                                            | exported Markdown은 frontmatter metadata와 standard Markdown body를 가진 single file이다.                                                                            | `docs/product/editor/markdown-export.md`                                                                                                            | ADR-0005                     |
-| `REQ-LINKS-BACKLINKS-STANDARD-MARKDOWN` | product-extension | functional   | confirmed       | mvp            | `subject.md free area`                                    | Document connection은 standard Markdown links와 backlinks에서 시작한다.                                                                                 | 한 document가 다른 document로 link하면 wikilink-only syntax 없이 incoming connection이 표시된다.                                                                     | `docs/product/editor/links-backlinks.md`                                                                                                            | ADR-0001, ADR-0005           |
-| `REQ-DOCUMENT-STATE-FOUNDATION`         | product-extension | architecture | foundation      | post-mvp       | `subject.md free area`                                    | `DocumentState`는 future workflow hooks를 위한 분리된 domain foundation이다.                                                                            | domain docs가 draft/review/saved를 정의하고 hooks/workflow builder를 deferred로 유지한다.                                                                            | `docs/product/workflow/document-state.md`, `docs/domain/models/document-state.md`                                                                   | ADR-0004, ADR-0005           |
-| `REQ-PLATFORM-PORTABILITY-GUARDRAIL`    | product-extension | architecture | confirmed       | future         | `CE-03-OFFLINE-MERGE`                                     | Browser, PWA, Tauri, Electron 가능성이 domain code로 새면 안 된다.                                                                                      | platform-specific API는 adapter concern으로 남는다.                                                                                                                  | `ARCHITECTURE.md`, `docs/domain/rules/collaboration-boundaries.md`                                                                                  | ADR-0001, ADR-0003           |
+진행 중이거나 guardrail로 유지되는 항목은 `docs/requirements/items/`에 둔다.
 
-## 연구 요구사항
+- `REQ-COLLABORATIVE-CREATION-VISIBILITY`
+- `REQ-DEV-LOCAL-PRODUCT-SEED-DATA`
+- `REQ-OFFLINE-INDEXEDDB-DRAFT-RECOVERY`
+- `REQ-PLATFORM-PORTABILITY-GUARDRAIL`
+- `REQ-PRESENCE-CARET-LABEL-LEGIBILITY`
+- `REQ-PRODUCTION-ACCOUNT-MANAGEMENT`
+- `REQ-RESEARCH-REDIS-SUPPORT`
+- `REQ-WORKSPACE-LIFECYCLE-MANAGEMENT`
+- `REQ-WORKSPACE-MEMBER-MANAGEMENT`
 
-| id                               | origin   | type         | decision_status | delivery_phase | derived_from                                                                              | statement                                                                           | acceptance                                                                                                                         | related_product_docs                                   | related_adrs |
-| -------------------------------- | -------- | ------------ | --------------- | -------------- | ----------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ | ------------ |
-| `REQ-RESEARCH-COLLAB-ENGINE-POC` | research | architecture | confirmed       | poc            | `CE-01-CONCURRENT-EDITING`, `CE-02-PRESENCE`, `CE-03-OFFLINE-MERGE`, `CE-05-RICH-PREVIEW` | sync engine choice 전에 Tiptap+Yjs/Hocuspocus와 Yorkie+ProseMirror를 비교해야 한다. | POC result가 concurrent editing, presence, offline merge, persistence, Markdown mode 적합성을 기록하고 ADR-0002가 선택을 확정한다. | `docs/research/poc-001-collaboration-engine/README.md` | ADR-0002     |
-| `REQ-RESEARCH-REDIS-SUPPORT`     | research | architecture | research-needed | future         | `REQ-OFFLINE-RECONNECT-MERGE`                                                             | Redis는 durable document storage가 아니라 support infrastructure로만 평가한다.      | Redis 사용은 presence, pub/sub, cache, queue 역할 중 하나로 정당화된다.                                                            | `ARCHITECTURE.md`                                      | ADR-0003     |
+## 백로그 요구사항
 
-## 보류 요구사항
+아직 계획되거나 구체화되지 않은 요구사항은 `docs/requirements/backlog/`에 둔다.
+여기에 있는 항목은 바로 구현 지시로 쓰지 않고 `next_step`을 먼저 해결한다.
 
-| id                                           | origin   | type         | decision_status | delivery_phase | derived_from                            | statement                                                                                                 | acceptance                                                                                                                           | related_product_docs                                                | related_adrs |
-| -------------------------------------------- | -------- | ------------ | --------------- | -------------- | --------------------------------------- | --------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------- | ------------ |
-| `REQ-DEFERRED-TASK-EXTRACTION`               | deferred | functional   | deferred        | future         | `subject.md free area`                  | Task extraction과 task metadata parsing은 first skeleton 밖에 둔다.                                       | Backlog가 구현 전 재검토 trigger를 기록한다.                                                                                         | `docs/backlog/README.md`                                            | ADR-0005     |
-| `REQ-DEFERRED-COMMENTS-SUGGESTIONS`          | deferred | functional   | deferred        | future         | `subject.md free area`                  | Comments, suggestions, chat, mentions, notifications, DMs는 first skeleton 밖에 둔다.                     | Backlog가 보류된 collaboration communication feature로 기록한다.                                                                     | `docs/backlog/README.md`                                            | ADR-0005     |
-| `REQ-DEFERRED-WIKILINKS`                     | deferred | functional   | deferred        | future         | `REQ-LINKS-BACKLINKS-STANDARD-MARKDOWN` | Wikilinks는 standard Markdown links/backlinks가 동작한 뒤로 미룬다.                                       | Product docs가 standard Markdown link를 첫 connection format으로 유지한다.                                                           | `docs/backlog/README.md`, `docs/product/editor/links-backlinks.md`  | ADR-0005     |
-| `REQ-DEFERRED-MULTI-PANE-DOCUMENT-WORKSPACE` | deferred | functional   | deferred        | future         | `subject.md free area`                  | 사용자는 center editor area를 IDE처럼 수평/수직 split하고 각 pane에 다른 workspace document를 열 수 있다. | Backlog와 product docs가 rich authoring surface, source/preview split, multi-document pane split을 구분하고 구현 전 재검토 trigger를 기록한다. | `docs/backlog/README.md`, `docs/product/editor/rich-preview.md`     | ADR-0005, ADR-0007 |
-| `REQ-DEFERRED-WORKFLOW-HOOKS`                | deferred | architecture | deferred        | future         | `REQ-DOCUMENT-STATE-FOUNDATION`         | Workflow hooks, visual workflow builder, Slack/Agent/mail/log integrations는 deferred다.                  | `DocumentState`는 나중에 hook을 붙일 수 있도록 분리 상태를 유지한다.                                                                 | `docs/product/workflow/document-state.md`, `docs/backlog/README.md` | ADR-0004     |
+- `REQ-ACCOUNT-WORKSPACE-ONBOARDING`
+- `REQ-PRODUCT-DEMO-ENTRYPOINT`
+- `REQ-WORKSPACE-INVITATION-INBOX`
