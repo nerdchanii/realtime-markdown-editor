@@ -1,151 +1,717 @@
 ---
 title: DESIGN.md
-version: 0.1.0
+version: 0.3.1
 product: Realtime collaborative Markdown editor
-design_intent: Dense technical writing workspace for teams
-colors:
-  background: "#f6f8fa"
-  surface: "#ffffff"
-  elevated_surface: "#ffffff"
-  text_primary: "#1f2328"
-  text_secondary: "#57606a"
-  text_muted: "#6e7781"
-  border: "#d0d7de"
-  border_strong: "#8c959f"
-  accent: "#0969da"
-  accent_muted: "#ddf4ff"
-  success: "#1a7f37"
-  warning: "#9a6700"
-  danger: "#cf222e"
-  info: "#0969da"
-  selection: "#b6e3ff"
-  presence:
-    - "#0969da"
-    - "#1a7f37"
-    - "#bf8700"
-    - "#8250df"
-    - "#cf222e"
-    - "#0a7ea4"
-typography:
-  ui_family: "Inter, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif"
-  editor_family: "Inter, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif"
-  code_family: "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
-  body_size: "14px"
-  editor_size: "14px"
-  metadata_size: "12px"
-  line_height: 1.55
-  heading_weight: 650
-radii:
-  small: "4px"
-  medium: "6px"
-  large: "8px"
-spacing:
-  xs: "4px"
-  sm: "8px"
-  md: "12px"
-  lg: "16px"
-  xl: "24px"
-layout:
-  shell: "full-height three-panel workspace"
-  sidebar_width: "260px"
-  inspector_width: "320px"
-  tab_height: "44px"
-  toolbar_height: "52px"
-  status_bar_height: "24px"
-  editor_measure: "760px"
-components:
-  tab_strip: "open document tabs above the editor surface"
-  toolbar: "compact editor toolbar with sync and document actions"
-  document_header: "title, save state, collaborators, workflow state, and editor actions"
-  editor: "TipTap rich Markdown authoring surface with keyboard shortcuts and presence overlays"
-  preview: "deferred; rich editor surface serves first-submission preview need"
-  inspector: "right-side contextual inspector with history timeline first"
-  status_bar: "bottom sync, cursor, encoding, editor mode, and error count strip"
-  status_badge: "compact semantic badge, never decorative"
-motion:
-  duration_fast: "120ms"
-  duration_normal: "180ms"
-focus:
-  ring: "2px solid #0969da"
-breakpoints:
-  desktop: "1200px"
-  tablet: "768px"
-  mobile: "480px"
+design_intent: IDE-like dense technical writing workspace for collaborative engineering documents
 ---
 
 # DESIGN.md
 
-## Overview
+## 1. Design Intent
 
-This product should feel like a serious writing and review tool that software teams use every day. The first screen is the actual editor workspace, not a landing page or dashboard. The UI should be calm, dense, readable, and optimized for repeated collaboration sessions.
+This product is a dense technical writing workspace for engineering teams.
 
-## Product Principles
+The UI should feel closer to an IDE or professional documentation tool than a personal note app, dashboard, or marketing SaaS page.
 
-- Editor first: navigation and inspector surfaces support the document.
-- Collaboration is visible but transient: presence, selection, and sync state must not become document content.
-- Markdown stays portable: rich editing must preserve export and revision snapshot behavior.
-- Review context stays compact: history, comments, tasks, and status signals live near the document without overpowering the editor.
-- Offline state is explicit: reconnecting and pending local edits should be visible, but must not look like a red danger state unless data loss is likely.
-- Workspace context remains present: the product must not feel like a single-document demo.
+The first screen is the collaborative editor itself.
 
-## Visual Direction
+Primary goals:
 
-Use restrained neutral surfaces, clear borders, dense spacing, and strong content hierarchy. The target feel is a professional documentation workspace: left project files, document tabs, a centered rich editing measure, right-side history context, and a persistent bottom status bar. Avoid decorative gradients, overly rounded cards, beige note-app styling, nested cards, and marketing-page composition. Cards are only for repeated items, anchored popovers, or modals.
+- Editor-first writing experience.
+- Clear workspace and project context.
+- Dense but readable file navigation.
+- Rich TipTap-based Markdown authoring.
+- Compact history-first inspector.
+- Explicit document save/sync state near the document context.
+- Settings separated by Workspace, Project, and User scope.
 
-## Color System
+## 2. Image Reference Usage
 
-Primary content uses near-black text on white or light gray surfaces. Accent blue is reserved for focus, selected navigation, links, and primary actions. Success, warning, and danger colors are semantic state colors. Presence colors are reserved for collaborators and must remain stable per workspace membership.
+Images are visual references only.
 
-Selection and remote selection colors must be transparent enough to preserve Markdown readability. Reconnecting, pending local edits, and neutral warnings should not use red unless there is data loss or permission failure.
+When image references and this document conflict, this DESIGN.md is the source of truth.
 
-## Typography
+Use images for:
 
-Shell, navigation, inspector, and rich editor prose use the UI font. Code blocks, inline code, cursor metadata, and low-level status text may use a monospace font. Metadata, timestamps, badges, and secondary labels use smaller text while preserving contrast.
+- Overall layout direction.
+- Relative panel placement.
+- Density.
+- Visual tone.
+- Component examples.
 
-Editor text should be comfortable for long writing sessions. Use 14px or 15px text with roughly 1.55 line height. Do not use viewport-based font scaling or negative letter spacing. Rich editor headings should be clear but never hero-sized.
+Do not copy images blindly.
 
-## Layout System
+Do not implement:
 
-- Desktop uses left workspace navigation, center editor, and right inspector.
-- Open documents appear as a compact tab strip above the editor header.
-- First-submission editing uses one TipTap rich authoring surface; raw source and split preview are deferred.
-- The editor body uses a comfortable centered text measure inside the center work area, not a card.
-- A persistent bottom status bar shows sync state, cursor position, encoding, editor mode, and error count.
-- Side panels may collapse, but the center editor remains the primary work surface.
-- Mobile layout may be deferred, but document state must not depend on desktop-only hidden state.
-- Panel collapse must not reset editor focus, draft content, current mode, or sync status.
-- The inspector is a contextual work surface, not a dashboard.
+- Explanatory callout labels from design boards.
+- Rounded cards around every pane.
+- Extra buttons shown only in mockups.
+- Duplicate presence indicators.
+- Decorative details not described in this document.
+- Global app-level bottom status bars or footer chrome if they appear in generated mockups.
 
-## Core Screens
+## 3. Product Information Architecture
 
-- Workspace/document list: dense list with document state and recent activity.
-- Collaborative editor: rich Markdown writing, presence, and sync state.
-- Rich authoring: rendered Markdown editing with heading, table, task, code, and quote styling.
-- History: right inspector timeline with author, time, message, and snapshot access.
-- Inspector: history first, then comments, tasks, decisions, risks, activity, and document metadata as product scope expands.
-- Offline/reconnect: subtle status surface that can show pending local edit count.
-- Workflow foundation: `DocumentState` may appear as a small status, but hook builder UI is deferred.
+The main workspace consists of:
 
-## Component Rules
+```txt
+Top Bar
+Explorer
+TipTap Editor
+History Inspector
+Settings Panel
+```
 
-- Buttons use icon-only or icon-plus-text treatments for clear commands.
-- Raw Markdown source and split preview controls are deferred until the source editor stack is intentionally selected.
-- Status badges are compact and semantic: Draft, Review, Saved, Synced, Pending, and Offline should be short labels.
-- Presence avatars use stable member colors from workspace membership.
-- Remote cursor labels must not cover editable text for long.
-- Presence selection may use a small anchored popover when it clarifies who is editing without taking focus from the text.
-- Comment markers attach to document locations but must not mutate the Markdown body.
-- Properties live near the document title and must not look like Markdown body content.
-- Links/backlinks should feel like document context, not a social graph dashboard.
-- Empty states are short and actionable. They do not explain the entire product in-app.
+Primary flow:
 
-## Avoid
+```txt
+Workspace > Project
+-> Explorer
+-> Document Tabs
+-> TipTap Editor
+-> History
+-> Settings via Profile Menu
+```
 
-- Marketing hero sections.
-- Purple/blue gradient SaaS styling.
-- Beige cozy notes-app styling.
-- Nested cards.
-- Overly rounded rectangles.
-- Decorative orbs, bokeh, or illustration-first backgrounds.
-- Chatbot-centered layouts as the primary UI.
-- Analytics dashboards as the primary screen.
+There is no global bottom status bar in the first implementation.
+
+If a status bar is used, it belongs only inside the center editor panel and only represents the current document/editor state.
+
+## 4. Shell Layout
+
+The app uses a full-height, IDE-like pane layout.
+
+```txt
++--------------------------------------------------------------+
+| Top Bar                                                      |
++---------------+----------------------------+-----------------+
+| Explorer      | Editor                     | History         |
+|               |                            |                 |
++---------------+----------------------------+-----------------+
+```
+
+Default desktop layout:
+
+- Left Explorer: 260px.
+- Right History Inspector: 280px.
+- Top Bar: 48px.
+- Tab Strip: 40px.
+- Toolbar: 44px.
+- Editor measure: around 760px.
+
+The center editor should remain the primary work surface.
+
+## 5. Pane vs Card Rules
+
+A pane is a docked workspace region separated by thin dividers.
+
+A card is a grouped or floating content container with radius, padding, and sometimes shadow.
+
+The workspace shell is not a card dashboard.
+
+Use panes for:
+
+- Top bar.
+- Explorer.
+- Editor area.
+- History inspector.
+
+Use cards only for:
+
+- Dropdown menus.
+- Popovers.
+- Modals.
+- Settings panels.
+- Code blocks.
+- Quote/callout blocks.
+- Repeated list items only when necessary.
+
+Do not wrap the main editor body in a large rounded card.
+
+Do not create nested cards inside the main workspace.
+
+Do not make Explorer, Editor, and History look like separate floating cards.
+
+## 6. Border and Radius Rules
+
+The app should feel like a docked IDE workspace.
+
+Use subtle 1px borders for:
+
+- Top bar bottom border.
+- Explorer right border.
+- History inspector left border.
+- Tab strip bottom border.
+- Toolbar bottom border.
+- Row separators where needed.
+
+Use radius only for:
+
+- Search inputs.
+- Buttons.
+- Dropdowns.
+- Metadata chips.
+- Profile menu.
+- Project overflow menu.
+- Settings panel.
+- Code blocks.
+- Quote/callout blocks.
+
+Default radius:
+
+```txt
+small controls: 4px
+chips/buttons/inputs: 6px
+modals/popovers: 8px
+```
+
+Avoid:
+
+- Large rounded editor containers.
+- Rounded pane edges between shell panels.
+- Excessive shadows in the main shell.
+- Card-like wrappers around the editor body.
+- App-wide border-wrapped bottom status bars.
+
+## 7. Top Bar
+
+The top bar is compact and functional.
+
+Required structure:
+
+```txt
+Workspace > Project       Command/Search Bar       Theme Toggle | Profile
+```
+
+Rules:
+
+- Show workspace/project hierarchy on the left.
+- Use one centered command/search bar.
+- Do not show a Share button in the first implementation.
+- Do not show collaborator avatars in the top bar.
+- Do not show a standalone settings gear.
+- Settings are accessed from the profile menu.
+- Keep the top bar visually calm and around 48px high.
+
+## 8. Profile Menu
+
+Clicking the profile avatar opens a dropdown.
+
+Required items:
+
+```txt
+Profile
+Settings
+Notifications
+Keyboard Shortcuts
+Sign out
+```
+
+The Settings item opens the main settings panel.
+
+## 9. Explorer
+
+The Explorer is an IDE-like file tree.
+
+It should be dense, readable, and stable.
+
+Required structure:
+
+```txt
+WORKSPACE_ROOT
+`- Projects
+   `- Core Engine
+      |- docs
+      |  |- Overview.md
+      |  |- Architecture.md
+      |  |- Review Plan.md
+      |  |- Runbook.md
+      |  `- Changelog.md
+      `- templates
+         |- PRD Template.md
+         |- ADR Template.md
+         `- Review Template.md
+```
+
+Rules:
+
+- Active document row uses a subtle background highlight and left accent.
+- Project templates are visible inside each project.
+- Project actions are hidden behind the project row overflow menu.
+- Do not permanently expose `+ New from template` beside the folder row.
+- Keep bottom utilities minimal.
+
+Allowed bottom utilities:
+
+```txt
+Trash
+Help & Support
+```
+
+Remove from first implementation:
+
+```txt
+Workspace Settings
+Extensions
+Import
+```
+
+## 10. Project Overflow Menu
+
+The project row has an overflow menu.
+
+Example:
+
+```txt
+Core Engine    ...
+```
+
+Menu items:
+
+```txt
+New document
+New from template
+Manage templates
+Project settings
+Rename project
+Archive project
+```
+
+Project-scoped actions live here.
+
+## 11. Editor
+
+The editor is the primary work surface.
+
+Use TipTap as the rich Markdown authoring layer.
+
+Required structure:
+
+```txt
+Document Tabs
+TipTap Toolbar
+Document Header
+Rich Text Body
+Optional Editor-local Status Strip
+```
+
+Do not implement raw Markdown source mode or split preview in the first implementation.
+
+Do not add a global bottom status bar below the entire app shell.
+
+### Document Tabs
+
+Tabs appear above the toolbar.
+
+They provide multi-document context without turning the app into a full IDE.
+
+### TipTap Toolbar
+
+The toolbar is attached to the editor surface.
+
+Include:
+
+- Heading selector.
+- Bold.
+- Italic.
+- Strike.
+- Inline code.
+- Link.
+- Bulleted list.
+- Ordered list.
+- Task list.
+- Table.
+- Image/media.
+- Code block.
+- Undo / redo.
+- More menu.
+
+The toolbar should feel like a compact editing strip, not a large app header.
+
+### Document Header
+
+The document header includes:
+
+```txt
+Title
+Owner
+Sprint
+Status
+Updated
+Saved / Sync state
+```
+
+Example:
+
+```txt
+Review Plan: Q3 Infrastructure
+
+Owner: Alice
+Sprint: CE Review
+Status: Draft
+Updated: 12m ago
+Synced
+```
+
+Metadata chips should be near the title and must not look like Markdown body content.
+
+Document save/sync state should appear as compact metadata or subtle inline status near the document header by default.
+
+## 12. Rich Text Body
+
+The editor body supports:
+
+- Headings.
+- Paragraphs.
+- Lists.
+- Task lists.
+- Code blocks.
+- Quotes.
+- Inline code.
+- Links.
+- Tables.
+
+The main text area should use a comfortable centered measure.
+
+It should not be wrapped in a large card.
+
+## 13. Collaboration Presence
+
+Presence appears only inside the editor surface.
+
+Allowed:
+
+- Remote cursor label.
+- Remote selection highlight.
+- Small name tag anchored to cursor or selection.
+- Stable collaborator color.
+
+Not allowed:
+
+- Presence avatars in the top bar.
+- Duplicate presence indicators in multiple places.
+- Presence labels that permanently cover editable text.
+- Presence data becoming Markdown content.
+
+### Current Limitation
+
+Current presence only communicates cursor or selection position.
+
+This is acceptable for first implementation, but it is a known limitation.
+
+Future improvements:
+
+- Section-level presence.
+- Comment-aware presence.
+- Better anchored labels.
+- Temporary fade behavior.
+- Reconnecting/offline collaborator state.
+- Presence that communicates reading vs editing intent.
+
+## 14. History Inspector
+
+The right inspector is History only for the first implementation.
+
+Required structure:
+
+```txt
+History
+Today
+- Bob updated overview section
+- Alice added infrastructure definition block
+- Alice shared document
+- Dave added objectives
+
+View all history
+```
+
+Remove from first implementation:
+
+```txt
+Outline tab
+Comments tab
+Document Details
+Collaborators section
+```
+
+Rationale:
+
+- History directly supports revision requirements.
+- Comments and outline can be added later.
+- Document details are not needed in the main editor view.
+- Collaborator count should not require a dedicated inspector section.
+
+## 15. Settings
+
+Settings are opened from:
+
+```txt
+Profile Menu > Settings
+```
+
+Settings use a centered panel or modal with side navigation.
+
+Required side tabs:
+
+```txt
+Workspace
+Project
+User
+```
+
+### Workspace Settings
+
+Sections:
+
+```txt
+General
+Members & Roles
+Templates
+Permissions
+```
+
+Examples:
+
+- Workspace name.
+- Workspace ID.
+- Region.
+- Time zone.
+- Members and roles.
+- Workspace-level template policy.
+- Permission defaults.
+
+### Project Settings
+
+Sections:
+
+```txt
+General
+Document Structure
+Templates
+Review Workflow
+Revision Policy
+Danger Zone
+```
+
+Examples:
+
+- Project name.
+- Project slug/path.
+- Project template folder.
+- Default document template.
+- Review required before publish.
+- Revision retention policy.
+- Archive project.
+
+### User Settings
+
+Sections:
+
+```txt
+Profile
+Editor Preferences
+Theme
+Notifications
+Keyboard Shortcuts
+Sessions
+```
+
+Examples:
+
+- Display name.
+- Avatar.
+- Editor density.
+- Font size.
+- Theme.
+- Notification preferences.
+- Keyboard shortcuts.
+
+## 16. Document State
+
+There is no global bottom status bar.
+
+Document state appears near the document header as compact metadata chips or subtle inline status text.
+
+Allowed document state:
+
+```txt
+Status: Draft / Review / Published
+Saved / Saving
+Synced / Offline / Reconnecting
+Updated timestamp
+```
+
+Examples:
+
+```txt
+Status: Draft
+Saved
+Synced
+Updated: 12m ago
+```
+
+Do not create a bordered app-wide bottom status bar.
+
+Do not reserve persistent bottom chrome across the full layout for word count, character count, or collaborator count.
+
+If additional document/editor state is needed, it may appear as an editor-local status strip inside the center editor panel only.
+
+## 17. Editor-local Status Strip
+
+An editor-local status strip is optional.
+
+It is allowed only when it is scoped to the current document and visually belongs to the center editor panel.
+
+Allowed content:
+
+```txt
+Word count
+Character count
+Saved / Saving
+Synced / Offline / Reconnecting
+Editing mode
+```
+
+Rules:
+
+- It must not span the full app width.
+- It must not extend under the Explorer or History inspector.
+- It must not look like a global application footer.
+- It should use a simple top border or subtle separator, not a rounded bordered container.
+- It should be visually attached to the editor panel.
+- It should not contain workspace-level actions.
+- It should not duplicate presence labels.
+- It should be removable without breaking the shell layout.
+
+Recommended first implementation:
+
+```txt
+Prefer document-header metadata for save/sync state.
+Do not implement the editor-local status strip unless it materially improves usability.
+```
+
+## 18. Sync and Offline States
+
+Supported states:
+
+```txt
+Synced
+Saving
+Offline
+Reconnecting
+Pending local edits
+Merge completed
+```
+
+Examples:
+
+```txt
+Offline · 3 local edits pending
+Reconnecting...
+Synced · local edits merged
+```
+
+Offline and reconnect states should be calm unless data loss is likely.
+
+## 19. Templates
+
+Templates are project-scoped in the first implementation.
+
+Each project may contain a `templates` folder.
+
+Example:
+
+```txt
+Projects
+`- Core Engine
+   |- docs
+   `- templates
+      |- PRD Template.md
+      |- ADR Template.md
+      `- Review Template.md
+```
+
+Template actions are available from the project overflow menu:
+
+```txt
+New from template
+Manage templates
+Project settings
+```
+
+Workspace-level template policy is configured in:
+
+```txt
+Profile Menu > Settings > Workspace > Templates
+```
+
+Project-level template defaults are configured in:
+
+```txt
+Profile Menu > Settings > Project > Templates
+```
+
+## 20. Visual Do / Don't
+
+Do:
+
+- Use IDE-like pane layout.
+- Use thin separators.
+- Use compact spacing.
+- Use clear active row highlights.
+- Use restrained blue accents.
+- Use small metadata chips.
+- Keep the editor central.
+- Keep document state close to the document header.
+- Keep any optional status strip scoped to the center editor panel only.
+
+Do not:
+
+- Turn panes into floating cards.
+- Add rounded borders around every area.
+- Add a Share button by default.
+- Duplicate presence.
+- Add unused Extensions or Import surfaces.
+- Add dashboard-style widgets.
+- Add decorative gradients or marketing visuals.
+- Add a global bottom status bar.
+- Wrap the editor body in a bordered footer-like container.
+- Let status UI span under Explorer or History.
+
+## 21. Deferred Scope
+
+Deferred:
+
+- Raw Markdown source mode.
+- Split preview mode.
+- Outline panel.
+- Comments panel.
+- Import flow.
+- Extensions surface.
+- Document Details panel.
+- Global bottom status bar.
+- Advanced revision compare.
+- Rollback UI.
+- Public sharing.
+- Billing.
+- Mobile-optimized layout.
+
+## 22. Implementation Checklist
+
+Before marking the UI complete, verify:
+
+- Top bar has Workspace > Project, command bar, theme toggle, profile menu.
+- No standalone settings gear exists.
+- Profile menu contains Settings.
+- Settings panel has Workspace / Project / User side tabs.
+- Explorer has docs and templates under the project.
+- Project actions are inside `...`.
+- Sidebar bottom only has Trash and Help & Support.
+- Editor is not wrapped in a large rounded card.
+- TipTap toolbar is compact and attached to editor area.
+- Document state is shown near the document header by default.
+- No global bottom status bar exists.
+- Any optional status strip is scoped to the center editor panel only.
+- Presence appears only inside editor content.
+- Right inspector is History only.
+- Document Details is removed.
