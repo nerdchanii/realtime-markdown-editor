@@ -25,6 +25,10 @@ draft recovery까지 포함해 data-loss 없이 병합되는 것을 목표로 �
 - Reconnecting 또는 pending-local-edit state를 표시한다.
 - Reconnect 후 ADR-0002에서 선택한 Tiptap + Yjs + Hocuspocus adapter를 통해 local/remote changes를 병합한다.
 - Offline 상태에서 작성 중인 현재 document draft는 tab/browser 종료 후에도 IndexedDB-backed local persistence에서 복구되어야 한다. 이는 `CE-03`을 더 높은 제품 기준으로 지키기 위한 필수 evidence다.
+- IndexedDB persistence는 product/domain API에 드러나지 않고 Tiptap/Yjs collaboration adapter 내부에서
+  current member와 document key로 scope 된 Yjs update snapshot을 저장한다.
+- 같은 browser profile에서 tab을 닫았다가 다시 열면 browser-local draft가 먼저 복구되고, reconnect 후
+  Hocuspocus/Yjs merge 경로로 remote state와 수렴한다.
 
 ## 보류
 
@@ -36,3 +40,8 @@ draft recovery까지 포함해 data-loss 없이 병합되는 것을 목표로 �
 ## 검증
 
 한 client가 disconnect 상태에서 열린 document를 편집하고, 다른 client가 online 상태에서 편집한 뒤, reconnect 시 두 고유 edit가 모두 남는지 확인한다. 추가로 offline 상태에서 tab/browser를 닫았다가 같은 browser profile로 다시 열어도 작성 중이던 draft가 복구되고 reconnect 후 병합되는지 확인한다.
+
+Evidence:
+
+- `scripts/with-node.sh pnpm --filter @rme/web typecheck`
+- `set -a; source .env; set +a; scripts/with-node.sh pnpm test:e2e -- e2e/ce-03-offline-merge.spec.ts`

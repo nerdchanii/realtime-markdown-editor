@@ -1,6 +1,8 @@
 import { WebSocketStatus, type HocuspocusProvider } from "@hocuspocus/provider";
 import { useEffect, useState } from "react";
 
+import type { OfflineDraftPersistenceSnapshot } from "./indexeddb-offline-draft-persistence";
+
 export type RuntimeSyncSource = Readonly<{
   provider: HocuspocusProvider;
 }>;
@@ -46,14 +48,18 @@ export function createRealtimeSyncStatus(
   documentKey: string,
   runtime: RuntimeSyncSource | null,
   syncSnapshot: RuntimeSyncSnapshot,
+  offlineDraftSnapshot?: OfflineDraftPersistenceSnapshot,
 ) {
   const { browserOnline, pendingLocalEdits, providerStatus, providerSynced } = syncSnapshot;
 
+  if (hasUnmergedRecoveredDraft(offlineDraftSnapshot, providerSynced)) {
+    return createRecoveredDraftStatus(documentKey, pendingLocalEdits);
+  }
   if (!browserOnline) return createOfflineStatus(pendingLocalEdits);
-  if (providerStatus === WebSocketStatus.Connecting) {
+  if (isProviderConnecting(providerStatus)) {
     return createReconnectingStatus(documentKey, pendingLocalEdits);
   }
-  if (providerStatus === WebSocketStatus.Disconnected || !runtime) {
+  if (isProviderUnavailable(runtime, providerStatus)) {
     return createDisconnectedStatus(documentKey, pendingLocalEdits);
   }
   if (pendingLocalEdits > 0) return createPendingStatus(documentKey, pendingLocalEdits);
@@ -63,6 +69,21 @@ export function createRealtimeSyncStatus(
     detail: `Realtime document ${documentKey}`,
     pendingEdits: 0,
   };
+}
+
+function hasUnmergedRecoveredDraft(
+  offlineDraftSnapshot: OfflineDraftPersistenceSnapshot | undefined,
+  providerSynced: boolean,
+) {
+  return offlineDraftSnapshot?.recovered === true && !providerSynced;
+}
+
+function isProviderConnecting(providerStatus: WebSocketStatus) {
+  return providerStatus === WebSocketStatus.Connecting;
+}
+
+function isProviderUnavailable(runtime: RuntimeSyncSource | null, providerStatus: WebSocketStatus) {
+  return providerStatus === WebSocketStatus.Disconnected || !runtime;
 }
 
 function createRuntimeSyncSnapshot(runtime: RuntimeSyncSource | null): RuntimeSyncSnapshot {
@@ -105,6 +126,14 @@ function createPendingStatus(documentKey: string, pendingLocalEdits: number) {
     label: "Pending local changes",
     detail: `Merging with realtime document ${documentKey}`,
     pendingEdits: pendingLocalEdits,
+  };
+}
+
+function createRecoveredDraftStatus(documentKey: string, pendingLocalEdits: number) {
+  return {
+    label: "Recovered local draft",
+    detail: `Browser-local draft is waiting to merge with ${documentKey}`,
+    pendingEdits: Math.max(1, pendingLocalEdits),
   };
 }
 

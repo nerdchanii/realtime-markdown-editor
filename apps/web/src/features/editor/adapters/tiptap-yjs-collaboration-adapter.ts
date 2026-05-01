@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 
 import type { CollaborationSessionDto } from "@rme/contracts";
 
@@ -32,6 +32,7 @@ function useTiptapYjsDocument(options: CollaborationDocumentOptions): Collaborat
   useTiptapYjsRuntime(session, setRuntime);
   useYTextState(runtime, options.initialMarkdown, setMarkdown);
   const syncSnapshot = useRuntimeSyncSnapshot(runtime);
+  const offlineDraftSnapshot = useOfflineDraftSnapshot(runtime);
   const presence = useAwarenessPresence(session, runtime, options.initialPresence);
   const updateMarkdown = useYTextUpdate(runtime, setMarkdown);
   const updateSelection = useAwarenessSelectionUpdate(session, runtime);
@@ -42,7 +43,7 @@ function useTiptapYjsDocument(options: CollaborationDocumentOptions): Collaborat
     updateSelection,
     editorExtensions: runtime?.extensions,
     bootstrapMarkdown: createBootstrapMarkdown(runtime, syncSnapshot, markdown),
-    syncStatus: createSyncStatus(options, session, runtime, syncSnapshot),
+    syncStatus: createSyncStatus(options, session, runtime, syncSnapshot, offlineDraftSnapshot),
     presence,
     providerName: tiptapYjsCollaborationProviderName,
   };
@@ -117,12 +118,25 @@ function createSyncStatus(
   session: CollaborationSessionDto | null,
   runtime: TiptapYjsRuntime | null,
   syncSnapshot: RuntimeSyncSnapshot,
+  offlineDraftSnapshot: ReturnType<typeof useOfflineDraftSnapshot>,
 ) {
   if (!session) {
     return options.initialSyncStatus;
   }
 
-  return createRealtimeSyncStatus(session.documentKey, runtime, syncSnapshot);
+  return createRealtimeSyncStatus(session.documentKey, runtime, syncSnapshot, offlineDraftSnapshot);
+}
+
+function useOfflineDraftSnapshot(runtime: TiptapYjsRuntime | null) {
+  return useSyncExternalStore(
+    (listener) => runtime?.offlineDraftPersistence.subscribe(listener) ?? noopSubscribe,
+    () => runtime?.offlineDraftPersistence.snapshot(),
+    () => undefined,
+  );
+}
+
+function noopSubscribe() {
+  return undefined;
 }
 
 function createBootstrapMarkdown(

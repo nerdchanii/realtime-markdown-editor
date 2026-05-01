@@ -8,12 +8,17 @@ import * as Y from "yjs";
 
 import type { CollaborationSessionDto, RealtimeMemberDto } from "@rme/contracts";
 
+import {
+  createIndexedDbOfflineDraftPersistence,
+  type OfflineDraftPersistence,
+} from "./indexeddb-offline-draft-persistence";
 import { setAwarenessIdentity } from "./tiptap-yjs-awareness";
 
 export type TiptapYjsRuntime = Readonly<{
   document: Y.Doc;
   markdown: Y.Text;
   provider: HocuspocusProvider;
+  offlineDraftPersistence: OfflineDraftPersistence;
   extensions: readonly AnyExtension[];
   destroy: () => void;
 }>;
@@ -21,6 +26,7 @@ export type TiptapYjsRuntime = Readonly<{
 export function createRuntime(session: CollaborationSessionDto): TiptapYjsRuntime {
   const document = new Y.Doc();
   const markdown = document.getText("markdown");
+  const offlineDraftPersistence = createIndexedDbOfflineDraftPersistence(session, document);
   const provider = createProvider(session, document);
   const member = findCurrentMember(session);
   setAwarenessIdentity(provider, member);
@@ -30,8 +36,9 @@ export function createRuntime(session: CollaborationSessionDto): TiptapYjsRuntim
     document,
     markdown,
     provider,
+    offlineDraftPersistence,
     extensions,
-    destroy: () => destroyRuntime(provider, document),
+    destroy: () => destroyRuntime(provider, offlineDraftPersistence, document),
   };
 }
 
@@ -80,7 +87,12 @@ function findCurrentMember(session: CollaborationSessionDto): RealtimeMemberDto 
   return member;
 }
 
-function destroyRuntime(provider: HocuspocusProvider, document: Y.Doc) {
+function destroyRuntime(
+  provider: HocuspocusProvider,
+  offlineDraftPersistence: OfflineDraftPersistence,
+  document: Y.Doc,
+) {
+  offlineDraftPersistence.destroy();
   provider.destroy();
   document.destroy();
 }
