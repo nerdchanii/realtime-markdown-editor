@@ -6,7 +6,10 @@
     "declarationMap": true,
     "sourceMap": true,
     "outDir": "dist",
-    "rootDir": "src"
+    "rootDir": "src",
+    "paths": {
+      "@/*": ["src/*"]
+    }
   },
   "exclude": ["dist", "**/*.spec.ts", "**/*.test.ts"]
 }

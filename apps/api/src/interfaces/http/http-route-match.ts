@@ -1,7 +1,4 @@
-import {
-  httpRouteInventory,
-  type HttpRouteContract,
-} from "../../../../../packages/contracts/src/http/routes.js";
+import { httpRouteInventory, type HttpRouteContract } from "@rme/contracts/http";
 
 type LiteralSegment = Readonly<{ kind: "literal"; value: string }>;
 type ParamSegment = Readonly<{ kind: "param"; name: string }>;

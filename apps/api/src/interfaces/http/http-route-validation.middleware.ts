@@ -1,10 +1,10 @@
 import {
   httpSchemaCatalog,
   type HttpSchemaDescriptor,
+  type HttpRouteSchemaSet,
   type HttpSchemaTarget,
-} from "../../../../../packages/contracts/src/http/schemas.js";
-import type { ApiValidationIssueDto } from "../../../../../packages/contracts/src/http/errors.js";
-import type { HttpRouteSchemaSet } from "../../../../../packages/contracts/src/http/routes.js";
+  type ApiValidationIssueDto,
+} from "@rme/contracts/http";
 
 import {
   type BoundaryHttpHeaders,

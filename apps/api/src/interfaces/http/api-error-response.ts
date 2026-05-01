@@ -3,7 +3,7 @@ import type {
   ApiErrorCodeDto,
   ApiErrorResponseDto,
   ApiValidationIssueDto,
-} from "../../../../../packages/contracts/src/http/errors.js";
+} from "@rme/contracts/http";
 
 export type BoundaryHttpHeaders = Readonly<Record<string, string | readonly string[] | undefined>>;
 

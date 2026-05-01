@@ -6,7 +6,7 @@ import { test } from "node:test";
 
 import { Controller, ForbiddenException, Get, Module, UnauthorizedException } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
-import type { ApiErrorResponseDto } from "../../../../../packages/contracts/src/http/errors.js";
+import type { ApiErrorResponseDto } from "@rme/contracts/http";
 
 import { AppModule } from "@/app.module.js";
 import { configureHttpBoundary } from "@/interfaces/http/http-boundary.js";

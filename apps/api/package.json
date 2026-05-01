@@ -4,8 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsx watch --tsconfig tsconfig.json src/main.ts",
-    "build": "tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json",
+    "dev": "tsc -b ../../packages/contracts && tsx watch --tsconfig tsconfig.json src/main.ts",
+    "build": "tsc -b ../../packages/contracts && tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json",
     "start": "node dist/main.js",
     "db:generate": "prisma generate --schema prisma/schema.prisma",
     "db:migrate:dev": "prisma migrate dev --schema prisma/schema.prisma",
@@ -14,6 +14,7 @@
     "test": "tsx --test --test-concurrency=1 \"src/**/*.test.ts\" \"src/**/*.smoke.ts\""
   },
   "dependencies": {
+    "@rme/contracts": "workspace:*",
     "@nestjs/common": "^11.1.19",
     "@nestjs/core": "^11.1.19",
     "@nestjs/platform-express": "^11.1.19",

@@ -86,6 +86,9 @@ importers:
       '@prisma/client':
         specifier: 6.19.0
         version: 6.19.0(prisma@6.19.0(typescript@6.0.3))(typescript@6.0.3)
+      '@rme/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
       reflect-metadata:
         specifier: ^0.2.2
         version: 0.2.2
@@ -127,6 +130,9 @@ importers:
       '@radix-ui/react-select':
         specifier: ^2.2.6
         version: 2.2.6(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
+      '@rme/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
       '@tiptap/core':
         specifier: ^3.4.1
         version: 3.22.5(@tiptap/pm@3.22.5)

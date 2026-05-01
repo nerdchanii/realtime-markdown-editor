@@ -1,10 +1,10 @@
 import type {
+  ApiValidationIssueDto,
   HttpSchemaDescriptor,
   HttpSchemaField,
   HttpSchemaFieldFormat,
   HttpSchemaFieldKind,
-} from "../../../../../packages/contracts/src/http/schemas.js";
-import type { ApiValidationIssueDto } from "../../../../../packages/contracts/src/http/errors.js";
+} from "@rme/contracts/http";
 
 type FieldValidator = (value: unknown, field: HttpSchemaField) => string | null;
 type FormatValidator = Readonly<{

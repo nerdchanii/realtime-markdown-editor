@@ -1,154 +1,160 @@
-# Real-time Markdown Editor
+# 동시편집 마크다운 에디터
 
-Real-time Markdown Editor is a local reviewer build of a workspace-scoped,
-realtime collaborative Markdown editor. The primary acceptance path is
-`CE-01` through `CE-05` from [subject.md](./subject.md).
+여러 명이 같은 마크다운 문서를 동시에 편집하는 협업 에디터입니다.
 
-## Prerequisites
+자유 주제는 가장먼저 누구에게 팔아야할까고민했습니다.
+**개발팀이 프로젝트 문서를 함께 관리하는 워크스페이스형 문서 도구**로 잡았습니다. 
+단순한 CRDT 데모보다, 실제 팀이 문서를 찾고 작성하고 이력을 남기는 흐름이 더 중요하다고 보았습니다.
 
-- Node.js `v24.15.0`
+현재 구현한 범위는 다음과 같습니다.
+
+- 로그인 
+- 폴더/문서형태의 문서트리구조 
+- TipTap 기반 리치 마크다운 편집
+- Yjs/Hocuspocus 기반 실시간 본문 동시 편집
+- IndexedDB 기반 오프라인 임시 저장본 복구와 재연결 병합
+- 문서 제목과 속성 편집
+- 수동 체크포인트 생성과 이력 패널의 읽기 전용 스냅샷 확인
+
+고민했지만 이번 범위에서 제외한 것은 원본 마크다운 편집기, 분할 프리뷰같은 에디터 본연에부분이었습니다.
+사용자가 raw markdown을 보는게 그렇게 중요하지 않다고 생각했습니다.
+시간관계상 로그인과, 워크스페이스 생성, 권한 관리 UI, 복원/브랜치,
+위키링크, 데스크톱 앱등은 계획하고, 진행하지는 못했습니다. 
+
+사실 frontmatter와 DocumentState, Document Property를 이용해 훅시스템을 구축하려했습니다.
+문서를 편집하고, 프로젝트별로 설정된 특정조건이나 문서의 업데이트 주기에 맞추어 훅을 제공하려했습니다. 
+훅시스템을 이용하면 문서를 자동화하거나, 외부시스템을 자동화할 수 있다고 생각했고, 현재 AX를 계획하는 많은 기업들의 관심사라고 생각했기때문입니다.
+다만, 시간관계상 뒤로 미루어 마치지 못한점이 아쉬웠습니다. 
+
+
+## 과제 요구사항
+
+| ID | 요구사항 | 현재 구현 |
+| --- | --- | --- |
+| CE-01 | 2명 이상이 같은 마크다운 문서를 동시에 편집 | Yjs/Hocuspocus 협업 세션 |
+| CE-02 | 다른 사용자의 커서/선택 영역 표시 | TipTap 협업 커서와 구성원 식별 정보 |
+| CE-03 | 네트워크 단절 후 재접속 시 자동 병합 | Yjs 병합과 IndexedDB 오프라인 임시 저장본 복구 |
+| CE-04 | 문서 변경 이력 조회 | 수동 체크포인트와 이력 패널 |
+| CE-05 | 마크다운 리치 프리뷰 | TipTap 리치 마크다운 작성 화면 |
+
+상세 충족 지도는 [docs/compliance/subject-matrix.md](./docs/compliance/subject-matrix.md)에 있습니다.
+
+## 기술 스택
+
+- 프론트엔드: React 19, Vite, TypeScript, TipTap
+- 실시간 협업: Yjs, Hocuspocus
+- 백엔드: NestJS, Prisma
+- 데이터베이스: PostgreSQL 16
+- E2E 테스트: Playwright
+- 패키지 매니저: pnpm
+
+## 실행 준비
+
+필요한 도구:
+
+- `fnm`
+- Node.js 24.x 권장
 - pnpm `10.28.2`
+- Docker / Docker Compose
 
-This repository is pinned to Node `>=24 <25`.
+`scripts/with-node.sh`가 `fnm`으로 저장소의 Node 버전을 맞춰 실행합니다. 저장소 설정상 공식
+지원 범위는 Node `>=24 <25`입니다. 별도 worktree에서 Node `25.9.0`으로 설치, Prisma 생성,
+`pnpm check` 통과는 확인했지만, 아직 package engine 범위와 전체 build gate를 Node 25 기준으로
+갱신하지는 않았습니다.
 
-## Install
+## 설치
 
 ```bash
 scripts/with-node.sh pnpm install
 scripts/with-node.sh pnpm db:generate
 ```
 
-## Local Product Bootstrap
-
-Start local Postgres and apply migrations before running the product reviewer path. Use an explicit
-local database URL when the default `5432` port is already occupied:
+E2E 테스트까지 실행하려면 Chromium 브라우저도 설치합니다.
 
 ```bash
-DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:55434/realtime_markdown_editor \
-POSTGRES_HOST_PORT=55434 \
-scripts/with-node.sh pnpm db:migrate
+scripts/with-node.sh pnpm exec playwright install chromium
 ```
 
-The local artifact adapters store checkpoint snapshots and uploaded images on disk. Defaults are
-under the API working directory:
+## 빌드
 
-- `.data/checkpoint-artifacts`
-- `.data/image-artifacts`
-
-Override them with `RME_CHECKPOINT_ARTIFACT_DATA_DIR` and `RME_IMAGE_ARTIFACT_DATA_DIR` when a
-review run needs isolated artifact directories.
-
-## Run Locally
+프로덕션 빌드는 아래 명령으로 실행합니다.
 
 ```bash
-DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:55434/realtime_markdown_editor \
-POSTGRES_HOST_PORT=55434 \
+scripts/with-node.sh pnpm build
+```
+
+이 명령은 `@rme/contracts`를 먼저 `dist`로 빌드한 뒤 API, 협업 서버, 웹 앱을 빌드합니다.
+API 빌드는 contracts 패키지의 `src`를 직접 컴파일하지 않고 패키지 산출물을 참조하므로
+`rootDir` 밖 소스가 포함되는 TypeScript 빌드 오류를 피합니다.
+
+## 로컬 실행
+
+아래 명령은 PostgreSQL 컨테이너를 띄우고, 마이그레이션과 로컬 초기 데이터를 적용한 뒤 API,
+협업 서버, 웹 앱을 함께 실행합니다.
+
+```bash
+POSTGRES_HOST_PORT=55432 \
+DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:55432/realtime_markdown_editor \
+COLLAB_PORT=4001 \
+RME_COLLAB_PUBLIC_URL=ws://127.0.0.1:4001 \
 scripts/with-node.sh pnpm dev
 ```
 
-Open the product reviewer URL:
+브라우저에서 엽니다.
+
+```text
+http://127.0.0.1:5173
+```
+
+검토용 문서를 바로 열고 싶으면 다음 URL을 사용할 수 있습니다.
 
 ```text
 http://127.0.0.1:5173/?workspace=workspace_review&document=document_review_plan
 ```
 
-Local reviewer identities:
+## 로컬 계정
 
-- `alice`
-- `bob`
+비밀번호는 모두 `password`입니다.
 
-These identities are local product memberships for review. They are not a production identity
-provider. For manual local review, open `http://127.0.0.1:5173`, create the browser session from
-that web origin, then open the reviewer URL:
+| 이메일 | 역할 |
+| --- | --- |
+| `alice@example.test` | 소유자 |
+| `bob@example.test` | 구성원 |
+| `carol@example.test` | 구성원 |
+| `dana@example.test` | 구성원 |
 
-```js
-await fetch("http://127.0.0.1:4000/auth/session", {
-  method: "POST",
-  credentials: "include",
-  headers: { "content-type": "application/json" },
-  body: JSON.stringify({
-    email: "alice@example.test",
-    password: "password",
-    workspaceId: "workspace_review",
-  }),
-});
-```
+UI의 빠른 로그인은 Alice/Bob만 보여주지만, Carol/Dana도 이메일과 비밀번호로 로그인할 수 있습니다.
 
-Use `bob@example.test` in a second browser context to verify collaboration and presence.
-
-The normal reviewer path uses product APIs such as `/auth/session`, workspace navigation,
-document content, collaboration sessions, checkpoints, exports, and image upload. Dev-only seed
-routes such as `/review-context/seed` are local bootstrap compatibility routes and are not required
-for the reviewer product flow.
-
-## Reviewer Scenario
-
-Run this scenario against the local product reviewer URL:
-
-1. Create a local product session as `alice`.
-2. Use the Workspace navigation to open **Review Plan** under
-   **Review Workspace / Launch Readiness / Notes**.
-3. Edit the central rich Markdown editor.
-4. In another browser context, create a session as `bob`, open the same document, and verify edits
-   converge without refreshing.
-5. Select text as `bob` and verify `alice` sees Bob's cursor/selection identity.
-6. Simulate offline/reconnect with the CE e2e flow and verify local and remote text both remain.
-7. Use toolbar undo/redo and confirm it changes the collaborative editor content.
-8. Create a history checkpoint, select it, inspect the read-only Markdown snapshot, refresh, and
-   confirm the checkpoint remains listed.
-9. Export Markdown and confirm YAML frontmatter plus body content are present.
-10. Upload an image through the toolbar and confirm the exported Markdown contains an
-    `rme-artifact://documents/` image reference.
-11. Inspect document properties near the title and confirm they are outside the Markdown body.
-12. Inspect the Decision Log backlink.
-
-Executable evidence:
-
-- `e2e/ce-01-concurrent-editing.spec.ts`
-- `e2e/ce-02-presence.spec.ts`
-- `e2e/ce-03-offline-merge.spec.ts`
-- `e2e/ce-04-history.spec.ts`
-- `e2e/ce-05-rich-preview.spec.ts`
-- `e2e/task-045-reviewer-flow.spec.ts`
-
-## Checks
+## 검증
 
 ```bash
-DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:55434/realtime_markdown_editor \
-POSTGRES_HOST_PORT=55434 \
+POSTGRES_HOST_PORT=55432 \
+DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:55432/realtime_markdown_editor \
+COLLAB_PORT=4001 \
+RME_COLLAB_PUBLIC_URL=ws://127.0.0.1:4001 \
 scripts/with-node.sh pnpm check
+```
 
-DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:55434/realtime_markdown_editor \
-POSTGRES_HOST_PORT=55434 \
+```bash
+POSTGRES_HOST_PORT=55432 \
+DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:55432/realtime_markdown_editor \
+COLLAB_PORT=4001 \
+RME_COLLAB_PUBLIC_URL=ws://127.0.0.1:4001 \
 scripts/with-node.sh pnpm test:e2e
 ```
 
-`pnpm test:e2e` starts the local API, collaboration server, and web app through the Playwright
-web server configuration and seeds product fixtures directly through Prisma for local/test
-bootstrap.
+## 중요한 결정 문서
 
-## Included Product Surface
+- [ADR-0001: 도메인 우선 설계와 협업 엔진 격리](./docs/adr/0001-domain-first-collaboration-engine-isolation.md)
+- [ADR-0002: TipTap + Yjs + Hocuspocus 선택](./docs/adr/0002-collaboration-engine-poc-bench.md)
+- [ADR-0003: 저장소 역할 분리](./docs/adr/0003-storage-strategy.md)
+- [ADR-0005: 에디터 우선 UI 셸](./docs/adr/0005-ui-shell-scope-model.md)
+- [ADR-0007: 리치 마크다운 작성 화면](./docs/adr/0007-rich-markdown-authoring-surface.md)
 
-- CE-01 through CE-05 collaborative editor path.
-- Workspace, project, folder, and document navigation for the local reviewer workspace.
-- Workspace membership identity for presence and checkpoint authorship.
-- Document properties stored and edited outside the Markdown body.
-- Standard Markdown links/backlinks, starting with the reviewer Decision Log backlink.
-- Rich, Markdown source, Preview, and Split editor modes.
-- User-visible checkpoint history with inspectable Markdown snapshots.
-- Markdown export as YAML frontmatter plus the standard Markdown body.
-
-## Intentionally Deferred
-
-The first reviewer build does not include workflow hooks/builders, publish/draft visibility policy,
-RBAC/admin, restore/branching, graph view, wikilinks, multi-document pane split, PWA/Tauri/Electron,
-or a production identity provider. Workspace/folder CRUD persistence and account management remain
-staged after CE recovery; reviewer-local document creation is only a product entrypoint smoke path.
-
-## Official Documentation
+## 문서
 
 - [subject.md](./subject.md)
-- [docs/compliance/subject-matrix.md](./docs/compliance/subject-matrix.md)
-- [docs/requirements/registry.md](./docs/requirements/registry.md)
-- [docs/product/README.md](./docs/product/README.md)
 - [ARCHITECTURE.md](./ARCHITECTURE.md)
+- [docs/product/README.md](./docs/product/README.md)
+- [docs/domain/README.md](./docs/domain/README.md)
+- [DESIGN.md](./DESIGN.md)
