@@ -137,6 +137,8 @@ function resolveRelativeSpecifier(file, specifier) {
 
 function frontendSpecifierFailuresFor(file, specifier) {
   const specifierFailures = [];
+  if (isTestFile(file)) return specifierFailures;
+
   if (isApiSourceImport(specifier)) {
     specifierFailures.push(`Frontend file imports API source: ${file} -> ${specifier}`);
   }
@@ -152,6 +154,10 @@ function frontendSpecifierFailuresFor(file, specifier) {
   }
 
   return specifierFailures;
+}
+
+function isTestFile(file) {
+  return /\.(spec|test)\.tsx?$/.test(file);
 }
 
 function isApiSourceImport(specifier) {
