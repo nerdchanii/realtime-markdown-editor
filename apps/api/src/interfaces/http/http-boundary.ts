@@ -7,6 +7,8 @@ type BodyParserCapableApp = INestApplication & {
   useBodyParser(type: "json" | "urlencoded", options?: unknown): void;
 };
 
+const localDevelopmentCorsOrigins = ["http://127.0.0.1:5173", "http://localhost:5173"] as const;
+
 export function configureHttpBoundary(app: INestApplication): void {
   app.enableCors({
     origin: configuredCorsOrigins(),
@@ -29,5 +31,7 @@ function configuredCorsOrigins(): true | readonly string[] {
     .split(",")
     .map((origin) => origin.trim())
     .filter(Boolean);
-  return origins.length > 0 ? origins : true;
+  if (origins.length === 0) return true;
+  if (process.env.NODE_ENV === "production") return origins;
+  return [...new Set([...origins, ...localDevelopmentCorsOrigins])];
 }

@@ -189,11 +189,15 @@ async function fetchJson<T>(client: ApiClient, path: string, init: RequestInit =
 }
 
 function apiBaseUrl() {
-  return (
-    import.meta.env.VITE_RME_API_BASE_URL ??
-    import.meta.env.VITE_API_BASE_URL ??
-    "http://127.0.0.1:4000"
-  );
+  const env = (import.meta as ImportMeta & { env?: Record<string, string | undefined> }).env;
+  const configured = env?.VITE_RME_API_BASE_URL ?? env?.VITE_API_BASE_URL;
+  if (configured) return configured;
+
+  if (typeof window !== "undefined") {
+    return `${window.location.protocol}//${window.location.hostname}:4000`;
+  }
+
+  return "http://127.0.0.1:4000";
 }
 
 export async function inspectCheckpointSnapshot(
