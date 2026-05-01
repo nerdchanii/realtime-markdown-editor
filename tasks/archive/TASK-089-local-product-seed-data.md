@@ -1,6 +1,6 @@
 ---
 title: TASK-089-local-product-seed-data
-status: todo
+status: archived
 phase: P11
 task_type: ops
 task_mode: blocking
@@ -76,8 +76,8 @@ Local development에서 realistic product seed data를 real local database에 id
 
 ## Archive Checklist
 
-- [ ] `status`를 `archived`로 변경했다.
-- [ ] 파일을 `tasks/archive/`로 이동했다.
+- [x] `status`를 `archived`로 변경했다.
+- [x] 파일을 `tasks/archive/`로 이동했다.
 - [ ] 검증 결과를 이 문서에 기록했다.
 - [ ] 필요한 공식 문서 업데이트를 완료했다.
 - [ ] 관련 CE/REQ evidence 또는 follow-up을 기록했다.

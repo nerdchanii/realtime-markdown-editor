@@ -1,6 +1,6 @@
 ---
 title: TASK-090-presence-caret-label-legibility
-status: todo
+status: archived
 phase: P11
 task_type: parallel-ui
 task_mode: blocking
@@ -75,8 +75,8 @@ Remote caret를 더 명확한 visual weight로 표시하고 member name label을
 
 ## Archive Checklist
 
-- [ ] `status`를 `archived`로 변경했다.
-- [ ] 파일을 `tasks/archive/`로 이동했다.
+- [x] `status`를 `archived`로 변경했다.
+- [x] 파일을 `tasks/archive/`로 이동했다.
 - [ ] 검증 결과를 이 문서에 기록했다.
 - [ ] 필요한 공식 문서 업데이트를 완료했다.
 - [ ] 관련 CE/REQ evidence 또는 follow-up을 기록했다.
