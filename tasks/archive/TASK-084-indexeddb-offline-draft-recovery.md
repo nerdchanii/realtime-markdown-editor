@@ -1,6 +1,6 @@
 ---
 title: TASK-084-indexeddb-offline-draft-recovery
-status: todo
+status: archived
 phase: P11
 task_type: integration
 task_mode: blocking
@@ -108,11 +108,14 @@ tab/browser 종료 후 같은 browser profile에서 다시 열었을 때 복구�
 ## 검증
 
 - 실행 명령: `scripts/with-node.sh pnpm --filter @rme/web typecheck`
-- 기대 결과: web typecheck passes.
+- 결과: 통과.
 - 실행 명령: `scripts/with-node.sh pnpm test:e2e -- e2e/ce-03-offline-merge.spec.ts`
-- 기대 결과: existing CE-03 offline merge path still passes.
-- 실행 명령: product e2e for offline IndexedDB recovery
-- 기대 결과: offline edit survives tab/browser close and reopen in the same browser profile, then merges after reconnect.
+- 결과: 초기 실행은 sandbox IPC 제한으로 dev server start 실패. Escalated 실행에서 `.env` 미로드 시
+  `DATABASE_URL` 누락, `.env` 로드 후 Postgres 미기동으로 실패. `scripts/with-node.sh pnpm db:up`으로
+  Postgres bootstrap 후 통과.
+- 실행 명령:
+  `set -a; source .env; set +a; scripts/with-node.sh pnpm test:e2e -- e2e/ce-03-offline-merge.spec.ts`
+- 결과: 기존 CE-03 offline merge path와 IndexedDB tab close/reopen recovery path 모두 통과.
 
 ## Review
 
@@ -123,8 +126,8 @@ tab/browser 종료 후 같은 browser profile에서 다시 열었을 때 복구�
 
 ## Archive Checklist
 
-- [ ] `status`를 `archived`로 변경했다.
-- [ ] 파일을 `tasks/archive/`로 이동했다.
-- [ ] 검증 결과를 이 문서에 기록했다.
-- [ ] 필요한 공식 문서 업데이트를 완료했다.
-- [ ] 관련 CE/REQ evidence 또는 follow-up을 기록했다.
+- [x] `status`를 `archived`로 변경했다.
+- [x] 파일을 `tasks/archive/`로 이동했다.
+- [x] 검증 결과를 이 문서에 기록했다.
+- [x] 필요한 공식 문서 업데이트를 완료했다.
+- [x] 관련 CE/REQ evidence 또는 follow-up을 기록했다.

@@ -1,7 +1,7 @@
 ---
 id: REQ-OFFLINE-INDEXEDDB-DRAFT-RECOVERY
-title: Offline 상태에서 작성 중인 문서는 tab/browser 종료 후에도 IndexedDB에서 복구되어야 한다.
-status: planned
+title: Offline 상태에서 작성 중인 문서는 tab/browser 종료 후에도 IndexedDB에서 복구된다.
+status: done
 category: product-extension
 type: functional
 priority: high
@@ -12,13 +12,13 @@ depends_on:
   - REQ-OFFLINE-LOCAL-PERSISTENCE
   - REQ-OFFLINE-RECONNECT-MERGE
 blocks: []
-next_step: Tiptap/Yjs document state를 IndexedDB local persistence adapter에 저장하고 reload 후 server state와 merge하는 product e2e를 추가한다.
+next_step: Browser-local recovery scope를 workspace-wide offline cache로 넓히지 않고 CE-03 evidence로 유지한다.
 refs:
   - docs/product/editor/offline-merge.md
   - docs/adr/0003-storage-strategy.md
   - docs/domain/rules/collaboration-boundaries.md
   - docs/research/poc-001-collaboration-engine/prototypes/tiptap-yjs-hocuspocus/README.md
-  - tasks/todo/TASK-084-indexeddb-offline-draft-recovery.md
+  - tasks/archive/TASK-084-indexeddb-offline-draft-recovery.md
 ---
 
 # REQ-OFFLINE-INDEXEDDB-DRAFT-RECOVERY
@@ -26,6 +26,20 @@ refs:
 Open-page offline merge만으로는 `CE-03`을 제품 수준에서 충분히 지킨다고 볼 수 없다. 사용자가 network
 offline 상태에서 문서를 편집한 뒤 브라우저 tab을 닫거나 컴퓨터가 꺼져도, 같은 browser profile에서 다시
 열었을 때 작성 중이던 local draft를 복구하고 reconnect 시 server state와 병합해야 한다.
+
+Implementation:
+
+- Product realtime editor의 Tiptap/Yjs adapter가 current member와 document key로 scope 된 Yjs update
+  snapshot을 IndexedDB에 저장한다.
+- 같은 browser profile에서 다시 열린 document는 browser-local draft를 `Y.Doc`에 적용한 뒤 기존
+  Hocuspocus/Yjs reconnect merge path로 remote state와 수렴한다.
+- IndexedDB store 이름과 record shape는 adapter 내부 구현이며 product/domain API, server contract,
+  shared package boundary로 노출하지 않는다.
+
+Evidence:
+
+- `scripts/with-node.sh pnpm --filter @rme/web typecheck`
+- `set -a; source .env; set +a; scripts/with-node.sh pnpm test:e2e -- e2e/ce-03-offline-merge.spec.ts`
 
 Acceptance:
 
