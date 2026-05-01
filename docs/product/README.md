@@ -21,6 +21,7 @@ status: active
 
 | capability | surface | 관련 요구사항 | 관련 ADR |
 | --- | --- | --- | --- |
+| Editor-first UI refresh | Product shell | `REQ-EDITOR-FIRST-UI-REFRESH` | DESIGN.md |
 | 동시 편집 | Editor | `CE-01-CONCURRENT-EDITING`, `REQ-COLLAB-ENGINE-ADAPTER` | ADR-0001, ADR-0002 |
 | Presence | Editor | `CE-02-PRESENCE`, `REQ-PRESENCE-MEMBER-AWARENESS`, `REQ-PRESENCE-CARET-LABEL-LEGIBILITY` | ADR-0001, ADR-0005 |
 | Offline merge | Editor | `CE-03-OFFLINE-MERGE`, `REQ-OFFLINE-LOCAL-PERSISTENCE`, `REQ-OFFLINE-INDEXEDDB-DRAFT-RECOVERY` | ADR-0002, ADR-0003 |
