@@ -5,6 +5,7 @@ import type { DocumentId, FolderId } from "@rme/contracts";
 import type {
   WorkspaceDocumentCreateRequest,
   WorkspaceFolderCreateRequest,
+  WorkspaceFolderRenameRequest,
   WorkspaceNavigationSelection,
 } from "@/features/workspace";
 import {
@@ -13,6 +14,7 @@ import {
   createProductApiClient,
   deleteDocument,
   deleteFolder,
+  updateFolder,
   type ApiClient,
 } from "@/lib/api-client";
 
@@ -24,66 +26,82 @@ import {
 import type { ProductWorkspaceState } from "./product-workspace-types";
 import { createProductProviders } from "./product-workspace-view-model";
 
+type LoadedProductWorkspaceInput = {
+  apiClient: ApiClient;
+  createProductDocument: (request: WorkspaceDocumentCreateRequest) => void;
+  createProductFolder: (request: WorkspaceFolderCreateRequest) => void;
+  deleteProductDocument: (documentId: string) => void;
+  deleteProductFolder: (folderId: string) => void;
+  renameProductFolder: (request: WorkspaceFolderRenameRequest) => void;
+  reloadToken: number;
+  selectDocument: (selection: WorkspaceNavigationSelection) => void;
+  selectedDocumentId: DocumentId | null;
+  selectDocumentId: (documentId: DocumentId) => void;
+  reload: () => void;
+};
+
 export function useProductWorkspaceProviders(): ProductWorkspaceState {
   const apiClient = useMemo(() => createProductApiClient(), []);
   const [selectedDocumentId, setSelectedDocumentId] = useState<DocumentId | null>(null);
   const [reloadToken, setReloadToken] = useState(0);
   const reload = useCallback(() => setReloadToken((current) => current + 1), []);
-  const selectDocumentId = useCallback((documentId: DocumentId) => {
-    setSelectedDocumentId(documentId);
-  }, []);
+  const selection = useWorkspaceSelection(setSelectedDocumentId);
+  const mutations = useWorkspaceMutations(apiClient, reload, setSelectedDocumentId);
+  const loadInput = useMemo(
+    () => ({ apiClient, reload, reloadToken, selectedDocumentId, ...selection, ...mutations }),
+    [apiClient, reload, reloadToken, selectedDocumentId, selection, mutations],
+  );
+
+  return useLoadedProductWorkspace(loadInput);
+}
+
+function useWorkspaceSelection(setSelectedDocumentId: (documentId: DocumentId | null) => void) {
+  const selectDocumentId = useCallback(
+    (documentId: DocumentId) => {
+      setSelectedDocumentId(documentId);
+    },
+    [setSelectedDocumentId],
+  );
   const selectDocument = useCallback(
     (selection: WorkspaceNavigationSelection) => {
       selectDocumentId(selection.documentId as DocumentId);
     },
     [selectDocumentId],
   );
+
+  return useMemo(() => ({ selectDocument, selectDocumentId }), [selectDocument, selectDocumentId]);
+}
+
+function useWorkspaceMutations(
+  apiClient: ApiClient,
+  reload: () => void,
+  setSelectedDocumentId: (documentId: DocumentId | null) => void,
+) {
   const createProductDocument = useProductDocumentCreator(apiClient, reload, setSelectedDocumentId);
   const createProductFolder = useProductFolderCreator(apiClient, reload);
   const deleteProductDocument = useProductDocumentDeleter(apiClient, reload, setSelectedDocumentId);
   const deleteProductFolder = useProductFolderDeleter(apiClient, reload, setSelectedDocumentId);
-  const loadInput = useMemo(
+  const renameProductFolder = useProductFolderRenamer(apiClient, reload);
+
+  return useMemo(
     () => ({
-      apiClient,
       createProductDocument,
       createProductFolder,
       deleteProductDocument,
       deleteProductFolder,
-      reloadToken,
-      selectDocument,
-      selectedDocumentId,
-      selectDocumentId,
-      reload,
+      renameProductFolder,
     }),
     [
-      apiClient,
       createProductDocument,
       createProductFolder,
       deleteProductDocument,
       deleteProductFolder,
-      reloadToken,
-      selectDocument,
-      selectedDocumentId,
-      selectDocumentId,
-      reload,
+      renameProductFolder,
     ],
   );
-
-  return useLoadedProductWorkspace(loadInput);
 }
 
-function useLoadedProductWorkspace(input: {
-  apiClient: ApiClient;
-  createProductDocument: (request: WorkspaceDocumentCreateRequest) => void;
-  createProductFolder: (request: WorkspaceFolderCreateRequest) => void;
-  deleteProductDocument: (documentId: string) => void;
-  deleteProductFolder: (folderId: string) => void;
-  reloadToken: number;
-  selectDocument: (selection: WorkspaceNavigationSelection) => void;
-  selectedDocumentId: DocumentId | null;
-  selectDocumentId: (documentId: DocumentId) => void;
-  reload: () => void;
-}) {
+function useLoadedProductWorkspace(input: LoadedProductWorkspaceInput) {
   const [state, setState] = useState<ProductWorkspaceState>({
     status: "loading",
     apiClient: input.apiClient,
@@ -102,24 +120,7 @@ function useLoadedProductWorkspace(input: {
         setState(createLoadedState(model, input));
       },
       (error) => {
-        if (!abortController.signal.aborted) {
-          if (error instanceof UnauthenticatedError) {
-            setState({
-              status: "unauthenticated",
-              apiClient: input.apiClient,
-              reload: input.reload,
-            });
-          } else if (error instanceof NoWorkspaceError) {
-            setState({ status: "no-workspace", apiClient: input.apiClient, reload: input.reload });
-          } else {
-            setState({
-              status: "error",
-              error: toError(error),
-              apiClient: input.apiClient,
-              reload: input.reload,
-            });
-          }
-        }
+        if (!abortController.signal.aborted) setState(createFailedState(error, input));
       },
     );
 
@@ -127,6 +128,24 @@ function useLoadedProductWorkspace(input: {
   }, [input]);
 
   return state;
+}
+
+function createFailedState(
+  error: unknown,
+  input: Pick<LoadedProductWorkspaceInput, "apiClient" | "reload">,
+): ProductWorkspaceState {
+  if (error instanceof UnauthenticatedError) {
+    return { status: "unauthenticated", apiClient: input.apiClient, reload: input.reload };
+  }
+  if (error instanceof NoWorkspaceError) {
+    return { status: "no-workspace", apiClient: input.apiClient, reload: input.reload };
+  }
+  return {
+    status: "error",
+    error: toError(error),
+    apiClient: input.apiClient,
+    reload: input.reload,
+  };
 }
 
 function useProductDocumentCreator(
@@ -160,6 +179,18 @@ function useProductFolderCreator(apiClient: ApiClient, reload: () => void) {
         parentFolderId: request.parentFolderId as FolderId,
         name: request.name,
       }).then(reload);
+    },
+    [apiClient, reload],
+  );
+}
+
+function useProductFolderRenamer(apiClient: ApiClient, reload: () => void) {
+  return useCallback(
+    (request: WorkspaceFolderRenameRequest) => {
+      const name = request.name.trim();
+      if (!name) return;
+
+      void updateFolder(apiClient, request.folderId, { name }).then(reload);
     },
     [apiClient, reload],
   );
@@ -199,16 +230,7 @@ function useProductFolderDeleter(
 
 function createLoadedState(
   model: Awaited<ReturnType<typeof loadProductWorkspace>>,
-  input: {
-    createProductDocument: (request: WorkspaceDocumentCreateRequest) => void;
-    createProductFolder: (request: WorkspaceFolderCreateRequest) => void;
-    deleteProductDocument: (documentId: string) => void;
-    deleteProductFolder: (folderId: string) => void;
-    selectDocument: (selection: WorkspaceNavigationSelection) => void;
-    selectDocumentId: (documentId: DocumentId) => void;
-    apiClient: ApiClient;
-    reload: () => void;
-  },
+  input: Omit<LoadedProductWorkspaceInput, "reloadToken" | "selectedDocumentId">,
 ): ProductWorkspaceState {
   if (!model) return { status: "empty", apiClient: input.apiClient, reload: input.reload };
 
@@ -221,6 +243,7 @@ function createLoadedState(
       input.createProductFolder,
       input.deleteProductDocument,
       input.deleteProductFolder,
+      input.renameProductFolder,
       input.reload,
     ),
     apiClient: input.apiClient,

@@ -1,8 +1,13 @@
-import { useState } from "react";
+import type { KeyboardEvent, RefObject } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { panelStyles } from "./styles";
 import { createWorkspaceDocumentSelection, isFolderNode } from "./tree-utils";
-import type { WorkspaceNavigationNode, WorkspaceNavigationSelection } from "./types";
+import type {
+  WorkspaceFolderRenameRequest,
+  WorkspaceNavigationNode,
+  WorkspaceNavigationSelection,
+} from "./types";
 import { ChevronDown, FileText, Folder, Trash2 } from "lucide-react";
 
 type WorkspaceNodeViewProps = Readonly<{
@@ -16,6 +21,8 @@ type WorkspaceNodeViewProps = Readonly<{
   onSelectDocument: (selection: WorkspaceNavigationSelection) => void;
   onDeleteDocument: (documentId: string) => void;
   onDeleteFolder: (folderId: string) => void;
+  onRenameFolder: (request: WorkspaceFolderRenameRequest) => void;
+  siblingNames?: readonly string[];
 }>;
 
 export function WorkspaceNodeView(props: WorkspaceNodeViewProps) {
@@ -43,53 +50,141 @@ function RootNodeView(props: WorkspaceNodeViewProps) {
 function FolderNodeView(props: WorkspaceNodeViewProps) {
   const { node } = props;
   const [isExpanded, setIsExpanded] = useState(true);
+  const [isRenaming, setIsRenaming] = useState(false);
+  const [draftName, setDraftName] = useState(node.name);
+  const inputRef = useRef<HTMLInputElement | null>(null);
   const isSelected = node.id === props.selectedFolderId;
+  const toggleFolder = () => {
+    props.onSelectFolder(node.id);
+    setIsExpanded((current) => !current);
+  };
+  const finishRenaming = () => {
+    const nextName = draftName.trim();
+    if (!nextName || isDuplicateSiblingName(nextName, node.name, props.siblingNames)) {
+      setDraftName(node.name);
+      setIsRenaming(false);
+      return;
+    }
+
+    setIsRenaming(false);
+    if (nextName !== node.name) props.onRenameFolder({ folderId: node.id, name: nextName });
+  };
+
+  useEffect(() => {
+    if (!isRenaming) return;
+    inputRef.current?.focus();
+    inputRef.current?.select();
+  }, [isRenaming]);
 
   return (
     <li data-node-kind={node.kind} data-node-id={node.id}>
       <div style={folderRowStyle(isSelected)}>
-        <button
-          type="button"
-          style={{
-            ...folderToggleStyle,
-            transform: isExpanded ? "rotate(0deg)" : "rotate(-90deg)",
+        <FolderToggle node={node} isExpanded={isExpanded} onToggle={toggleFolder} />
+        <FolderNameControl
+          draftName={draftName}
+          inputRef={inputRef}
+          isRenaming={isRenaming}
+          isSelected={isSelected}
+          node={node}
+          onCancel={() => {
+            setDraftName(node.name);
+            setIsRenaming(false);
           }}
-          aria-label={isExpanded ? `Collapse ${node.name}` : `Expand ${node.name}`}
-          aria-expanded={isExpanded}
-          onClick={() => setIsExpanded((current) => !current)}
-        >
-          <ChevronDown size={16} color="#90a1b9" />
-        </button>
-        <button
-          type="button"
-          style={folderSelectStyle}
-          aria-current={isSelected ? "true" : undefined}
-          onClick={() => {
-            if (isSelected) {
-              setIsExpanded((current) => !current);
-              return;
-            }
-            props.onSelectFolder(node.id);
+          onChange={setDraftName}
+          onDoubleClick={() => {
+            setDraftName(node.name);
+            setIsRenaming(true);
           }}
-        >
-          <Folder size={16} color="#90a1b9" />
-          <span style={{ ...panelStyles.nodeTitle, fontWeight: 500 }}>{node.name}</span>
-        </button>
-        <button
-          type="button"
-          style={nodeDeleteStyle}
-          aria-label={`Delete ${node.name}`}
-          onClick={(event) => {
-            event.stopPropagation();
-            if (!confirmDelete(`Delete folder "${node.name}" and everything inside it?`)) return;
-            props.onDeleteFolder(node.id);
-          }}
-        >
-          <Trash2 size={13} />
-        </button>
+          onFinish={finishRenaming}
+          onToggle={toggleFolder}
+        />
+        <DeleteNodeButton
+          label={`Delete ${node.name}`}
+          message={`Delete folder "${node.name}" and everything inside it?`}
+          onDelete={() => props.onDeleteFolder(node.id)}
+        />
       </div>
       {isExpanded ? <ChildNodes {...props} path={[...props.path, node.name]} /> : null}
     </li>
+  );
+}
+
+function FolderToggle({
+  isExpanded,
+  node,
+  onToggle,
+}: Readonly<{
+  isExpanded: boolean;
+  node: WorkspaceNavigationNode;
+  onToggle: () => void;
+}>) {
+  return (
+    <button
+      type="button"
+      style={{
+        ...folderToggleStyle,
+        transform: isExpanded ? "rotate(0deg)" : "rotate(-90deg)",
+      }}
+      aria-label={isExpanded ? `Collapse ${node.name}` : `Expand ${node.name}`}
+      aria-expanded={isExpanded}
+      onClick={onToggle}
+    >
+      <ChevronDown size={16} color="#90a1b9" />
+    </button>
+  );
+}
+
+function FolderNameControl({
+  draftName,
+  inputRef,
+  isRenaming,
+  isSelected,
+  node,
+  onCancel,
+  onChange,
+  onDoubleClick,
+  onFinish,
+  onToggle,
+}: Readonly<{
+  draftName: string;
+  inputRef: RefObject<HTMLInputElement | null>;
+  isRenaming: boolean;
+  isSelected: boolean;
+  node: WorkspaceNavigationNode;
+  onCancel: () => void;
+  onChange: (name: string) => void;
+  onDoubleClick: () => void;
+  onFinish: () => void;
+  onToggle: () => void;
+}>) {
+  if (isRenaming) {
+    return (
+      <span style={folderRenameWrapStyle}>
+        <Folder size={16} color="#90a1b9" />
+        <input
+          ref={inputRef}
+          aria-label={`Rename ${node.name}`}
+          value={draftName}
+          onBlur={onFinish}
+          onChange={(event) => onChange(event.target.value)}
+          onKeyDown={(event) => handleRenameKeyDown(event, onFinish, onCancel)}
+          style={folderRenameInputStyle}
+        />
+      </span>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      style={folderSelectStyle}
+      aria-current={isSelected ? "true" : undefined}
+      onClick={onToggle}
+      onDoubleClick={onDoubleClick}
+    >
+      <Folder size={16} color="#90a1b9" />
+      <span style={{ ...panelStyles.nodeTitle, fontWeight: 500 }}>{node.name}</span>
+    </button>
   );
 }
 
@@ -108,6 +203,7 @@ function ChildNodes(props: WorkspaceNodeViewProps) {
           {...props}
           node={child}
           projectId={props.projectId ?? null}
+          siblingNames={node.children?.map((sibling) => sibling.name) ?? []}
         />
       ))}
     </ul>
@@ -149,20 +245,39 @@ function DocumentNodeView({
             </span>
           </span>
         </button>
-        <button
-          type="button"
-          style={nodeDeleteStyle}
-          aria-label={`Delete ${node.name}`}
-          onClick={(event) => {
-            event.stopPropagation();
-            if (!confirmDelete(`Delete document "${node.name}"?`)) return;
-            onDeleteDocument(node.id);
-          }}
-        >
-          <Trash2 size={13} />
-        </button>
+        <DeleteNodeButton
+          label={`Delete ${node.name}`}
+          message={`Delete document "${node.name}"?`}
+          onDelete={() => onDeleteDocument(node.id)}
+        />
       </div>
     </li>
+  );
+}
+
+function DeleteNodeButton({
+  label,
+  message,
+  onDelete,
+}: Readonly<{
+  label: string;
+  message: string;
+  onDelete: () => void;
+}>) {
+  return (
+    <button
+      type="button"
+      className="workspace-node-delete"
+      style={nodeDeleteStyle}
+      aria-label={label}
+      onClick={(event) => {
+        event.stopPropagation();
+        if (!confirmDelete(message)) return;
+        onDelete();
+      }}
+    >
+      <Trash2 size={13} />
+    </button>
   );
 }
 
@@ -170,6 +285,7 @@ function documentButtonStyle(isSelected: boolean) {
   return {
     ...panelStyles.nodeButton,
     flex: 1,
+    paddingRight: "30px",
     background: isSelected ? "#eff6ff" : "transparent",
     color: isSelected ? "#1447e6" : "#45556c",
   };
@@ -179,6 +295,8 @@ function folderRowStyle(isSelected: boolean) {
   return {
     display: "flex",
     alignItems: "center",
+    position: "relative" as const,
+    overflow: "hidden",
     borderRadius: "4px",
     background: isSelected ? "#eff6ff" : "transparent",
     color: isSelected ? "#1447e6" : "#45556c",
@@ -189,6 +307,8 @@ function documentRowStyle(isSelected: boolean) {
   return {
     display: "flex",
     alignItems: "center",
+    position: "relative" as const,
+    overflow: "hidden",
     borderRadius: "4px",
     background: isSelected ? "#eff6ff" : "transparent",
     color: isSelected ? "#1447e6" : "#45556c",
@@ -213,12 +333,59 @@ function confirmDelete(message: string): boolean {
   return globalThis.confirm(message);
 }
 
+function handleRenameKeyDown(
+  event: KeyboardEvent<HTMLInputElement>,
+  onFinish: () => void,
+  onCancel: () => void,
+) {
+  if (event.key === "Enter") {
+    event.preventDefault();
+    onFinish();
+  }
+  if (event.key === "Escape") {
+    event.preventDefault();
+    onCancel();
+  }
+}
+
+function isDuplicateSiblingName(
+  nextName: string,
+  currentName: string,
+  siblingNames: readonly string[] = [],
+) {
+  const normalizedNextName = nextName.trim().toLowerCase();
+  const normalizedCurrentName = currentName.trim().toLowerCase();
+  if (normalizedNextName === normalizedCurrentName) return false;
+
+  return siblingNames.some((name) => name.trim().toLowerCase() === normalizedNextName);
+}
+
 const folderSelectStyle = {
+  ...panelStyles.nodeButton,
+  flex: 1,
+  paddingRight: "30px",
+  padding: "6px 6px 6px 0px",
+  gap: "4px",
+  background: "transparent",
+};
+
+const folderRenameWrapStyle = {
   ...panelStyles.nodeButton,
   flex: 1,
   padding: "6px 6px 6px 0px",
   gap: "4px",
   background: "transparent",
+};
+
+const folderRenameInputStyle = {
+  minWidth: 0,
+  flex: 1,
+  border: "0",
+  background: "transparent",
+  color: "inherit",
+  font: "inherit",
+  outline: "0",
+  padding: 0,
 };
 
 const nodeDeleteStyle = {

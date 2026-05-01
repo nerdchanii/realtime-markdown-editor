@@ -44,6 +44,11 @@ export type WorkspaceFolderCreateRequest = Readonly<{
   parentFolderId: string;
 }>;
 
+export type WorkspaceFolderRenameRequest = Readonly<{
+  folderId: string;
+  name: string;
+}>;
+
 export type WorkspaceNavigationViewModel = Readonly<{
   replacementPoint: string;
   label: string;
@@ -62,6 +67,7 @@ export type WorkspaceNavigationViewModel = Readonly<{
   onCreateFolder?: (request: WorkspaceFolderCreateRequest) => void;
   onDeleteDocument?: (documentId: string) => void;
   onDeleteFolder?: (folderId: string) => void;
+  onRenameFolder?: (request: WorkspaceFolderRenameRequest) => void;
 }>;
 
 export type NormalizedWorkspaceNavigationViewModel = Required<
@@ -72,6 +78,7 @@ export type NormalizedWorkspaceNavigationViewModel = Required<
     | "onCreateFolder"
     | "onDeleteDocument"
     | "onDeleteFolder"
+    | "onRenameFolder"
   >
 > &
   Pick<
@@ -81,4 +88,5 @@ export type NormalizedWorkspaceNavigationViewModel = Required<
     | "onCreateFolder"
     | "onDeleteDocument"
     | "onDeleteFolder"
+    | "onRenameFolder"
   >;

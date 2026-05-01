@@ -1,5 +1,5 @@
 import type { Editor } from "@tiptap/core";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { DocumentId } from "@rme/contracts";
 
 import { ChevronDownIcon } from "@/components/tiptap-icons/chevron-down-icon";
@@ -128,6 +128,30 @@ function CheckpointSaveButton({
 }>) {
   const [status, setStatus] = useState<"idle" | "saving" | "saved" | "failed">("idle");
   const canSave = Boolean(apiClient && documentId && status !== "saving");
+  const runSave = useCallback(() => {
+    if (!apiClient || !documentId || !canSave) return;
+
+    void saveCheckpoint({
+      apiClient,
+      documentId,
+      markdown,
+      onSaved,
+      setStatus,
+    });
+  }, [apiClient, canSave, documentId, markdown, onSaved]);
+
+  useEffect(() => {
+    if (!canSave || isReadOnly) return undefined;
+
+    const handleSaveShortcut = (event: KeyboardEvent) => {
+      if (!isSaveShortcut(event)) return;
+      event.preventDefault();
+      runSave();
+    };
+
+    window.addEventListener("keydown", handleSaveShortcut);
+    return () => window.removeEventListener("keydown", handleSaveShortcut);
+  }, [canSave, isReadOnly, runSave]);
 
   if (!apiClient || !documentId || isReadOnly) return null;
 
@@ -136,15 +160,7 @@ function CheckpointSaveButton({
       aria-label={saveAriaLabel(status)}
       data-disabled={!canSave}
       disabled={!canSave}
-      onClick={() => {
-        void saveCheckpoint({
-          apiClient,
-          documentId,
-          markdown,
-          onSaved,
-          setStatus,
-        });
-      }}
+      onClick={runSave}
       role="button"
       tabIndex={-1}
       type="button"
@@ -153,6 +169,10 @@ function CheckpointSaveButton({
       <span className="tiptap-button-text">{saveLabel(status)}</span>
     </TiptapButton>
   );
+}
+
+function isSaveShortcut(event: KeyboardEvent) {
+  return (event.metaKey || event.ctrlKey) && !event.shiftKey && event.key.toLowerCase() === "s";
 }
 
 async function saveCheckpoint(

@@ -38,6 +38,7 @@ const initialRect: RectState = {
 
 const isSSR = typeof window === "undefined";
 const hasResizeObserver = !isSSR && typeof ResizeObserver !== "undefined";
+const leadingThrottleOptions = { leading: true, trailing: true };
 
 /**
  * Helper function to check if code is running on client side
@@ -76,38 +77,46 @@ export function useElementRect({
     return element;
   }, [element, enabled]);
 
-  const updateRect = useThrottledCallback(
-    () => {
-      if (!enabled || !isClientSide()) return;
+  const measureRect = useCallback(() => {
+    if (!enabled || !isClientSide()) return;
 
-      const targetElement = getTargetElement();
-      if (!targetElement) {
-        setRect(initialRect);
-        return;
-      }
-
-      const newRect = targetElement.getBoundingClientRect();
-      setRect({
-        x: newRect.x,
-        y: newRect.y,
-        width: newRect.width,
-        height: newRect.height,
-        top: newRect.top,
-        right: newRect.right,
-        bottom: newRect.bottom,
-        left: newRect.left,
-      });
-    },
-    throttleMs,
-    [enabled, getTargetElement],
-    { leading: true, trailing: true },
-  );
-
-  useEffect(() => {
-    if (!enabled || !isClientSide()) {
+    const targetElement = getTargetElement();
+    if (!targetElement) {
       setRect(initialRect);
       return;
     }
+
+    setRect(toRectState(targetElement.getBoundingClientRect()));
+  }, [enabled, getTargetElement]);
+  const updateRect = useThrottledCallback(measureRect, throttleMs, leadingThrottleOptions);
+  const resetRect = useCallback(() => setRect(initialRect), []);
+
+  useRectSubscriptions({
+    enabled,
+    getTargetElement,
+    updateRect,
+    useResizeObserver,
+    resetRect,
+  });
+
+  return enabled ? rect : initialRect;
+}
+
+function useRectSubscriptions({
+  enabled,
+  getTargetElement,
+  resetRect,
+  updateRect,
+  useResizeObserver,
+}: Readonly<{
+  enabled: boolean;
+  getTargetElement: () => Element | null;
+  resetRect: () => void;
+  updateRect: () => void;
+  useResizeObserver: boolean;
+}>) {
+  useEffect(() => {
+    if (!enabled || !isClientSide()) return;
 
     const targetElement = getTargetElement();
     if (!targetElement) return;
@@ -136,11 +145,9 @@ export function useElementRect({
 
     return () => {
       cleanup.forEach((fn) => fn());
-      setRect(initialRect);
+      resetRect();
     };
-  }, [enabled, getTargetElement, updateRect, useResizeObserver]);
-
-  return rect;
+  }, [enabled, getTargetElement, resetRect, updateRect, useResizeObserver]);
 }
 
 /**
@@ -151,6 +158,19 @@ export function useBodyRect(options: Omit<ElementRectOptions, "element"> = {}): 
     ...options,
     element: isClientSide() ? document.body : null,
   });
+}
+
+function toRectState(rect: DOMRect): RectState {
+  return {
+    x: rect.x,
+    y: rect.y,
+    width: rect.width,
+    height: rect.height,
+    top: rect.top,
+    right: rect.right,
+    bottom: rect.bottom,
+    left: rect.left,
+  };
 }
 
 /**

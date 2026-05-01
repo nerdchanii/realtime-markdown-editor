@@ -19,6 +19,7 @@ coverage/
 *.tsbuildinfo
 
 # Test and browser artifacts
+.playwright-cli/
 playwright-report/
 test-results/
 *.lcov

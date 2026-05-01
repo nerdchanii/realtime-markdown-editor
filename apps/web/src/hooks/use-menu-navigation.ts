@@ -1,5 +1,5 @@
 import type { Editor } from "@tiptap/react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 type Orientation = "horizontal" | "vertical" | "both";
 
@@ -40,6 +40,15 @@ interface MenuNavigationOptions<T> {
   autoSelectFirstItem?: boolean;
 }
 
+type NavigationState = Readonly<{
+  query: string | undefined;
+  selectedIndex: number;
+}>;
+
+type SetSelectedIndex = (value: number | ((currentIndex: number) => number)) => void;
+type KeyboardNavigationOptions<T> = MenuNavigationOptions<T> &
+  Readonly<{ selectedIndex: number; setSelectedIndex: SetSelectedIndex }>;
+
 /**
  * Hook that implements keyboard navigation for dropdown menus and command palettes.
  *
@@ -59,102 +68,59 @@ export function useMenuNavigation<T>({
   orientation = "vertical",
   autoSelectFirstItem = true,
 }: MenuNavigationOptions<T>) {
-  const [selectedIndex, setSelectedIndex] = useState<number>(autoSelectFirstItem ? 0 : -1);
+  const initialIndex = autoSelectFirstItem ? 0 : -1;
+  const [navigation, setNavigation] = useState<NavigationState>({
+    query,
+    selectedIndex: initialIndex,
+  });
+  const selectedIndex = navigation.query === query ? navigation.selectedIndex : initialIndex;
+  const setSelectedIndex = useCallback<SetSelectedIndex>(
+    (value) => {
+      setNavigation((current) => {
+        const currentIndex = current.query === query ? current.selectedIndex : initialIndex;
+        const selectedIndex = typeof value === "function" ? value(currentIndex) : value;
+        return { query, selectedIndex };
+      });
+    },
+    [initialIndex, query],
+  );
 
+  useKeyboardNavigation({
+    containerRef,
+    editor,
+    items,
+    onClose,
+    onSelect,
+    orientation,
+    selectedIndex,
+    setSelectedIndex,
+  });
+
+  return { selectedIndex: items.length ? selectedIndex : undefined, setSelectedIndex };
+}
+
+function useKeyboardNavigation<T>({
+  containerRef,
+  editor,
+  items,
+  onClose,
+  onSelect,
+  orientation,
+  selectedIndex,
+  setSelectedIndex,
+}: KeyboardNavigationOptions<T>) {
   useEffect(() => {
     const handleKeyboardNavigation = (event: KeyboardEvent) => {
-      if (!items.length) return false;
-
-      const moveNext = () =>
-        setSelectedIndex((currentIndex) => {
-          if (currentIndex === -1) return 0;
-          return (currentIndex + 1) % items.length;
-        });
-
-      const movePrev = () =>
-        setSelectedIndex((currentIndex) => {
-          if (currentIndex === -1) return items.length - 1;
-          return (currentIndex - 1 + items.length) % items.length;
-        });
-
-      switch (event.key) {
-        case "ArrowUp": {
-          if (orientation === "horizontal") return false;
-          event.preventDefault();
-          movePrev();
-          return true;
-        }
-
-        case "ArrowDown": {
-          if (orientation === "horizontal") return false;
-          event.preventDefault();
-          moveNext();
-          return true;
-        }
-
-        case "ArrowLeft": {
-          if (orientation === "vertical") return false;
-          event.preventDefault();
-          movePrev();
-          return true;
-        }
-
-        case "ArrowRight": {
-          if (orientation === "vertical") return false;
-          event.preventDefault();
-          moveNext();
-          return true;
-        }
-
-        case "Tab": {
-          event.preventDefault();
-          if (event.shiftKey) {
-            movePrev();
-          } else {
-            moveNext();
-          }
-          return true;
-        }
-
-        case "Home": {
-          event.preventDefault();
-          setSelectedIndex(0);
-          return true;
-        }
-
-        case "End": {
-          event.preventDefault();
-          setSelectedIndex(items.length - 1);
-          return true;
-        }
-
-        case "Enter": {
-          if (event.isComposing) return false;
-          event.preventDefault();
-          if (selectedIndex !== -1 && items[selectedIndex]) {
-            onSelect?.(items[selectedIndex]);
-          }
-          return true;
-        }
-
-        case "Escape": {
-          event.preventDefault();
-          onClose?.();
-          return true;
-        }
-
-        default:
-          return false;
-      }
+      return handleMenuKeyDown(event, {
+        items,
+        onClose,
+        onSelect,
+        orientation,
+        selectedIndex,
+        setSelectedIndex,
+      });
     };
-
-    let targetElement: HTMLElement | null = null;
-
-    if (editor) {
-      targetElement = editor.view.dom;
-    } else if (containerRef?.current) {
-      targetElement = containerRef.current;
-    }
+    const targetElement = getNavigationTarget(editor, containerRef);
 
     if (targetElement) {
       targetElement.addEventListener("keydown", handleKeyboardNavigation, true);
@@ -165,16 +131,123 @@ export function useMenuNavigation<T>({
     }
 
     return undefined;
-  }, [editor, containerRef, items, selectedIndex, onSelect, onClose, orientation]);
-
-  useEffect(() => {
-    if (query) {
-      setSelectedIndex(autoSelectFirstItem ? 0 : -1);
-    }
-  }, [query, autoSelectFirstItem]);
-
-  return {
-    selectedIndex: items.length ? selectedIndex : undefined,
+  }, [
+    editor,
+    containerRef,
+    items,
+    selectedIndex,
+    onSelect,
+    onClose,
+    orientation,
     setSelectedIndex,
-  };
+  ]);
+}
+
+function handleMenuKeyDown<T>(
+  event: KeyboardEvent,
+  input: Readonly<{
+    items: T[];
+    onClose?: () => void;
+    onSelect?: (item: T) => void;
+    orientation: Orientation;
+    selectedIndex: number;
+    setSelectedIndex: SetSelectedIndex;
+  }>,
+) {
+  if (!input.items.length) return false;
+  if (handleMovementKey(event, input)) return true;
+  if (handleBoundaryKey(event, input)) return true;
+  return handleActionKey(event, input);
+}
+
+function handleMovementKey<T>(
+  event: KeyboardEvent,
+  input: Readonly<{ items: T[]; orientation: Orientation; setSelectedIndex: SetSelectedIndex }>,
+) {
+  const moveNext = () => input.setSelectedIndex((index) => nextIndex(index, input.items.length));
+  const movePrev = () =>
+    input.setSelectedIndex((index) => previousIndex(index, input.items.length));
+  const action = getMovementAction(event, input.orientation, moveNext, movePrev);
+
+  return action ? preventAndRun(event, action) : false;
+}
+
+function getMovementAction(
+  event: KeyboardEvent,
+  orientation: Orientation,
+  moveNext: () => void,
+  movePrev: () => void,
+) {
+  if (event.key === "Tab") return event.shiftKey ? movePrev : moveNext;
+  const movement = arrowMovements(moveNext, movePrev)[event.key];
+  if (!movement || movement.blockedOrientation === orientation) return null;
+  return movement.action;
+}
+
+function arrowMovements(moveNext: () => void, movePrev: () => void) {
+  return {
+    ArrowUp: { action: movePrev, blockedOrientation: "horizontal" },
+    ArrowDown: { action: moveNext, blockedOrientation: "horizontal" },
+    ArrowLeft: { action: movePrev, blockedOrientation: "vertical" },
+    ArrowRight: { action: moveNext, blockedOrientation: "vertical" },
+  } as Record<string, { action: () => void; blockedOrientation: Orientation }>;
+}
+
+function handleBoundaryKey<T>(
+  event: KeyboardEvent,
+  input: Readonly<{ items: T[]; setSelectedIndex: SetSelectedIndex }>,
+) {
+  if (event.key === "Home") return preventAndRun(event, () => input.setSelectedIndex(0));
+  if (event.key === "End")
+    return preventAndRun(event, () => input.setSelectedIndex(input.items.length - 1));
+  return false;
+}
+
+function handleActionKey<T>(
+  event: KeyboardEvent,
+  input: Readonly<{
+    items: T[];
+    onClose?: () => void;
+    onSelect?: (item: T) => void;
+    selectedIndex: number;
+  }>,
+) {
+  if (event.key === "Enter") return handleEnterKey(event, input);
+  if (event.key === "Escape") return preventAndRun(event, () => input.onClose?.());
+  return false;
+}
+
+function handleEnterKey<T>(
+  event: KeyboardEvent,
+  input: Readonly<{ items: T[]; onSelect?: (item: T) => void; selectedIndex: number }>,
+) {
+  if (event.isComposing) return false;
+  return preventAndRun(event, () => {
+    if (input.selectedIndex !== -1 && input.items[input.selectedIndex]) {
+      input.onSelect?.(input.items[input.selectedIndex]);
+    }
+  });
+}
+
+function getNavigationTarget(
+  editor: Editor | null | undefined,
+  containerRef: React.RefObject<HTMLElement | null> | undefined,
+) {
+  return editor?.view.dom ?? containerRef?.current ?? null;
+}
+
+function nextIndex(currentIndex: number, itemCount: number) {
+  if (currentIndex === -1) return 0;
+  return (currentIndex + 1) % itemCount;
+}
+
+function previousIndex(currentIndex: number, itemCount: number) {
+  if (currentIndex === -1) return itemCount - 1;
+  return (currentIndex - 1 + itemCount) % itemCount;
+}
+
+function preventAndRun(event: KeyboardEvent, action: () => void) {
+  event.preventDefault();
+  action();
+  return true;
 }

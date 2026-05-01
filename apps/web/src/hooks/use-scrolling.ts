@@ -14,30 +14,13 @@ export function useScrolling(target?: ScrollTarget, options: UseScrollingOptions
   const [isScrolling, setIsScrolling] = useState(false);
 
   useEffect(() => {
-    // Resolve element or window
-    const element: EventTargetWithScroll =
-      target && typeof Window !== "undefined" && target instanceof Window
-        ? target
-        : ((target as RefObject<HTMLElement>)?.current ?? window);
-
-    // Mobile: fallback to document when using window
-    const eventTarget: EventTargetWithScroll =
-      fallbackToDocument && element === window && typeof document !== "undefined"
-        ? document
-        : element;
-
-    const on = (el: EventTargetWithScroll, event: string, handler: EventListener) =>
-      el.addEventListener(event, handler, true);
-
-    const off = (el: EventTargetWithScroll, event: string, handler: EventListener) =>
-      el.removeEventListener(event, handler);
-
+    const element = resolveScrollElement(target);
+    const eventTarget = resolveScrollEventTarget(element, fallbackToDocument);
     let timeout: ReturnType<typeof setTimeout>;
     const supportsScrollEnd = element === window && "onscrollend" in window;
 
     const handleScroll: EventListener = () => {
-      if (!isScrolling) setIsScrolling(true);
-
+      setIsScrolling(true);
       if (!supportsScrollEnd) {
         clearTimeout(timeout);
         timeout = setTimeout(() => setIsScrolling(false), debounce);
@@ -46,19 +29,46 @@ export function useScrolling(target?: ScrollTarget, options: UseScrollingOptions
 
     const handleScrollEnd: EventListener = () => setIsScrolling(false);
 
-    on(eventTarget, "scroll", handleScroll);
-    if (supportsScrollEnd) {
-      on(eventTarget, "scrollend", handleScrollEnd);
-    }
+    addScrollListeners(eventTarget, supportsScrollEnd, handleScroll, handleScrollEnd);
 
     return () => {
-      off(eventTarget, "scroll", handleScroll);
-      if (supportsScrollEnd) {
-        off(eventTarget, "scrollend", handleScrollEnd);
-      }
+      removeScrollListeners(eventTarget, supportsScrollEnd, handleScroll, handleScrollEnd);
       clearTimeout(timeout);
     };
-  }, [target, debounce, fallbackToDocument, isScrolling]);
+  }, [target, debounce, fallbackToDocument]);
 
   return isScrolling;
+}
+
+function resolveScrollElement(target: ScrollTarget): EventTargetWithScroll {
+  if (target && typeof Window !== "undefined" && target instanceof Window) return target;
+  return (target as RefObject<HTMLElement>)?.current ?? window;
+}
+
+function resolveScrollEventTarget(
+  element: EventTargetWithScroll,
+  fallbackToDocument: boolean,
+): EventTargetWithScroll {
+  if (fallbackToDocument && element === window && typeof document !== "undefined") return document;
+  return element;
+}
+
+function addScrollListeners(
+  eventTarget: EventTargetWithScroll,
+  supportsScrollEnd: boolean,
+  handleScroll: EventListener,
+  handleScrollEnd: EventListener,
+) {
+  eventTarget.addEventListener("scroll", handleScroll, true);
+  if (supportsScrollEnd) eventTarget.addEventListener("scrollend", handleScrollEnd, true);
+}
+
+function removeScrollListeners(
+  eventTarget: EventTargetWithScroll,
+  supportsScrollEnd: boolean,
+  handleScroll: EventListener,
+  handleScrollEnd: EventListener,
+) {
+  eventTarget.removeEventListener("scroll", handleScroll);
+  if (supportsScrollEnd) eventTarget.removeEventListener("scrollend", handleScrollEnd);
 }

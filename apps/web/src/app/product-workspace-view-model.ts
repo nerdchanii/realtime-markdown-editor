@@ -3,8 +3,6 @@ import type {
   DocumentDetailDto,
   DocumentPropertyDto,
   DocumentPropertyValueDto,
-  DocumentSummaryDto,
-  ProjectDto,
   WorkspaceMembershipId,
   WorkspaceMemberDto,
 } from "@rme/contracts";
@@ -14,11 +12,12 @@ import { createTiptapYjsCollaborationAdapter } from "@/features/editor";
 import type {
   WorkspaceDocumentCreateRequest,
   WorkspaceFolderCreateRequest,
-  WorkspaceNavigationNode,
+  WorkspaceFolderRenameRequest,
   WorkspaceNavigationSelection,
 } from "@/features/workspace";
 
 import type { AppFeatureProviders } from "./mock-providers";
+import { createWorkspaceNavigation } from "./product-workspace-navigation";
 import type { ProductWorkspaceModel } from "./product-workspace-types";
 
 export function createProductProviders(
@@ -28,6 +27,7 @@ export function createProductProviders(
   onCreateFolder: (request: WorkspaceFolderCreateRequest) => void,
   onDeleteDocument: (documentId: string) => void,
   onDeleteFolder: (folderId: string) => void,
+  onRenameFolder: (request: WorkspaceFolderRenameRequest) => void,
   onDocumentPropertiesUpdated: () => void,
 ): AppFeatureProviders {
   const context = createProviderContext(model);
@@ -40,6 +40,7 @@ export function createProductProviders(
       onCreateFolder,
       onDeleteDocument,
       onDeleteFolder,
+      onRenameFolder,
     ),
     documentContext: createDocumentContext(model, context.memberships, onDocumentPropertiesUpdated),
     editorWorkspace: createEditorWorkspace(model, context.memberships, context.currentMemberId),
@@ -92,41 +93,6 @@ function createHistoryInspector(
   };
 }
 
-function createWorkspaceNavigation(
-  model: ProductWorkspaceModel,
-  onSelectDocument: (selection: WorkspaceNavigationSelection) => void,
-  onCreateDocument: (request: WorkspaceDocumentCreateRequest) => void,
-  onCreateFolder: (request: WorkspaceFolderCreateRequest) => void,
-  onDeleteDocument: (documentId: string) => void,
-  onDeleteFolder: (folderId: string) => void,
-) {
-  const memberships = model.session?.memberships ?? [];
-  const currentMember = model.session?.currentMembership ?? null;
-
-  return {
-    replacementPoint: "features.workspace.provider.product-api",
-    label: model.navigation.workspace.name,
-    workspaceId: model.navigation.workspace.id,
-    workspaceName: model.navigation.workspace.name,
-    workspaceDescription: "Documents and folders loaded from the workspace API.",
-    activeMembersLabel: `${memberships.length} members available`,
-    currentMemberLabel: currentMember ? `Editing as ${currentMember.displayName}` : "Signed out",
-    root: createFolderNode(model.navigation, model.navigation.workspace.rootFolderId),
-    projects: model.navigation.projects.map((project) =>
-      createNavigationProject(model.navigation, project),
-    ),
-    selectedDocumentId: model.selectedDocument.id,
-    activeFolderId: model.selectedDocument.folderId,
-    defaultFolderId:
-      model.navigation.projects[0]?.rootFolderId ?? model.navigation.workspace.rootFolderId,
-    onSelectDocument,
-    onCreateDocument,
-    onCreateFolder,
-    onDeleteDocument,
-    onDeleteFolder,
-  };
-}
-
 function createDocumentContext(
   model: ProductWorkspaceModel,
   memberships: readonly WorkspaceMemberDto[],
@@ -152,67 +118,6 @@ function createSyncStatus() {
     label: "synced",
     detail: "Current Markdown projection loaded from product API",
     pendingEdits: 0,
-  };
-}
-
-function createNavigationProject(
-  navigation: ProductWorkspaceModel["navigation"],
-  project: ProjectDto,
-) {
-  return {
-    id: project.id,
-    name: project.name,
-    key: project.name.slice(0, 4).toUpperCase(),
-    status: "Active",
-    root: createFolderNode(navigation, project.rootFolderId),
-  };
-}
-
-function createFolderNode(
-  navigation: ProductWorkspaceModel["navigation"],
-  folderId: string,
-): WorkspaceNavigationNode {
-  const folder = navigation.folders.find((candidate) => candidate.id === folderId);
-  if (!folder) return createMissingFolderNode(folderId);
-
-  return {
-    id: folder.id,
-    kind: folder.kind,
-    name: folder.name,
-    children: createFolderChildren(navigation, folder.id),
-  };
-}
-
-function createFolderChildren(navigation: ProductWorkspaceModel["navigation"], folderId: string) {
-  const childFolders = navigation.folders.filter(
-    (candidate) => candidate.parentFolderId === folderId,
-  );
-  const childDocuments = navigation.documents.filter((document) => document.folderId === folderId);
-
-  return [
-    ...childFolders.map((childFolder) => createFolderNode(navigation, childFolder.id)),
-    ...childDocuments.map(createDocumentNode),
-  ];
-}
-
-function createMissingFolderNode(folderId: string): WorkspaceNavigationNode {
-  return {
-    id: folderId,
-    kind: "regular",
-    name: "Folder",
-    children: [],
-  };
-}
-
-function createDocumentNode(document: DocumentSummaryDto): WorkspaceNavigationNode {
-  return {
-    id: document.id,
-    kind: "document",
-    name: document.title,
-    folderId: document.folderId,
-    status: titleCase(document.state),
-    updatedLabel: document.latestRevisionId ? "Revision available" : "No revision",
-    ownerLabel: "Workspace",
   };
 }
 
@@ -276,8 +181,4 @@ function mapBacklink(backlink: BacklinkDto): DocumentBacklink {
 
 function memberLabels(members: readonly WorkspaceMemberDto[]) {
   return Object.fromEntries(members.map((member) => [member.id, member.displayName]));
-}
-
-function titleCase(value: string) {
-  return value.charAt(0).toUpperCase() + value.slice(1);
 }

@@ -6,6 +6,7 @@ import { WorkspaceNodeView } from "./WorkspaceNodeView";
 import { panelStyles } from "./styles";
 import { normalizeViewModel } from "./tree-utils";
 import type {
+  WorkspaceFolderRenameRequest,
   WorkspaceNavigationNode,
   WorkspaceNavigationSelection,
   WorkspaceNavigationViewModel,
@@ -19,6 +20,7 @@ export type {
   WorkspaceNavigationViewModel,
   WorkspaceDocumentCreateRequest,
   WorkspaceFolderCreateRequest,
+  WorkspaceFolderRenameRequest,
 } from "./types";
 
 export { workspaceDocumentSelectedEventName, workspaceFeatureId } from "./events";
@@ -106,6 +108,7 @@ export function WorkspaceNavigationSlot({ viewModel }: WorkspaceNavigationSlotPr
               onSelectDocument={handleSelectDocument}
               onDeleteDocument={(documentId) => model.onDeleteDocument?.(documentId)}
               onDeleteFolder={(folderId) => model.onDeleteFolder?.(folderId)}
+              onRenameFolder={(request) => model.onRenameFolder?.(request)}
             />
             <ProjectList
               model={model}
@@ -115,6 +118,7 @@ export function WorkspaceNavigationSlot({ viewModel }: WorkspaceNavigationSlotPr
               onSelectDocument={handleSelectDocument}
               onDeleteDocument={(documentId) => model.onDeleteDocument?.(documentId)}
               onDeleteFolder={(folderId) => model.onDeleteFolder?.(folderId)}
+              onRenameFolder={(request) => model.onRenameFolder?.(request)}
             />
           </div>
         </div>
@@ -131,6 +135,7 @@ function WorkspaceRoot({
   onSelectDocument,
   onDeleteDocument,
   onDeleteFolder,
+  onRenameFolder,
 }: Readonly<{
   model: ReturnType<typeof normalizeViewModel>;
   selectedDocumentId?: string | null;
@@ -139,6 +144,7 @@ function WorkspaceRoot({
   onSelectDocument: (selection: WorkspaceNavigationSelection) => void;
   onDeleteDocument: (documentId: string) => void;
   onDeleteFolder: (folderId: string) => void;
+  onRenameFolder: (request: WorkspaceFolderRenameRequest) => void;
 }>) {
   return (
     <ul style={panelStyles.tree}>
@@ -152,6 +158,7 @@ function WorkspaceRoot({
         onSelectDocument={onSelectDocument}
         onDeleteDocument={onDeleteDocument}
         onDeleteFolder={onDeleteFolder}
+        onRenameFolder={onRenameFolder}
       />
     </ul>
   );
@@ -165,6 +172,7 @@ function ProjectList({
   onSelectDocument,
   onDeleteDocument,
   onDeleteFolder,
+  onRenameFolder,
 }: Readonly<{
   model: ReturnType<typeof normalizeViewModel>;
   selectedDocumentId?: string | null;
@@ -173,6 +181,7 @@ function ProjectList({
   onSelectDocument: (selection: WorkspaceNavigationSelection) => void;
   onDeleteDocument: (documentId: string) => void;
   onDeleteFolder: (folderId: string) => void;
+  onRenameFolder: (request: WorkspaceFolderRenameRequest) => void;
 }>) {
   return (
     <div style={{ display: "grid", gap: "2px" }}>
@@ -189,6 +198,7 @@ function ProjectList({
             onSelectDocument={onSelectDocument}
             onDeleteDocument={onDeleteDocument}
             onDeleteFolder={onDeleteFolder}
+            onRenameFolder={onRenameFolder}
           />
         </ul>
       ))}

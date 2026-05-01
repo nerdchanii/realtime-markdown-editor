@@ -1,6 +1,6 @@
 import type { Editor } from "@tiptap/react";
 import { useCurrentEditor, useEditorState } from "@tiptap/react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 
 function getActivePageEditor(editor: Editor): Editor | null {
   const storage = editor.storage as unknown as Record<string, unknown>;
@@ -16,32 +16,14 @@ export function useTiptapEditor(providedEditor?: Editor | null): {
 } {
   const { editor: coreEditor } = useCurrentEditor();
   const mainEditor = providedEditor ?? coreEditor;
-
-  const [storageEditor, setStorageEditor] = useState<Editor | null>(null);
-
-  useEffect(() => {
-    if (!mainEditor) {
-      setStorageEditor(null);
-      return;
-    }
-
-    const updateHandler = () => setStorageEditor(getActivePageEditor(mainEditor));
-
-    updateHandler();
-
-    mainEditor.on("update", updateHandler);
-    mainEditor.on("selectionUpdate", updateHandler);
-
-    return () => {
-      mainEditor.off("update", updateHandler);
-      mainEditor.off("selectionUpdate", updateHandler);
-    };
-  }, [mainEditor]);
+  const activePageEditor = useActivePageEditor(mainEditor);
+  const [destroyedEditor, setDestroyedEditor] = useState<Editor | null>(null);
+  const storageEditor = activePageEditor === destroyedEditor ? null : activePageEditor;
 
   useEffect(() => {
     if (!storageEditor) return;
 
-    const handleDestroy = () => setStorageEditor(null);
+    const handleDestroy = () => setDestroyedEditor(storageEditor);
 
     storageEditor.on("destroy", handleDestroy);
     return () => {
@@ -65,4 +47,24 @@ export function useTiptapEditor(providedEditor?: Editor | null): {
   });
 
   return editorState ?? { editor: null };
+}
+
+function useActivePageEditor(mainEditor: Editor | null): Editor | null {
+  const subscribe = useCallback(
+    (onStoreChange: () => void) => {
+      if (!mainEditor) return () => {};
+      mainEditor.on("update", onStoreChange);
+      mainEditor.on("selectionUpdate", onStoreChange);
+      return () => {
+        mainEditor.off("update", onStoreChange);
+        mainEditor.off("selectionUpdate", onStoreChange);
+      };
+    },
+    [mainEditor],
+  );
+  const getSnapshot = useCallback(() => {
+    return mainEditor ? getActivePageEditor(mainEditor) : null;
+  }, [mainEditor]);
+
+  return useSyncExternalStore(subscribe, getSnapshot, () => null);
 }

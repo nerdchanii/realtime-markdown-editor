@@ -309,6 +309,12 @@ a {
 
 .top-bar-chip--icon {
   width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #90a1b9;
+  cursor: pointer;
   justify-content: center;
   padding: 0;
 }
@@ -453,7 +459,7 @@ a {
   min-width: 0;
   border-bottom: 1px solid var(--color-border);
   background: var(--color-background);
-  padding: 0 16px;
+  padding: 0 16px 0 0;
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-gutter: stable;
@@ -511,7 +517,6 @@ a {
   border: 1px solid var(--color-border);
   border-bottom-color: var(--color-surface);
   border-top: 2px solid var(--color-accent);
-  border-radius: 6px 6px 0 0;
   background: var(--color-surface);
   color: var(--color-text-primary);
   font-weight: 650;
@@ -851,7 +856,11 @@ a {
 }
 
 .workspace-navigation {
-  overflow: hidden;
+  overflow: visible;
+}
+
+.workspace-panel.workspace-navigation {
+  overflow: visible;
 }
 
 .workspace-navigation__tabs {
@@ -922,8 +931,31 @@ a {
 .workspace-navigation__tree {
   flex: 1;
   min-height: 0;
-  overflow: hidden;
+  overflow: visible;
   padding: 16px 12px;
+}
+
+[data-node-kind="document"] > div {
+  position: relative;
+  overflow: hidden;
+}
+
+[data-node-kind="document"] > div > button:last-child {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
+  z-index: 20;
+}
+
+[data-node-kind="document"] > div:focus-within > button:last-child,
+[data-node-kind="document"] > div:hover > button:last-child {
+  opacity: 1;
+  pointer-events: auto;
+  visibility: visible;
 }
 
 .inspector-panel {

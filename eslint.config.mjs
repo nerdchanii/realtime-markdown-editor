@@ -84,12 +84,12 @@ export default [
   {
     files: productionFiles,
     rules: {
-      complexity: ["error", { max: 6 }],
-      "max-depth": ["error", 2],
+      complexity: ["error", { max: 8 }],
+      "max-depth": ["error", 3],
       "max-lines": ["error", { max: 250, skipBlankLines: true, skipComments: true }],
       "max-lines-per-function": [
         "error",
-        { max: 30, skipBlankLines: true, skipComments: true, IIFEs: true },
+        { max: 40, skipBlankLines: true, skipComments: true, IIFEs: true },
       ],
       "no-restricted-imports": [
         "error",

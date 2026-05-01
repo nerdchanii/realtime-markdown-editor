@@ -1,5 +1,6 @@
 import {
   ForbiddenException,
+  Inject,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -27,7 +28,9 @@ export type ProductApiSessionAccess = Readonly<{
 @Injectable()
 export class ProductApiAccessService {
   constructor(
+    @Inject(AuthSessionService)
     private readonly authSessions: AuthSessionService,
+    @Inject(PrismaDatabaseService)
     private readonly database: PrismaDatabaseService,
   ) {}
 

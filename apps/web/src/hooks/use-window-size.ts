@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useThrottledCallback } from "@/hooks/use-throttled-callback";
 
 export interface WindowSizeState {
@@ -47,7 +47,7 @@ export function useWindowSize(): WindowSizeState {
     scale: 0,
   });
 
-  const handleViewportChange = useThrottledCallback(() => {
+  const updateWindowSize = useCallback(() => {
     if (typeof window === "undefined") return;
 
     const vp = window.visualViewport;
@@ -68,7 +68,8 @@ export function useWindowSize(): WindowSizeState {
 
       return { width, height, offsetTop, offsetLeft, scale };
     });
-  }, 200);
+  }, []);
+  const handleViewportChange = useThrottledCallback(updateWindowSize, 200);
 
   useEffect(() => {
     const visualViewport = window.visualViewport;
