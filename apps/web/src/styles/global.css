@@ -856,11 +856,11 @@ a {
 }
 
 .workspace-navigation {
-  overflow: visible;
+  overflow: hidden;
 }
 
 .workspace-panel.workspace-navigation {
-  overflow: visible;
+  overflow: hidden;
 }
 
 .workspace-navigation__tabs {
@@ -921,7 +921,7 @@ a {
 }
 
 .inspector-tab {
-  padding: 10px 0 8px;
+  padding: 10px 10px 8px;
   border-bottom: 2px solid var(--color-text-primary);
   color: var(--color-text-primary);
   font-size: 12px;
@@ -931,19 +931,14 @@ a {
 .workspace-navigation__tree {
   flex: 1;
   min-height: 0;
-  overflow: visible;
+  overflow: hidden;
   padding: 16px 12px;
 }
 
 .workspace-node-delete {
-  position: absolute;
-  right: 4px;
-  top: 50%;
-  transform: translateY(-50%);
   opacity: 0;
   pointer-events: none;
   visibility: hidden;
-  z-index: 20;
 }
 
 [data-node-kind="document"] > div:focus-within > .workspace-node-delete,

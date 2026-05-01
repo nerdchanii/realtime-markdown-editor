@@ -1,4 +1,11 @@
-import { useState, type CSSProperties, type PointerEvent } from "react";
+import {
+  useEffect,
+  useState,
+  type CSSProperties,
+  type Dispatch,
+  type PointerEvent,
+  type SetStateAction,
+} from "react";
 import type { DocumentId } from "@rme/contracts";
 
 import { DocumentContextSlot } from "@/features/document";
@@ -20,6 +27,7 @@ import type {
 
 export function App() {
   const productWorkspace = useProductWorkspaceProviders();
+  const [openTabs, setOpenTabs] = useState<readonly EditorTabViewModel[]>([]);
 
   if (productWorkspace.status === "unauthenticated") {
     return <AuthScreen apiClient={productWorkspace.apiClient} reload={productWorkspace.reload} />;
@@ -29,15 +37,26 @@ export function App() {
     return <ProductWorkspaceStatus state={productWorkspace} />;
   }
 
-  return <ReviewWorkspace state={productWorkspace} providers={productWorkspace.providers} />;
+  return (
+    <ReviewWorkspace
+      state={productWorkspace}
+      providers={productWorkspace.providers}
+      openTabs={openTabs}
+      setOpenTabs={setOpenTabs}
+    />
+  );
 }
 
 function ReviewWorkspace({
   state,
   providers,
+  openTabs,
+  setOpenTabs,
 }: Readonly<{
   state: Extract<ProductWorkspaceState, { status: "ready" }>;
   providers: AppFeatureProviders;
+  openTabs: readonly EditorTabViewModel[];
+  setOpenTabs: Dispatch<SetStateAction<readonly EditorTabViewModel[]>>;
 }>) {
   const [isNavigationOpen, setIsNavigationOpen] = useState(true);
   const [isHistoryOpen, setIsHistoryOpen] = useState(true);
@@ -49,7 +68,6 @@ function ReviewWorkspace({
   }> | null>(null);
   const [historyRefreshToken, setHistoryRefreshToken] = useState(0);
   const [titleDrafts, setTitleDrafts] = useState<Readonly<Record<string, string>>>({});
-  const [openTabs, setOpenTabs] = useState<readonly EditorTabViewModel[]>([]);
   const activeDocumentId = providers.editorWorkspace.documentId;
   const displayedTitle = activeDocumentId
     ? (titleDrafts[activeDocumentId] ??
@@ -75,6 +93,16 @@ function ReviewWorkspace({
         title: displayedTitle,
       })
     : openTabs;
+
+  useEffect(() => {
+    if (!activeDocumentId) return;
+    setOpenTabs((current) =>
+      upsertOpenTab(current, {
+        documentId: activeDocumentId,
+        title: displayedTitle,
+      }),
+    );
+  }, [activeDocumentId, displayedTitle, setOpenTabs]);
 
   return (
     <main

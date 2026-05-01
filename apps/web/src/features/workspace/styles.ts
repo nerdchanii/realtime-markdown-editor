@@ -41,7 +41,7 @@ export const panelStyles = {
     borderRadius: "4px",
   },
   nodeButton: {
-    width: "100%",
+    minWidth: 0,
     border: 0,
     borderRadius: "4px",
     background: "transparent",

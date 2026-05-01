@@ -102,7 +102,7 @@ function useInitialCheckpoints(
   fallbackCheckpoints: readonly HistoryCheckpoint[],
 ) {
   return useMemo(
-    () => [...(viewModel.checkpoints ?? fallbackCheckpoints)],
+    () => sortCheckpointsNewestFirst([...(viewModel.checkpoints ?? fallbackCheckpoints)]),
     [fallbackCheckpoints, viewModel.checkpoints],
   );
 }
@@ -199,7 +199,7 @@ async function loadProductCheckpoints(
   if (!viewModel.apiClient || !viewModel.documentId) return [];
 
   const response = await fetchDocumentCheckpoints(viewModel.apiClient, viewModel.documentId);
-  return Promise.all(
+  const checkpoints = await Promise.all(
     response.checkpoints.map(async (checkpoint) => {
       const mapped = mapCheckpoint(checkpoint, {
         author: displayNameForMember(checkpoint.authorMembershipId, viewModel.memberLabels),
@@ -209,6 +209,7 @@ async function loadProductCheckpoints(
       return { ...mapped, snapshot: snapshot.markdownBody };
     }),
   );
+  return sortCheckpointsNewestFirst(checkpoints);
 }
 
 async function refreshSnapshot(
@@ -254,6 +255,12 @@ function mapCheckpoint(
 
 function mapSnapshot(snapshot: CheckpointSnapshotInspectDto) {
   return snapshot.markdownBody;
+}
+
+function sortCheckpointsNewestFirst(checkpoints: HistoryCheckpoint[]) {
+  return checkpoints.sort(
+    (left, right) => new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime(),
+  );
 }
 
 function readCurrentEditorMarkdown() {

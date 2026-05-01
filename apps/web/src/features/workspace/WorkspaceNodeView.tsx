@@ -285,7 +285,6 @@ function documentButtonStyle(isSelected: boolean) {
   return {
     ...panelStyles.nodeButton,
     flex: 1,
-    paddingRight: "30px",
     background: isSelected ? "#eff6ff" : "transparent",
     color: isSelected ? "#1447e6" : "#45556c",
   };
@@ -295,6 +294,8 @@ function folderRowStyle(isSelected: boolean) {
   return {
     display: "flex",
     alignItems: "center",
+    width: "100%",
+    minWidth: 0,
     position: "relative" as const,
     overflow: "hidden",
     borderRadius: "4px",
@@ -307,6 +308,8 @@ function documentRowStyle(isSelected: boolean) {
   return {
     display: "flex",
     alignItems: "center",
+    width: "100%",
+    minWidth: 0,
     position: "relative" as const,
     overflow: "hidden",
     borderRadius: "4px",
@@ -363,7 +366,7 @@ function isDuplicateSiblingName(
 const folderSelectStyle = {
   ...panelStyles.nodeButton,
   flex: 1,
-  padding: "6px 30px 6px 0px",
+  padding: "6px 6px 6px 0px",
   gap: "4px",
   background: "transparent",
 };
@@ -371,7 +374,7 @@ const folderSelectStyle = {
 const folderRenameWrapStyle = {
   ...panelStyles.nodeButton,
   flex: 1,
-  padding: "6px 30px 6px 0px",
+  padding: "6px 6px 6px 0px",
   gap: "4px",
   background: "transparent",
 };
