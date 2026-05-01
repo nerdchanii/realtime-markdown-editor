@@ -9,6 +9,7 @@ import { AppModule } from "@/app.module.js";
 import { configureHttpBoundary } from "@/interfaces/http/http-boundary.js";
 import { DocumentImageArtifactOwnerNotFoundError } from "@/modules/artifacts/ports/document-image-artifact-storage.js";
 import { ImageUploadController } from "@/modules/documents/interfaces/image-upload.controller.js";
+import { ProductApiAccessService } from "@/modules/identity/use-cases/product-api-access-service.js";
 import type { UploadDocumentImageInput } from "@/modules/documents/use-cases/upload-document-image-use-case.js";
 import {
   ImageUploadValidationError,
@@ -18,7 +19,7 @@ import type { ApiErrorResponseDto } from "@rme/contracts";
 
 test("ImageUploadController forwards multipart file bytes to the upload use case", async () => {
   const useCase = new FakeUploadDocumentImageUseCase();
-  const controller = new ImageUploadController(useCase as unknown as UploadDocumentImageUseCase);
+  const controller = createController(useCase);
   const payload = Buffer.from("image bytes");
 
   const response = await controller.uploadImage(
@@ -30,6 +31,7 @@ test("ImageUploadController forwards multipart file bytes to the upload use case
       size: payload.byteLength,
     },
     { altText: "Diagram" },
+    undefined,
   );
 
   assert.equal(useCase.inputs.length, 1);
@@ -48,10 +50,10 @@ test("ImageUploadController forwards multipart file bytes to the upload use case
 
 test("ImageUploadController rejects missing image files", async () => {
   const useCase = new FakeUploadDocumentImageUseCase();
-  const controller = new ImageUploadController(useCase as unknown as UploadDocumentImageUseCase);
+  const controller = createController(useCase);
 
   await assert.rejects(
-    () => controller.uploadImage("document_a", undefined, {}),
+    () => controller.uploadImage("document_a", undefined, {}, undefined),
     (error) => error instanceof BadRequestException && error.message === "file_required",
   );
   assert.equal(useCase.inputs.length, 0);
@@ -59,7 +61,7 @@ test("ImageUploadController rejects missing image files", async () => {
 
 test("ImageUploadController rejects malformed multipart alt text", async () => {
   const useCase = new FakeUploadDocumentImageUseCase();
-  const controller = new ImageUploadController(useCase as unknown as UploadDocumentImageUseCase);
+  const controller = createController(useCase);
 
   await assert.rejects(
     () =>
@@ -72,6 +74,7 @@ test("ImageUploadController rejects malformed multipart alt text", async () => {
           size: Buffer.byteLength("png bytes"),
         },
         { altText: ["Diagram"] },
+        undefined,
       ),
     (error) => error instanceof BadRequestException && error.message === "invalid_altText",
   );
@@ -80,7 +83,7 @@ test("ImageUploadController rejects malformed multipart alt text", async () => {
 
 test("ImageUploadController maps image validation failures to bad requests", async () => {
   const useCase = new FakeUploadDocumentImageUseCase("unsupported_content_type");
-  const controller = new ImageUploadController(useCase as unknown as UploadDocumentImageUseCase);
+  const controller = createController(useCase);
 
   await assert.rejects(
     () =>
@@ -93,6 +96,7 @@ test("ImageUploadController maps image validation failures to bad requests", asy
           size: Buffer.byteLength("<svg />"),
         },
         {},
+        undefined,
       ),
     (error) => error instanceof BadRequestException && error.message === "unsupported_content_type",
   );
@@ -100,7 +104,7 @@ test("ImageUploadController maps image validation failures to bad requests", asy
 
 test("ImageUploadController maps missing document artifacts to not found", async () => {
   const useCase = new FakeUploadDocumentImageUseCase(undefined, true);
-  const controller = new ImageUploadController(useCase as unknown as UploadDocumentImageUseCase);
+  const controller = createController(useCase);
 
   await assert.rejects(
     () =>
@@ -113,6 +117,7 @@ test("ImageUploadController maps missing document artifacts to not found", async
           size: Buffer.byteLength("png bytes"),
         },
         {},
+        undefined,
       ),
     (error) => error instanceof NotFoundException && error.message === "document_not_found",
   );
@@ -181,6 +186,17 @@ class FakeUploadDocumentImageUseCase {
       }](rme-artifact://documents/${input.documentId}/images/artifact_image_a)`,
     };
   }
+}
+
+class FakeProductApiAccessService {
+  async requireDocumentAccess(): Promise<void> {}
+}
+
+function createController(useCase: FakeUploadDocumentImageUseCase): ImageUploadController {
+  return new ImageUploadController(
+    useCase as unknown as UploadDocumentImageUseCase,
+    new FakeProductApiAccessService() as unknown as ProductApiAccessService,
+  );
 }
 
 function assertAddressInfo(address: string | AddressInfo | null): asserts address is AddressInfo {

@@ -14,11 +14,13 @@ import type {
   UpdateProjectRequestDto,
   UpdateWorkspaceRequestDto,
   WorkspaceDto,
+  WorkspaceId,
   WorkspaceNavigationResponseDto,
 } from "@rme/contracts";
 
 import {
   WORKSPACE_PRODUCT_REPOSITORY,
+  type WorkspaceOwnerCreateInput,
   type WorkspaceProductRepository,
 } from "@/modules/workspace/ports/workspace-product-repository.js";
 
@@ -29,12 +31,15 @@ export class WorkspaceProductService {
     private readonly repository: WorkspaceProductRepository,
   ) {}
 
-  async listWorkspaces(): Promise<ListWorkspacesResponseDto> {
-    return { workspaces: await this.repository.listWorkspaces() };
+  async listWorkspaces(workspaceIds?: readonly WorkspaceId[]): Promise<ListWorkspacesResponseDto> {
+    return { workspaces: await this.repository.listWorkspaces(workspaceIds) };
   }
 
-  async createWorkspace(input: CreateWorkspaceRequestDto): Promise<WorkspaceDto> {
-    return this.repository.createWorkspace(input);
+  async createWorkspace(
+    input: CreateWorkspaceRequestDto,
+    owner?: WorkspaceOwnerCreateInput,
+  ): Promise<WorkspaceDto> {
+    return this.repository.createWorkspace(input, owner);
   }
 
   async getWorkspace(workspaceId: string): Promise<WorkspaceDto> {

@@ -10,10 +10,12 @@ import type {
   FolderKindDto,
   ProjectDto,
   WorkspaceDto,
+  WorkspaceId,
   WorkspaceNavigationResponseDto,
 } from "@rme/contracts";
 
 import type { WorkspaceProductRepository } from "@/modules/workspace/ports/workspace-product-repository.js";
+import type { WorkspaceOwnerCreateInput } from "@/modules/workspace/ports/workspace-product-repository.js";
 
 type WorkspaceRecord = Readonly<{
   id: string;
@@ -64,11 +66,15 @@ type DocumentSummarySelect = Readonly<{
   latestRevisionId: true;
   publishedRevisionId: true;
 }>;
+type WorkspaceFindManyWhere = Readonly<{
+  rootFolderId?: { not: null };
+  id?: { in: readonly string[] };
+}>;
 
 export type PrismaWorkspaceProductPersistenceClient = Readonly<{
   workspace: {
     findMany(args: {
-      where?: { rootFolderId?: { not: null } };
+      where?: WorkspaceFindManyWhere;
       select: WorkspaceSelect;
       orderBy: { name: "asc" };
     }): Promise<WorkspaceRecord[]>;
@@ -148,6 +154,18 @@ export type PrismaWorkspaceProductPersistenceClient = Readonly<{
       orderBy: { title: "asc" };
     }): Promise<DocumentSummaryRecord[]>;
   };
+  workspaceMembership: {
+    create(args: {
+      data: {
+        id: string;
+        userId: string;
+        workspaceId: string;
+        displayName: string;
+        color: string;
+        role: "owner";
+      };
+    }): Promise<unknown>;
+  };
   $transaction<T>(
     callback: (client: PrismaWorkspaceProductPersistenceClient) => Promise<T>,
   ): Promise<T>;
@@ -156,39 +174,28 @@ export type PrismaWorkspaceProductPersistenceClient = Readonly<{
 export class PrismaWorkspaceProductRepository implements WorkspaceProductRepository {
   constructor(private readonly client: PrismaWorkspaceProductPersistenceClient) {}
 
-  async listWorkspaces(): Promise<readonly WorkspaceDto[]> {
+  async listWorkspaces(workspaceIds?: readonly WorkspaceId[]): Promise<readonly WorkspaceDto[]> {
+    if (workspaceIds && workspaceIds.length === 0) return [];
     const records = await this.client.workspace.findMany({
-      where: { rootFolderId: { not: null } },
+      where: workspaceListWhere(workspaceIds),
       select: workspaceSelect,
       orderBy: { name: "asc" },
     });
     return records.map(toWorkspaceDto);
   }
 
-  async createWorkspace(input: { name: string }): Promise<WorkspaceDto> {
+  async createWorkspace(
+    input: { name: string },
+    owner?: WorkspaceOwnerCreateInput,
+  ): Promise<WorkspaceDto> {
     return this.client.$transaction(async (transaction) => {
       const workspace = await transaction.workspace.create({
         data: { id: newId("workspace"), name: input.name },
         select: workspaceSelect,
       });
-      const rootFolder = await transaction.folder.create({
-        data: {
-          id: newId("folder"),
-          workspaceId: workspace.id,
-          projectId: null,
-          parentFolderId: null,
-          name: "Workspace root",
-          kind: "workspaceRoot",
-        },
-        select: folderSelect,
-      });
-      return toWorkspaceDto(
-        await transaction.workspace.update({
-          where: { id: workspace.id },
-          data: { rootFolderId: rootFolder.id },
-          select: workspaceSelect,
-        }),
-      );
+      const created = await createWorkspaceRoot(transaction, workspace.id);
+      await createOwnerMembership(transaction, workspace.id, owner);
+      return created;
     });
   }
 
@@ -424,6 +431,56 @@ const documentSummarySelect = {
 
 function newId(prefix: string): string {
   return `${prefix}_${randomUUID()}`;
+}
+
+async function createWorkspaceRoot(
+  transaction: PrismaWorkspaceProductPersistenceClient,
+  workspaceId: string,
+): Promise<WorkspaceDto> {
+  const rootFolder = await transaction.folder.create({
+    data: {
+      id: newId("folder"),
+      workspaceId,
+      projectId: null,
+      parentFolderId: null,
+      name: "Workspace root",
+      kind: "workspaceRoot",
+    },
+    select: folderSelect,
+  });
+  return toWorkspaceDto(
+    await transaction.workspace.update({
+      where: { id: workspaceId },
+      data: { rootFolderId: rootFolder.id },
+      select: workspaceSelect,
+    }),
+  );
+}
+
+async function createOwnerMembership(
+  transaction: PrismaWorkspaceProductPersistenceClient,
+  workspaceId: string,
+  owner: WorkspaceOwnerCreateInput | undefined,
+): Promise<void> {
+  if (!owner) return;
+  await transaction.workspaceMembership.create({
+    data: {
+      id: newId("member"),
+      userId: owner.userId,
+      workspaceId,
+      displayName: owner.displayName,
+      color: "#0969da",
+      role: "owner",
+    },
+  });
+}
+
+function workspaceListWhere(
+  workspaceIds: readonly WorkspaceId[] | undefined,
+): WorkspaceFindManyWhere {
+  return workspaceIds
+    ? { rootFolderId: { not: null }, id: { in: workspaceIds } }
+    : { rootFolderId: { not: null } };
 }
 
 function toWorkspaceDto(record: WorkspaceRecord): WorkspaceDto {

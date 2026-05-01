@@ -12,12 +12,21 @@ import type {
   WorkspaceDto,
   WorkspaceNavigationResponseDto,
 } from "@rme/contracts";
+import type { UserId, WorkspaceId } from "@rme/contracts";
 
 export const WORKSPACE_PRODUCT_REPOSITORY = Symbol("WORKSPACE_PRODUCT_REPOSITORY");
 
+export type WorkspaceOwnerCreateInput = Readonly<{
+  userId: UserId;
+  displayName: string;
+}>;
+
 export interface WorkspaceProductRepository {
-  listWorkspaces(): Promise<readonly WorkspaceDto[]>;
-  createWorkspace(input: CreateWorkspaceRequestDto): Promise<WorkspaceDto>;
+  listWorkspaces(workspaceIds?: readonly WorkspaceId[]): Promise<readonly WorkspaceDto[]>;
+  createWorkspace(
+    input: CreateWorkspaceRequestDto,
+    owner?: WorkspaceOwnerCreateInput,
+  ): Promise<WorkspaceDto>;
   findWorkspace(workspaceId: string): Promise<WorkspaceDto | null>;
   updateWorkspace(
     workspaceId: string,

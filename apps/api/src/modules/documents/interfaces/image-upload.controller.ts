@@ -4,6 +4,7 @@ import {
   Body,
   Catch,
   Controller,
+  Headers,
   type ExceptionFilter,
   Inject,
   NotFoundException,
@@ -18,6 +19,7 @@ import { FileInterceptor } from "@nestjs/platform-express";
 
 import { DocumentImageArtifactOwnerNotFoundError } from "@/modules/artifacts/ports/document-image-artifact-storage.js";
 import type { DocumentId } from "@/modules/documents/domain/document.js";
+import { ProductApiAccessService } from "@/modules/identity/use-cases/product-api-access-service.js";
 import {
   type CreateImageUploadRequestBodyDto,
   type CreateImageUploadResponseDto,
@@ -85,6 +87,8 @@ export class ImageUploadController {
   constructor(
     @Inject(UploadDocumentImageUseCase)
     private readonly uploadDocumentImage: UploadDocumentImageUseCase,
+    @Inject(ProductApiAccessService)
+    private readonly access: ProductApiAccessService,
   ) {}
 
   @Post(":documentId/images")
@@ -98,7 +102,9 @@ export class ImageUploadController {
     @Param("documentId") documentId: string,
     @UploadedFile() file: UploadedImageFileDto | undefined,
     @Body() body: CreateImageUploadRequestBodyDto,
+    @Headers("cookie") cookieHeader: string | undefined,
   ): Promise<CreateImageUploadResponseDto> {
+    await this.access.requireDocumentAccess(cookieHeader, documentId as DocumentId);
     return this.executeUpload(documentId as DocumentId, file, optionalAltText(body.altText));
   }
 

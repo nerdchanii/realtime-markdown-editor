@@ -24,6 +24,7 @@ import {
   DOCUMENT_PRODUCT_REPOSITORY,
   type DocumentProductRepository,
 } from "@/modules/documents/ports/document-product-repository.js";
+import { ProductApiAccessService } from "@/modules/identity/use-cases/product-api-access-service.js";
 import { DocumentProductService } from "@/modules/documents/use-cases/document-product-service.js";
 
 test("document product API keeps one folder location and stores properties outside Markdown", async () => {
@@ -34,6 +35,7 @@ test("document product API keeps one folder location and stores properties outsi
     providers: [
       DocumentProductService,
       { provide: DOCUMENT_PRODUCT_REPOSITORY, useValue: repository },
+      { provide: ProductApiAccessService, useValue: new AllowAllProductApiAccessService() },
     ],
   })
   class ProductDocumentApiTestModule {}
@@ -231,7 +233,7 @@ function toSummary(document: DocumentDetailDto): DocumentSummaryDto {
 async function postJson<T>(baseUrl: string, path: string, body: object): Promise<T> {
   const response = await fetch(`${baseUrl}${path}`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: authHeaders({ "Content-Type": "application/json" }),
     body: JSON.stringify(body),
   });
   const responseText = await response.text();
@@ -242,7 +244,7 @@ async function postJson<T>(baseUrl: string, path: string, body: object): Promise
 async function putJson<T>(baseUrl: string, path: string, body: object): Promise<T> {
   const response = await fetch(`${baseUrl}${path}`, {
     method: "PUT",
-    headers: { "Content-Type": "application/json" },
+    headers: authHeaders({ "Content-Type": "application/json" }),
     body: JSON.stringify(body),
   });
   const responseText = await response.text();
@@ -251,10 +253,19 @@ async function putJson<T>(baseUrl: string, path: string, body: object): Promise<
 }
 
 async function getJson<T>(baseUrl: string, path: string): Promise<T> {
-  const response = await fetch(`${baseUrl}${path}`);
+  const response = await fetch(`${baseUrl}${path}`, { headers: authHeaders() });
   const responseText = await response.text();
   assert.equal(response.status, 200, responseText);
   return JSON.parse(responseText) as T;
+}
+
+class AllowAllProductApiAccessService {
+  async requireFolderAccess(): Promise<void> {}
+  async requireDocumentAccess(): Promise<void> {}
+}
+
+function authHeaders(init: Record<string, string> = {}): Record<string, string> {
+  return { ...init, Cookie: "rme_session=session_token" };
 }
 
 function assertAddressInfo(address: string | AddressInfo | null): asserts address is AddressInfo {

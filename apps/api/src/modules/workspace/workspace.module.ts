@@ -1,6 +1,7 @@
 import { Module } from "@nestjs/common";
 
 import { PrismaDatabaseService } from "@/database/database.service.js";
+import { IdentityModule } from "@/modules/identity/identity.module.js";
 import {
   PrismaWorkspaceProductRepository,
   type PrismaWorkspaceProductPersistenceClient,
@@ -13,6 +14,7 @@ import {
 import { WorkspaceProductService } from "@/modules/workspace/use-cases/workspace-product-service.js";
 
 @Module({
+  imports: [IdentityModule],
   controllers: [WorkspaceProductController],
   providers: [
     {

@@ -7,6 +7,7 @@ import {
   AuthSessionService,
   type AuthSessionRepository,
 } from "@/modules/identity/use-cases/auth-session-service.js";
+import { ProductApiAccessService } from "@/modules/identity/use-cases/product-api-access-service.js";
 
 export const AUTH_SESSION_REPOSITORY = Symbol("AUTH_SESSION_REPOSITORY");
 
@@ -23,7 +24,8 @@ export const AUTH_SESSION_REPOSITORY = Symbol("AUTH_SESSION_REPOSITORY");
       useFactory: (repository: AuthSessionRepository) => new AuthSessionService(repository),
       inject: [AUTH_SESSION_REPOSITORY],
     },
+    ProductApiAccessService,
   ],
-  exports: [AuthSessionService],
+  exports: [AuthSessionService, ProductApiAccessService],
 })
 export class IdentityModule {}

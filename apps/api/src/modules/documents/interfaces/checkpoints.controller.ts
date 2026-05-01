@@ -7,7 +7,6 @@ import {
   NotFoundException,
   Param,
   Post,
-  UnauthorizedException,
 } from "@nestjs/common";
 
 import type { CheckpointId } from "@/modules/documents/domain/checkpoint.js";
@@ -29,10 +28,7 @@ import {
 } from "@/modules/documents/use-cases/create-checkpoint-use-case.js";
 import { InspectCheckpointSnapshotUseCase } from "@/modules/documents/use-cases/inspect-checkpoint-snapshot-use-case.js";
 import { ListCheckpointsUseCase } from "@/modules/documents/use-cases/list-checkpoints-use-case.js";
-import {
-  AuthSessionService,
-  currentMembershipId,
-} from "@/modules/identity/use-cases/auth-session-service.js";
+import { ProductApiAccessService } from "@/modules/identity/use-cases/product-api-access-service.js";
 
 @Controller("documents")
 export class CheckpointsController {
@@ -43,14 +39,16 @@ export class CheckpointsController {
     private readonly inspectCheckpointSnapshot: InspectCheckpointSnapshotUseCase,
     @Inject(ListCheckpointsUseCase)
     private readonly listCheckpoints: ListCheckpointsUseCase,
-    @Inject(AuthSessionService)
-    private readonly authSessions: AuthSessionService,
+    @Inject(ProductApiAccessService)
+    private readonly access: ProductApiAccessService,
   ) {}
 
   @Get(":documentId/checkpoints")
   async listDocumentCheckpoints(
     @Param("documentId") documentId: string,
+    @Headers("cookie") cookieHeader: string | undefined,
   ): Promise<ListCheckpointsResponse> {
+    await this.access.requireDocumentAccess(cookieHeader, documentId as DocumentId);
     const snapshots = await this.listCheckpoints.execute(documentId as DocumentId);
 
     return {
@@ -66,10 +64,13 @@ export class CheckpointsController {
     @Body() body: CreateCheckpointRequestDto,
     @Headers("cookie") cookieHeader?: string,
   ): Promise<CreateCheckpointResponseDto> {
-    const authorMembershipId = await this.resolveAuthorMembershipId(cookieHeader);
+    const authorMembership = await this.access.requireCurrentMembershipForDocument(
+      cookieHeader,
+      documentId as DocumentId,
+    );
     const snapshot = await this.createCheckpointFromCurrentContent(
       documentId as DocumentId,
-      authorMembershipId,
+      authorMembership.id as WorkspaceMembershipId,
       body.message,
     );
 
@@ -81,7 +82,9 @@ export class CheckpointsController {
   @Get("checkpoints/:checkpointId/snapshot")
   async inspectSnapshot(
     @Param("checkpointId") checkpointId: string,
+    @Headers("cookie") cookieHeader: string | undefined,
   ): Promise<InspectCheckpointSnapshotResponseDto> {
+    await this.access.requireCheckpointAccess(cookieHeader, checkpointId as CheckpointId);
     const snapshot = await this.inspectCheckpointSnapshot.execute(checkpointId as CheckpointId);
     if (!snapshot) throw new NotFoundException("Checkpoint snapshot not found.");
 
@@ -107,13 +110,5 @@ export class CheckpointsController {
 
       throw error;
     }
-  }
-
-  private async resolveAuthorMembershipId(cookieHeader: string | undefined) {
-    const session = await this.authSessions.resolveSession(cookieHeader);
-    const membershipId = session ? currentMembershipId(session) : null;
-    if (!membershipId) throw new UnauthorizedException("Authentication is required.");
-
-    return membershipId as WorkspaceMembershipId;
   }
 }

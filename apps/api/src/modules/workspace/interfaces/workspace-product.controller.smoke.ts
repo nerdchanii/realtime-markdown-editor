@@ -18,6 +18,7 @@ import type {
 } from "@rme/contracts";
 
 import { configureHttpBoundary } from "@/interfaces/http/http-boundary.js";
+import { ProductApiAccessService } from "@/modules/identity/use-cases/product-api-access-service.js";
 import {
   WORKSPACE_PRODUCT_REPOSITORY,
   type WorkspaceProductRepository,
@@ -33,6 +34,7 @@ test("workspace product API creates hierarchy and protects root folders", async 
     providers: [
       WorkspaceProductService,
       { provide: WORKSPACE_PRODUCT_REPOSITORY, useValue: repository },
+      { provide: ProductApiAccessService, useValue: new AllowAllProductApiAccessService() },
     ],
   })
   class ProductWorkspaceApiTestModule {}
@@ -48,6 +50,7 @@ test("workspace product API creates hierarchy and protects root folders", async 
     }).then((body) => body.workspace as WorkspaceDto);
     assert.equal(workspace.name, "Product Workspace");
     assert.ok(workspace.rootFolderId);
+    assert.deepEqual(repository.createdWorkspaceOwnerUserIds, ["user_alice"]);
 
     const project = await postJson<ProjectDto>(baseUrl, `/workspaces/${workspace.id}/projects`, {
       name: "Release Plan",
@@ -64,13 +67,14 @@ test("workspace product API creates hierarchy and protects root folders", async 
 
     const rootMove = await fetch(`${baseUrl}/folders/${workspace.rootFolderId}/move`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: authHeaders({ "Content-Type": "application/json" }),
       body: JSON.stringify({ targetParentFolderId: folder.id }),
     });
     assert.equal(rootMove.status, 400, await rootMove.text());
 
     const rootDelete = await fetch(`${baseUrl}/folders/${project.rootFolderId}`, {
       method: "DELETE",
+      headers: authHeaders(),
     });
     assert.equal(rootDelete.status, 400, await rootDelete.text());
 
@@ -89,6 +93,7 @@ test("workspace product API creates hierarchy and protects root folders", async 
     });
     const nonEmptyDelete = await fetch(`${baseUrl}/folders/${folder.id}`, {
       method: "DELETE",
+      headers: authHeaders(),
     });
     assert.equal(nonEmptyDelete.status, 400, await nonEmptyDelete.text());
   } finally {
@@ -100,13 +105,18 @@ class InMemoryWorkspaceProductRepository implements WorkspaceProductRepository {
   private readonly workspaces = new Map<string, WorkspaceDto>();
   private readonly projects = new Map<string, ProjectDto>();
   private readonly folders = new Map<string, FolderDto & { deletedAt?: string }>();
+  readonly createdWorkspaceOwnerUserIds: string[] = [];
   private next = 1;
 
   async listWorkspaces(): Promise<readonly WorkspaceDto[]> {
     return [...this.workspaces.values()];
   }
 
-  async createWorkspace(input: CreateWorkspaceRequestDto): Promise<WorkspaceDto> {
+  async createWorkspace(
+    input: CreateWorkspaceRequestDto,
+    owner?: Readonly<{ userId: string }>,
+  ): Promise<WorkspaceDto> {
+    if (owner) this.createdWorkspaceOwnerUserIds.push(owner.userId);
     const workspaceId = this.id("workspace");
     const rootFolderId = this.id("folder");
     const workspace = { id: workspaceId, name: input.name, rootFolderId } as WorkspaceDto;
@@ -270,7 +280,7 @@ async function postJson<T>(
 ): Promise<Record<string, T>> {
   const response = await fetch(`${baseUrl}${path}`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: authHeaders({ "Content-Type": "application/json" }),
     body: JSON.stringify(body),
   });
   const responseText = await response.text();
@@ -279,10 +289,28 @@ async function postJson<T>(
 }
 
 async function getJson<T>(baseUrl: string, path: string): Promise<T> {
-  const response = await fetch(`${baseUrl}${path}`);
+  const response = await fetch(`${baseUrl}${path}`, { headers: authHeaders() });
   const responseText = await response.text();
   assert.equal(response.status, 200, responseText);
   return JSON.parse(responseText) as T;
+}
+
+class AllowAllProductApiAccessService {
+  async requireSession() {
+    return {
+      user: { id: "user_alice", email: "alice@example.test", name: "Alice" },
+      memberships: [{ id: "member_alice", workspaceId: "workspace_1" }],
+      currentMembership: { id: "member_alice", workspaceId: "workspace_1" },
+    };
+  }
+
+  async requireWorkspaceAccess(): Promise<void> {}
+  async requireProjectAccess(): Promise<void> {}
+  async requireFolderAccess(): Promise<void> {}
+}
+
+function authHeaders(init: Record<string, string> = {}): Record<string, string> {
+  return { ...init, Cookie: "rme_session=session_token" };
 }
 
 function assertAddressInfo(address: string | AddressInfo | null): asserts address is AddressInfo {

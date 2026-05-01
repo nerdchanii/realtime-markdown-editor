@@ -35,6 +35,7 @@ import { InspectCheckpointSnapshotUseCase } from "@/modules/documents/use-cases/
 import { ListCheckpointsUseCase } from "@/modules/documents/use-cases/list-checkpoints-use-case.js";
 import type { SessionContext } from "@/modules/identity/use-cases/auth-session-service.js";
 import { AuthSessionService } from "@/modules/identity/use-cases/auth-session-service.js";
+import { ProductApiAccessService } from "@/modules/identity/use-cases/product-api-access-service.js";
 
 test("checkpoint API creates, lists, and inspects persisted document checkpoints", async () => {
   const dataDir = await mkdtemp(join(tmpdir(), "rme-checkpoint-api-"));
@@ -196,6 +197,7 @@ async function createCheckpointApiApp(input: {
         useValue: new ListCheckpointsUseCase(input.repository),
       },
       { provide: AuthSessionService, useValue: input.authSessions },
+      { provide: ProductApiAccessService, useValue: new AllowAllProductApiAccessService() },
     ],
   })
   class CheckpointApiTestModule {}
@@ -228,6 +230,15 @@ class FakeDocumentContentRepository implements DocumentContentRepository {
       latestRevisionId: null,
       updatedAt: new Date("2026-04-30T12:00:00.000Z"),
     };
+  }
+}
+
+class AllowAllProductApiAccessService {
+  async requireDocumentAccess(): Promise<void> {}
+  async requireCheckpointAccess(): Promise<void> {}
+
+  async requireCurrentMembershipForDocument() {
+    return { id: "member_alice" };
   }
 }
 
