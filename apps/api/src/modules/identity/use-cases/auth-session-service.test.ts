@@ -49,10 +49,12 @@ test("auth session service creates DB-backed session context by user email and w
 
   const session = await service.createSession({
     email: "Alice@Example.Test ",
+    password: "any-local-password",
     workspaceId: "workspace_review" as WorkspaceId,
   });
 
   assert.equal(repository.createInput?.email, "alice@example.test");
+  assert.equal(repository.createInput?.password, "any-local-password");
   assert.equal(repository.createInput?.workspaceId, "workspace_review");
   assert.equal(session?.token, "session_token");
   assert.equal(session?.context.currentMembership?.id, "member_alice");
@@ -96,6 +98,7 @@ test("session cookies are httpOnly and scoped to the API path", () => {
 class FakeAuthSessionRepository implements AuthSessionRepository {
   createInput: Readonly<{
     email: string;
+    password: string;
     workspaceId: WorkspaceId | null;
   }> | null = null;
   resolvedToken: string | null = null;
@@ -111,6 +114,7 @@ class FakeAuthSessionRepository implements AuthSessionRepository {
 
   async createSession(input: {
     email: string;
+    password: string;
     workspaceId: WorkspaceId | null;
   }): Promise<Awaited<ReturnType<AuthSessionRepository["createSession"]>>> {
     this.createInput = input;

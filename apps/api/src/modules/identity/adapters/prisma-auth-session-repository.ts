@@ -10,6 +10,7 @@ import type {
 } from "@/modules/identity/use-cases/auth-session-service.js";
 import type { WorkspaceId } from "@/modules/identity/domain/workspace-membership.js";
 import type { UserId, WorkspaceMembershipId } from "@rme/contracts";
+import { verifyPasswordCredential } from "@/modules/identity/use-cases/password-credential.js";
 
 const sessionTtlMs = 7 * 24 * 60 * 60 * 1000;
 
@@ -19,6 +20,7 @@ export class PrismaAuthSessionRepository implements AuthSessionRepository {
 
   async createSession(input: {
     email: string;
+    password: string;
     workspaceId: WorkspaceId | null;
   }): Promise<CreatedSession | null> {
     const user = await this.database.user.findUnique({
@@ -26,6 +28,7 @@ export class PrismaAuthSessionRepository implements AuthSessionRepository {
       include: { memberships: { orderBy: { createdAt: "asc" } } },
     });
     if (!user) return null;
+    if (!isValidPassword(input.password, user)) return null;
 
     const currentMembership =
       user.memberships.find((membership) => membership.workspaceId === input.workspaceId) ??
@@ -34,21 +37,30 @@ export class PrismaAuthSessionRepository implements AuthSessionRepository {
 
     const token = randomBytes(32).toString("base64url");
     const expiresAt = new Date(Date.now() + sessionTtlMs);
-    await this.database.session.create({
-      data: {
-        id: `session_${randomUUID()}`,
-        tokenHash: hashSessionToken(token),
-        userId: user.id,
-        currentMembershipId: currentMembership.id,
-        expiresAt,
-      },
-    });
+    await this.createDatabaseSession(token, user.id, currentMembership.id, expiresAt);
 
     return {
       token,
       expiresAt,
       context: sessionContextFromUser(user, currentMembership.id),
     };
+  }
+
+  private async createDatabaseSession(
+    token: string,
+    userId: string,
+    currentMembershipId: string,
+    expiresAt: Date,
+  ): Promise<void> {
+    await this.database.session.create({
+      data: {
+        id: `session_${randomUUID()}`,
+        tokenHash: hashSessionToken(token),
+        userId,
+        currentMembershipId,
+        expiresAt,
+      },
+    });
   }
 
   async findSessionByToken(token: string): Promise<SessionContext | null> {
@@ -75,6 +87,13 @@ export class PrismaAuthSessionRepository implements AuthSessionRepository {
   }
 }
 
+function isValidPassword(password: string, user: UserWithMemberships): boolean {
+  return verifyPasswordCredential(password, {
+    passwordHash: user.passwordHash,
+    passwordSalt: user.passwordSalt,
+  });
+}
+
 function hashSessionToken(token: string): string {
   return createHash("sha256").update(token).digest("hex");
 }
@@ -83,6 +102,8 @@ type UserWithMemberships = Readonly<{
   id: string;
   email: string;
   name: string;
+  passwordHash: string;
+  passwordSalt: string;
   memberships: Array<{
     id: string;
     userId: string;

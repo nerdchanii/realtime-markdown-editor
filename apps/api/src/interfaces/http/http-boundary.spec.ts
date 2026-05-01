@@ -53,6 +53,15 @@ test("HTTP boundary returns validation envelopes for invalid params, query, and 
         headers: { "Content-Type": "application/json" },
       },
     });
+    await assertError(`${baseUrl}/auth/session`, {
+      status: 400,
+      code: "validation_failed",
+      init: {
+        method: "POST",
+        body: JSON.stringify({ email: "alice@example.test" }),
+        headers: { "Content-Type": "application/json" },
+      },
+    });
   });
 });
 

@@ -76,6 +76,7 @@ export const httpSchemaCatalog = [
     target: "body",
     fields: [
       { name: "email", kind: "string", required: true, format: "email" },
+      { name: "password", kind: "string", required: true, minLength: 1 },
       { name: "workspaceId", kind: "string", required: false },
     ],
   },

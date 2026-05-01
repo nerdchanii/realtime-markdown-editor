@@ -75,13 +75,15 @@ enum CollaborationSyncStatus {
 }
 
 model User {
-  id          String                @id @db.VarChar(80)
-  email       String                @unique @db.VarChar(320)
-  name        String                @db.VarChar(160)
-  createdAt   DateTime              @default(now())
-  updatedAt   DateTime              @updatedAt
-  memberships WorkspaceMembership[]
-  sessions    Session[]
+  id           String                @id @db.VarChar(80)
+  email        String                @unique @db.VarChar(320)
+  name         String                @db.VarChar(160)
+  passwordHash String                @db.VarChar(128)
+  passwordSalt String                @db.VarChar(128)
+  createdAt    DateTime              @default(now())
+  updatedAt    DateTime              @updatedAt
+  memberships  WorkspaceMembership[]
+  sessions     Session[]
 
   @@map("users")
 }

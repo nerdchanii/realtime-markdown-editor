@@ -27,6 +27,7 @@ export type CreatedSession = Readonly<{
 export interface AuthSessionRepository {
   createSession(input: {
     email: string;
+    password: string;
     workspaceId: WorkspaceId | null;
   }): Promise<CreatedSession | null>;
   findSessionByToken(token: string): Promise<SessionContext | null>;
@@ -39,6 +40,7 @@ export class AuthSessionService {
   async createSession(input: CreateSessionRequestDto): Promise<CreatedSession | null> {
     return this.sessions.createSession({
       email: normalizeEmail(input.email),
+      password: input.password,
       workspaceId: input.workspaceId ?? null,
     });
   }

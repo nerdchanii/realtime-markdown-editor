@@ -52,7 +52,11 @@ test("auth session controller creates httpOnly session cookies", async () => {
   const response = new FakeCookieResponse();
 
   const body = await controller.createSession(
-    { email: "alice@example.test", workspaceId: "workspace_review" as WorkspaceId },
+    {
+      email: "alice@example.test",
+      password: "any-local-password",
+      workspaceId: "workspace_review" as WorkspaceId,
+    },
     response,
   );
 

@@ -42,6 +42,7 @@ export type SessionDto = Readonly<{
 
 export type CreateSessionRequestDto = Readonly<{
   email: string;
+  password: string;
   workspaceId?: WorkspaceId;
 }>;
 
