@@ -1,6 +1,6 @@
 ---
 title: docs/domain/models/folder.md
-status: active
+status: proposed
 ---
 
 # docs/domain/models/folder.md
@@ -10,6 +10,17 @@ status: active
 `Folder`는 workspace 또는 project owner scope 안에서 `Document`와 하위 `Folder`를 담는 containment node다. `Folder`는 `Document` subtype이 아니며 Markdown body를 갖지 않는다.
 
 모든 `Document`는 정확히 하나의 `Folder`에 속한다. UI가 document를 workspace root나 project root에 있는 것처럼 보여주더라도 domain에서는 각각 `WorkspaceRootFolder` 또는 `ProjectRootFolder` 아래의 document로 표현한다.
+
+## FileSystem mental model
+
+- Folder is a directory/container. Its hierarchy and lifecycle are Postgres source of truth.
+- Document row is the file identity/inode and location. Creation, folder membership, archive/delete,
+  and permissions are Postgres source of truth.
+- Y.Doc is the file's current editable content state. Title, Markdown body, properties, and
+  collaborative document metadata are Yjs source of truth after initialization.
+- Postgres document fields are read projections for navigation, list/search, export, and fallback
+  bootstrap.
+- Checkpoint artifacts are immutable file snapshots stored behind the artifact storage boundary.
 
 ## FolderKind
 
