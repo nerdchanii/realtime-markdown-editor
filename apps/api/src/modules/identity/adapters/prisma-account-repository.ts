@@ -35,6 +35,22 @@ export class PrismaAccountRepository implements AccountRepository {
       }),
     );
   }
+
+  async updateAccountProfile(userId: UserId, input: { name?: string }): Promise<UserDto | null> {
+    const existing = await this.database.user.findUnique({
+      where: { id: userId },
+      select: userSelect,
+    });
+    if (!existing) return null;
+
+    return toUserDto(
+      await this.database.user.update({
+        where: { id: userId },
+        data: input.name === undefined ? {} : { name: input.name },
+        select: userSelect,
+      }),
+    );
+  }
 }
 
 const userSelect = {

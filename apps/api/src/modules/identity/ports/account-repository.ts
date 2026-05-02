@@ -1,4 +1,4 @@
-import type { UserDto } from "@rme/contracts";
+import type { UserDto, UserId } from "@rme/contracts";
 
 import type { PasswordCredential } from "@/modules/identity/use-cases/password-credential.js";
 
@@ -10,4 +10,5 @@ export interface AccountRepository {
     name: string;
     passwordCredential: PasswordCredential;
   }): Promise<UserDto | null>;
+  updateAccountProfile(userId: UserId, input: { name?: string }): Promise<UserDto | null>;
 }

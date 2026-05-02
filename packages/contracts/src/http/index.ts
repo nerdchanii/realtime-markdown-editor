@@ -35,6 +35,10 @@ export type UserResponseDto = Readonly<{
   user: UserDto;
 }>;
 
+export type UpdateAccountProfileRequestDto = Readonly<{
+  name?: string;
+}>;
+
 export type WorkspaceMemberDto = Readonly<{
   id: WorkspaceMembershipId;
   userId: UserId;

@@ -25,6 +25,7 @@ import type {
   SessionResponseDto,
   UpdateDocumentContentRequestDto,
   UpdateDocumentRequestDto,
+  UpdateAccountProfileRequestDto,
   UpdateFolderRequestDto,
   UpdateProjectRequestDto,
   UpdateWorkspaceRequestDto,
@@ -68,6 +69,16 @@ export async function createAccount(
 ): Promise<UserResponseDto> {
   return fetchJson(client, "/accounts", {
     method: "POST",
+    body: JSON.stringify(request),
+  });
+}
+
+export async function updateAccountProfile(
+  client: ApiClient,
+  request: UpdateAccountProfileRequestDto,
+): Promise<UserResponseDto> {
+  return fetchJson(client, "/accounts/me/profile", {
+    method: "PATCH",
     body: JSON.stringify(request),
   });
 }

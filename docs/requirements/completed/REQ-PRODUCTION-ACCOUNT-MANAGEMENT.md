@@ -1,24 +1,24 @@
 ---
 id: REQ-PRODUCTION-ACCOUNT-MANAGEMENT
 title: 사용자가 정상 제품 경로에서 로그인하고 계정을 관리할 수 있어야 한다.
-status: planned
+status: done
 category: product-foundation
 type: functional
 priority: high
-taskability: taskable
+taskability: done
 scope: identity
 derived_from: REQ-IDENTITY-MEMBERSHIP
 depends_on:
   - REQ-IDENTITY-MEMBERSHIP
 blocks:
   - REQ-WORKSPACE-MEMBER-MANAGEMENT
-next_step: profile update/deactivation API contract를 추가하고 현재 read-only settings placeholder를 실제 account management flow로 교체한다.
 refs:
   - docs/product/workspace/user-membership.md
   - packages/contracts/src/http/routes.ts
   - tasks/archive/TASK-074-auth-session-owner-member-authorization.md
   - tasks/archive/TASK-094-product-account-surface-and-policy.md
   - tasks/archive/TASK-101-product-account-create.md
+  - tasks/archive/TASK-102-account-profile-update.md
 ---
 
 # REQ-PRODUCTION-ACCOUNT-MANAGEMENT
@@ -45,7 +45,10 @@ Acceptance:
 profile menu, renders account/workspace/project identity from the authenticated session and
 workspace navigation, and records the account deactivation/delete policy in the product docs.
 `TASK-101` adds a local product account creation contract/API and a normal auth-screen flow that
-creates the account, creates a session, and lands the user in workspace onboarding.
+creates the account, creates a session, and lands the user in workspace onboarding. `TASK-102`
+adds an authenticated profile name update contract/API and replaces the read-only User settings
+name placeholder with an editable account form.
 
-This requirement remains open because profile update and deactivation mutations are not yet exposed
-by the contracts or API.
+The account deactivation/delete acceptance is satisfied as a policy boundary rather than an
+executable mutation: initial product account management does not provide hard delete, and the
+documented policy preserves `User`, `WorkspaceMembership`, checkpoint authorship, and auditability.

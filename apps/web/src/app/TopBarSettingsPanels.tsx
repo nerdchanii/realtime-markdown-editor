@@ -1,7 +1,12 @@
 import { useState, type FormEvent } from "react";
 
 import type { ApiClient } from "@/lib/api-client";
-import { createProject, updateProject, updateWorkspace } from "@/lib/api-client";
+import {
+  createProject,
+  updateAccountProfile,
+  updateProject,
+  updateWorkspace,
+} from "@/lib/api-client";
 
 import type { ProductAccountSurface } from "./product-workspace-types";
 
@@ -20,18 +25,12 @@ export function SettingsPanel({
 }>) {
   if (scope === "user") {
     return (
-      <div className="ui-tabs-content top-bar-settings__panel">
-        <SettingsField label="Name" value={accountSurface?.userName ?? "Signed in user"} />
-        <SettingsField label="Email" value={accountSurface?.userEmail ?? "Not available"} />
-        <SettingsField
-          label="Workspace display name"
-          value={accountSurface?.currentMemberDisplayName ?? "Member"}
-        />
-        <p className="top-bar-settings__notice">
-          Profile editing and account deactivation need the account management API contract before
-          they can be enabled.
-        </p>
-      </div>
+      <UserSettingsPanel
+        key={accountSurface?.userEmail ?? "user-settings"}
+        accountSurface={accountSurface}
+        apiClient={apiClient}
+        reload={reload}
+      />
     );
   }
 
@@ -53,6 +52,48 @@ export function SettingsPanel({
       apiClient={apiClient}
       reload={reload}
     />
+  );
+}
+
+function UserSettingsPanel({
+  accountSurface,
+  apiClient,
+  reload,
+}: Readonly<{
+  accountSurface: ProductAccountSurface | undefined;
+  apiClient: ApiClient;
+  reload: () => void;
+}>) {
+  const [userName, setUserName] = useState(accountSurface?.userName ?? "");
+  const [status, setStatus] = useState("");
+
+  const handleUpdateProfile = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const name = userName.trim();
+    if (!name) return;
+    await updateAccountProfile(apiClient, { name });
+    setStatus("Account saved.");
+    reload();
+  };
+
+  return (
+    <div className="ui-tabs-content top-bar-settings__panel">
+      <form className="top-bar-settings__form" onSubmit={handleUpdateProfile}>
+        <EditableSettingsField label="Name" value={userName} onChange={setUserName} />
+        <button className="ui-button ui-button--secondary" type="submit">
+          Save account
+        </button>
+      </form>
+      <SettingsField label="Email" value={accountSurface?.userEmail ?? "Not available"} />
+      <SettingsField
+        label="Workspace display name"
+        value={accountSurface?.currentMemberDisplayName ?? "Member"}
+      />
+      <p className="top-bar-settings__notice">
+        Account deactivation follows the retention policy and still needs a dedicated API mutation.
+      </p>
+      {status ? <p className="top-bar-settings__status">{status}</p> : null}
+    </div>
   );
 }
 

@@ -87,6 +87,12 @@ export const httpSchemaCatalog = [
     fields: [{ name: "user", kind: "object", required: true }],
   },
   {
+    id: "UpdateAccountProfileRequest",
+    dto: "UpdateAccountProfileRequestDto",
+    target: "body",
+    fields: [{ name: "name", kind: "string", required: false, minLength: 1 }],
+  },
+  {
     id: "CreateSessionRequest",
     dto: "CreateSessionRequestDto",
     target: "body",

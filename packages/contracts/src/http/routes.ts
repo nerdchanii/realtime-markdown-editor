@@ -73,6 +73,17 @@ export const canonicalProductHttpRoutes = [
     relatedRequirements: ["REQ-PRODUCTION-ACCOUNT-MANAGEMENT", "REQ-IDENTITY-MEMBERSHIP"],
   },
   {
+    id: "accounts.updateCurrentProfile",
+    method: "PATCH",
+    path: "/accounts/me/profile",
+    owner: "IdentityModule",
+    audience: "product",
+    requestDto: "UpdateAccountProfileRequestDto",
+    responseDto: "UserResponseDto",
+    schemas: { body: "UpdateAccountProfileRequest", response: "UserResponse" },
+    relatedRequirements: ["REQ-PRODUCTION-ACCOUNT-MANAGEMENT", "REQ-IDENTITY-MEMBERSHIP"],
+  },
+  {
     id: "auth.createSession",
     method: "POST",
     path: "/auth/session",

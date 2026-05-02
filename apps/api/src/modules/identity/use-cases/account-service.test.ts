@@ -39,8 +39,23 @@ test("account service rejects incomplete account creation requests", async () =>
   );
 });
 
+test("account service updates current user profile names", async () => {
+  const repository = new FakeAccountRepository();
+  const service = new AccountService(repository);
+
+  const user = await service.updateAccountProfile("user_created" as UserId, { name: " Ada " });
+
+  assert.equal(user.name, "Ada");
+  assert.equal(repository.updated?.userId, "user_created");
+  assert.deepEqual(repository.updated?.input, { name: "Ada" });
+});
+
 class FakeAccountRepository implements AccountRepository {
   created: Parameters<AccountRepository["createAccount"]>[0] | null = null;
+  updated: {
+    userId: UserId;
+    input: Parameters<AccountRepository["updateAccountProfile"]>[1];
+  } | null = null;
 
   async createAccount(
     input: Parameters<AccountRepository["createAccount"]>[0],
@@ -50,6 +65,18 @@ class FakeAccountRepository implements AccountRepository {
       id: "user_created" as UserId,
       email: input.email,
       name: input.name,
+    };
+  }
+
+  async updateAccountProfile(
+    userId: UserId,
+    input: Parameters<AccountRepository["updateAccountProfile"]>[1],
+  ): Promise<Awaited<ReturnType<AccountRepository["updateAccountProfile"]>>> {
+    this.updated = { userId, input };
+    return {
+      id: userId,
+      email: "created@example.test",
+      name: input.name ?? "Created User",
     };
   }
 }

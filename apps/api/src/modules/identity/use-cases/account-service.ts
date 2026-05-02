@@ -1,5 +1,10 @@
 import { BadRequestException, Inject, Injectable } from "@nestjs/common";
-import type { CreateAccountRequestDto, UserDto } from "@rme/contracts";
+import type {
+  CreateAccountRequestDto,
+  UpdateAccountProfileRequestDto,
+  UserDto,
+  UserId,
+} from "@rme/contracts";
 
 import {
   ACCOUNT_REPOSITORY,
@@ -23,6 +28,16 @@ export class AccountService {
       passwordCredential: createPasswordCredential(account.password),
     });
   }
+
+  async updateAccountProfile(
+    userId: UserId,
+    input: UpdateAccountProfileRequestDto,
+  ): Promise<UserDto> {
+    const profile = normalizeUpdateAccountProfileInput(input);
+    const user = await this.accounts.updateAccountProfile(userId, profile);
+    if (!user) throw new BadRequestException("Account could not be updated.");
+    return user;
+  }
 }
 
 function normalizeCreateAccountInput(input: CreateAccountRequestDto) {
@@ -33,4 +48,10 @@ function normalizeCreateAccountInput(input: CreateAccountRequestDto) {
     throw new BadRequestException("Account email, name, and password are required.");
   }
   return { email, name, password };
+}
+
+function normalizeUpdateAccountProfileInput(input: UpdateAccountProfileRequestDto) {
+  const name = input.name?.trim();
+  if (!name) throw new BadRequestException("Account name is required.");
+  return { name };
 }
