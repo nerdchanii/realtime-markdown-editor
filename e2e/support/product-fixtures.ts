@@ -45,11 +45,24 @@ const { PrismaClient } = apiRequire("@prisma/client") as {
 };
 
 export async function createProductSession(page: Page, email: string, workspaceId: string) {
-  const response = await page.request.post(`${apiBaseUrl()}/auth/session`, {
-    data: { email, password: localProductPassword, workspaceId },
-  });
+  const endpoint = `${apiBaseUrl()}/auth/session`;
+  let lastError: string | null = null;
 
-  expect(response.ok(), await response.text()).toBeTruthy();
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    try {
+      const response = await page.request.post(endpoint, {
+        data: { email, password: localProductPassword, workspaceId },
+      });
+      if (response.ok()) return;
+      lastError = await response.text();
+    } catch (error) {
+      lastError = error instanceof Error ? error.message : String(error);
+    }
+
+    await page.waitForTimeout(500);
+  }
+
+  expect(false, lastError ?? "Timed out creating product session.").toBeTruthy();
 }
 
 export async function ensureCe04ProductFixture() {

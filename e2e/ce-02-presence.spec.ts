@@ -18,26 +18,23 @@ test("CE-02: remote cursor and selection show workspace member identity", async 
 
   const bobEditor = richMarkdownEditor(bobPage);
   await expect(bobEditor).toBeVisible();
-  await expect(alicePage.getByTestId("sync-status")).toContainText("synced", {
-    ignoreCase: true,
-    timeout: 10_000,
-  });
-  await expect(bobPage.getByTestId("sync-status")).toContainText("synced", {
-    ignoreCase: true,
-    timeout: 10_000,
-  });
+  await expect(alicePage.getByText(/^Synced$/i).last()).toBeVisible({ timeout: 10_000 });
+  await expect(bobPage.getByText(/^Synced$/i).last()).toBeVisible({ timeout: 10_000 });
   await bobEditor.click();
   await bobPage.keyboard.insertText("presence");
   await bobPage.keyboard.down("Shift");
   await bobPage.keyboard.press("ArrowLeft");
   await bobPage.keyboard.up("Shift");
 
-  const bobCursor = alicePage.getByTestId("presence-cursor-bob").first();
-  const bobSelection = alicePage.getByTestId("presence-selection-bob").first();
+  const aliceEditor = richMarkdownEditor(alicePage);
+  const bobCursor = aliceEditor.locator(".collaboration-carets__caret", { hasText: "Bob" }).first();
+  const bobSelection = aliceEditor.locator(".ProseMirror-yjs-selection").first();
+  const bobCursorLabel = bobCursor.locator(".collaboration-carets__label");
 
   await expect(bobCursor).toBeVisible({ timeout: 10_000 });
   await expect(bobSelection).toBeVisible({ timeout: 10_000 });
-  await expect(bobCursor).toContainText("Bob", { timeout: 10_000 });
+  await expect(bobCursorLabel).toHaveText("Bob", { timeout: 10_000 });
+  await expect(bobCursor).toHaveCSS("border-left-width", "2px");
 
   await alice.close();
   await bob.close();
