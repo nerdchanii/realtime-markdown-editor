@@ -10,24 +10,25 @@ const scriptPath = fileURLToPath(import.meta.url);
 const repoRoot = resolve(dirname(scriptPath), "..");
 
 const envFile = localEnvFile();
+const envText = envFile ? readFileSync(envFile, "utf8") : "";
+const localEnv = parseEnvText(envText);
 const bootstrapPlan = buildBootstrapPlan({
   env: envFile ? {} : process.env,
-  envText: envFile ? readFileSync(envFile, "utf8") : "",
+  envText,
   migrate: true,
 });
-
-run("node", ["scripts/db-bootstrap.mjs", "--migrate", ...(envFile ? ["--env-file", envFile] : [])]);
-run("node", ["scripts/seed-local-product.mjs"], {
+const runtimeEnv = {
+  ...localEnv,
   ...process.env,
   DATABASE_URL: bootstrapPlan.databaseUrl,
-});
+};
+
+run("node", ["scripts/db-bootstrap.mjs", "--migrate", ...(envFile ? ["--env-file", envFile] : [])]);
+run("node", ["scripts/seed-local-product.mjs"], runtimeEnv);
 run(
   "pnpm",
   ["--parallel", "--filter", "@rme/api", "--filter", "@rme/collab", "--filter", "@rme/web", "dev"],
-  {
-    ...process.env,
-    DATABASE_URL: bootstrapPlan.databaseUrl,
-  },
+  runtimeEnv,
 );
 
 function run(command, args, env = process.env) {
@@ -44,4 +45,26 @@ function localEnvFile() {
     if (existsSync(candidate)) return candidate;
   }
   return null;
+}
+
+function parseEnvText(envText) {
+  const env = {};
+
+  for (const line of envText.split(/\r?\n/u)) {
+    const match = line.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)\s*$/u);
+    if (!match) continue;
+    env[match[1]] = stripEnvQuotes(match[2].trim());
+  }
+
+  return env;
+}
+
+function stripEnvQuotes(value) {
+  if (
+    (value.startsWith('"') && value.endsWith('"')) ||
+    (value.startsWith("'") && value.endsWith("'"))
+  ) {
+    return value.slice(1, -1);
+  }
+  return value;
 }
