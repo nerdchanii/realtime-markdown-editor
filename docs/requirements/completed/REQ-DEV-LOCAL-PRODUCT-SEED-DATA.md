@@ -62,8 +62,8 @@ Acceptance:
   `DATABASE_URL` values or generated secrets.
 - e2e product fixtures and local dev seed should share a canonical seed spec or helper so that they
   do not drift.
-- `/review-context/seed`, URL member spoofing, fabricated document IDs, and local React-only state
-  are not normal runtime dependencies for this requirement.
+- URL member spoofing, fabricated document IDs, and local React-only state are not normal runtime
+  dependencies for this requirement.
 
 Non-goals:
 

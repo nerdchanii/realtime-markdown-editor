@@ -63,16 +63,8 @@ ownership follows the table below.
 | Image upload                     | `POST /documents/:documentId/images`                                                                                                                  | `DocumentsModule`     | Returns an editor-insertable image reference without exposing object-storage provider internals.                                                                                                                             |
 | Collaboration session            | `POST /documents/:documentId/collaboration-sessions`                                                                                                  | `CollaborationModule` | Issues provider-neutral realtime session data. It must not create checkpoints or expose provider-specific Yjs/Hocuspocus state.                                                                                              |
 
-The following routes are explicitly dev-only bootstrap routes and must not be required by the
-normal product runtime path:
-
-- `GET /review-context/seed`
-- `GET /collaboration/sessions/seed`
-
 The following existing routes are retired from the product contract:
 
-- `GET /collaboration/documents/:documentId/session`, replaced by
-  `POST /documents/:documentId/collaboration-sessions`
 - `POST /collaboration/documents/:documentId/checkpoints`, replaced by
   `POST /documents/:documentId/checkpoints`
 
