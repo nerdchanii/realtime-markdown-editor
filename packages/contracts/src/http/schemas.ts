@@ -151,6 +151,45 @@ export const httpSchemaCatalog = [
     fields: [{ name: "name", kind: "string", required: false, minLength: 1 }],
   },
   {
+    id: "CreateWorkspaceMemberRequest",
+    dto: "CreateWorkspaceMemberRequestDto",
+    target: "body",
+    fields: [
+      { name: "email", kind: "string", required: true, format: "email" },
+      { name: "displayName", kind: "string", required: false, minLength: 1 },
+      {
+        name: "role",
+        kind: "enum",
+        required: false,
+        enumValues: ["owner", "editor"],
+      },
+    ],
+  },
+  {
+    id: "UpdateWorkspaceMemberRequest",
+    dto: "UpdateWorkspaceMemberRequestDto",
+    target: "body",
+    fields: [
+      { name: "displayName", kind: "string", required: false, minLength: 1 },
+      { name: "color", kind: "string", required: false, minLength: 1 },
+      {
+        name: "role",
+        kind: "enum",
+        required: false,
+        enumValues: ["owner", "editor"],
+      },
+    ],
+  },
+  {
+    id: "WorkspaceMemberIdPathParams",
+    dto: "WorkspaceMemberIdPathParamsDto",
+    target: "params",
+    fields: [
+      { name: "workspaceId", kind: "string", required: true, format: "resource-id" },
+      { name: "memberId", kind: "string", required: true, format: "resource-id" },
+    ],
+  },
+  {
     id: "CreateProjectRequest",
     dto: "CreateProjectRequestDto",
     target: "body",
@@ -318,6 +357,18 @@ export const httpSchemaCatalog = [
     dto: "ListWorkspacesResponseDto",
     target: "response",
     fields: [{ name: "workspaces", kind: "array", required: true, itemSchema: "WorkspaceDto" }],
+  },
+  {
+    id: "WorkspaceMemberResponse",
+    dto: "WorkspaceMemberResponseDto",
+    target: "response",
+    fields: [{ name: "member", kind: "object", required: true }],
+  },
+  {
+    id: "ListWorkspaceMembersResponse",
+    dto: "ListWorkspaceMembersResponseDto",
+    target: "response",
+    fields: [{ name: "members", kind: "array", required: true, itemSchema: "WorkspaceMemberDto" }],
   },
   {
     id: "ProjectResponse",

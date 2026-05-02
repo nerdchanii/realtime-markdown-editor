@@ -1,17 +1,17 @@
 ---
 id: REQ-WORKSPACE-MEMBER-MANAGEMENT
 title: Workspace member를 추가, 수정, 제거할 수 있어야 한다.
-status: planned
+status: done
 category: product-foundation
 type: functional
 priority: high
-taskability: taskable
+taskability: done
 scope: workspace
 derived_from: REQ-IDENTITY-MEMBERSHIP
 depends_on:
   - REQ-IDENTITY-MEMBERSHIP
 blocks: []
-next_step: owner/member 역할 모델을 유지한 채 member 초대 또는 추가, 역할 변경, 제거 flow와 authorization rule을 정의한다.
+next_step: done
 refs:
   - docs/product/workspace/user-membership.md
   - docs/domain/relations/user-workspace.md
@@ -36,3 +36,14 @@ Acceptance:
   checkpoint, collaboration session에 접근할 수 없다.
 - 자기 자신을 제거하거나 마지막 owner를 제거하는 등 workspace를 잠그는 action은 방지된다.
 - Presence와 checkpoint authorship은 변경된 membership state를 사용한다.
+
+Evidence:
+
+- `POST /workspaces/:workspaceId/members` adds an existing product account as a workspace member.
+- `PATCH /workspaces/:workspaceId/members/:memberId` changes role within owner/member scope
+  (`editor` wire role maps to product member role).
+- `DELETE /workspaces/:workspaceId/members/:memberId` soft-removes membership by setting `removedAt`.
+- Auth sessions, workspace APIs, checkpoint APIs, and collaboration session issuance only consider active
+  memberships.
+- Workspace settings UI lists members, adds existing accounts, changes role, and removes non-self members.
+- `e2e/product-workspace-members.spec.ts` covers add, promote, member access, removal, and revoked access.

@@ -49,6 +49,18 @@ export class ProductApiAccessService {
     return { session, membership: requireMembership(session, workspaceId) };
   }
 
+  async requireWorkspaceOwnerAccess(
+    cookieHeader: string | undefined,
+    workspaceId: WorkspaceId,
+  ): Promise<ProductApiSessionAccess> {
+    const access = await this.requireWorkspaceAccess(cookieHeader, workspaceId);
+    if (access.membership.role !== "owner") {
+      throw new ForbiddenException("Workspace owner role is required.");
+    }
+
+    return access;
+  }
+
   async requireProjectAccess(
     cookieHeader: string | undefined,
     projectId: ProjectId,

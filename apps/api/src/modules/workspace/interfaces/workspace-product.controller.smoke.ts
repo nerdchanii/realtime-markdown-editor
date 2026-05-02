@@ -9,10 +9,15 @@ import { NestFactory } from "@nestjs/core";
 import type {
   CreateFolderRequestDto,
   CreateProjectRequestDto,
+  CreateWorkspaceMemberRequestDto,
   CreateWorkspaceRequestDto,
   DeletedResourceResponseDto,
   FolderDto,
+  ListWorkspaceMembersResponseDto,
   ProjectDto,
+  UpdateWorkspaceMemberRequestDto,
+  WorkspaceMemberDto,
+  WorkspaceMembershipId,
   WorkspaceDto,
   WorkspaceNavigationResponseDto,
 } from "@rme/contracts";
@@ -112,6 +117,7 @@ test("workspace product API creates hierarchy and protects root folders", async 
 
 class InMemoryWorkspaceProductRepository implements WorkspaceProductRepository {
   private readonly workspaces = new Map<string, WorkspaceDto>();
+  private readonly members = new Map<string, WorkspaceMemberDto & { removedAt?: string }>();
   private readonly projects = new Map<string, ProjectDto>();
   private readonly folders = new Map<string, FolderDto & { deletedAt?: string }>();
   readonly createdWorkspaceOwnerUserIds: string[] = [];
@@ -154,6 +160,61 @@ class InMemoryWorkspaceProductRepository implements WorkspaceProductRepository {
     const updated = { ...workspace, name: input.name ?? workspace.name };
     this.workspaces.set(workspaceId, updated);
     return updated;
+  }
+
+  async listWorkspaceMembers(workspaceId: string): Promise<ListWorkspaceMembersResponseDto | null> {
+    if (!this.workspaces.has(workspaceId)) return null;
+    return {
+      members: [...this.members.values()].filter(
+        (member) => member.workspaceId === workspaceId && !member.removedAt,
+      ),
+    };
+  }
+
+  async addWorkspaceMember(
+    workspaceId: string,
+    input: CreateWorkspaceMemberRequestDto,
+  ): Promise<WorkspaceMemberDto | null> {
+    if (!this.workspaces.has(workspaceId)) return null;
+    const id = this.id("member") as WorkspaceMembershipId;
+    const member = {
+      id,
+      userId: this.id("user"),
+      workspaceId,
+      displayName: input.displayName ?? input.email,
+      color: "#0969da",
+      role: input.role ?? "editor",
+    } as WorkspaceMemberDto;
+    this.members.set(id, member);
+    return member;
+  }
+
+  async updateWorkspaceMember(
+    workspaceId: string,
+    memberId: string,
+    input: UpdateWorkspaceMemberRequestDto,
+  ): Promise<WorkspaceMemberDto | null> {
+    const member = this.members.get(memberId);
+    if (!member || member.workspaceId !== workspaceId || member.removedAt) return null;
+    const updated = {
+      ...member,
+      displayName: input.displayName ?? member.displayName,
+      color: input.color ?? member.color,
+      role: input.role ?? member.role,
+    } as WorkspaceMemberDto;
+    this.members.set(memberId, updated);
+    return updated;
+  }
+
+  async removeWorkspaceMember(
+    workspaceId: string,
+    memberId: string,
+  ): Promise<DeletedResourceResponseDto | null> {
+    const member = this.members.get(memberId);
+    if (!member || member.workspaceId !== workspaceId || member.removedAt) return null;
+    const deletedAt = new Date("2026-04-30T00:00:00.000Z").toISOString();
+    this.members.set(memberId, { ...member, removedAt: deletedAt });
+    return { id: memberId, deletedAt };
   }
 
   async getWorkspaceNavigation(
@@ -330,6 +391,11 @@ class AllowAllProductApiAccessService {
   }
 
   async requireWorkspaceAccess(): Promise<void> {}
+  async requireWorkspaceOwnerAccess() {
+    return {
+      membership: { id: "member_alice", workspaceId: "workspace_1", role: "owner" },
+    };
+  }
   async requireProjectAccess(): Promise<void> {}
   async requireFolderAccess(): Promise<void> {}
 }

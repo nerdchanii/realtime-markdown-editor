@@ -88,6 +88,26 @@ export type ListWorkspacesResponseDto = Readonly<{
   workspaces: readonly WorkspaceDto[];
 }>;
 
+export type WorkspaceMemberResponseDto = Readonly<{
+  member: WorkspaceMemberDto;
+}>;
+
+export type ListWorkspaceMembersResponseDto = Readonly<{
+  members: readonly WorkspaceMemberDto[];
+}>;
+
+export type CreateWorkspaceMemberRequestDto = Readonly<{
+  email: string;
+  displayName?: string;
+  role?: WorkspaceMemberRoleDto;
+}>;
+
+export type UpdateWorkspaceMemberRequestDto = Readonly<{
+  displayName?: string;
+  color?: string;
+  role?: WorkspaceMemberRoleDto;
+}>;
+
 export type ProjectDto = Readonly<{
   id: ProjectId;
   workspaceId: WorkspaceId;

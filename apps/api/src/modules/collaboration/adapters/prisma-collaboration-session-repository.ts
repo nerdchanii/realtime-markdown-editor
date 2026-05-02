@@ -24,7 +24,7 @@ export class PrismaCollaborationSessionRepository implements CollaborationSessio
     if (!document) return null;
 
     const memberships = await this.database.workspaceMembership.findMany({
-      where: { workspaceId: document.folder.workspaceId },
+      where: { workspaceId: document.folder.workspaceId, removedAt: null },
       orderBy: { createdAt: "asc" },
     });
     const currentMember = memberships.find(
@@ -47,7 +47,7 @@ export class PrismaCollaborationSessionRepository implements CollaborationSessio
     if (!document) return null;
 
     const memberships = await this.database.workspaceMembership.findMany({
-      where: { workspaceId: document.folder.workspaceId },
+      where: { workspaceId: document.folder.workspaceId, removedAt: null },
       orderBy: { createdAt: "asc" },
     });
     const currentMember = memberships[0];

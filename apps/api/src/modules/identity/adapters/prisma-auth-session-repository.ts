@@ -25,7 +25,7 @@ export class PrismaAuthSessionRepository implements AuthSessionRepository {
   }): Promise<CreatedSession | null> {
     const user = await this.database.user.findUnique({
       where: { email: input.email },
-      include: { memberships: { orderBy: { createdAt: "asc" } } },
+      include: { memberships: { where: { removedAt: null }, orderBy: { createdAt: "asc" } } },
     });
     if (!user) return null;
     if (!isValidPassword(input.password, user)) return null;
@@ -65,7 +65,9 @@ export class PrismaAuthSessionRepository implements AuthSessionRepository {
     const session = await this.database.session.findUnique({
       where: { tokenHash: hashSessionToken(token) },
       include: {
-        user: { include: { memberships: { orderBy: { createdAt: "asc" } } } },
+        user: {
+          include: { memberships: { where: { removedAt: null }, orderBy: { createdAt: "asc" } } },
+        },
       },
     });
     if (!session || session.status !== "active" || session.expiresAt <= new Date()) return null;

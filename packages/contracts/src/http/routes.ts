@@ -31,7 +31,8 @@ export type SubjectRequirementRef =
   | "REQ-PROPERTIES-OUTSIDE-BODY"
   | "REQ-DOCUMENT-TRASH-RESTORE"
   | "REQ-WORKSPACE-DOCUMENT-SCOPE"
-  | "REQ-WORKSPACE-HIERARCHY";
+  | "REQ-WORKSPACE-HIERARCHY"
+  | "REQ-WORKSPACE-MEMBER-MANAGEMENT";
 
 export type HttpRouteSchemaSet = Readonly<{
   params?: HttpSchemaRef;
@@ -159,6 +160,59 @@ export const canonicalProductHttpRoutes = [
       response: "WorkspaceResponse",
     },
     relatedRequirements: ["REQ-WORKSPACE-HIERARCHY"],
+  },
+  {
+    id: "workspace-members.list",
+    method: "GET",
+    path: "/workspaces/:workspaceId/members",
+    owner: "WorkspaceModule",
+    audience: "product",
+    responseDto: "ListWorkspaceMembersResponseDto",
+    schemas: { params: "WorkspaceIdPathParams", response: "ListWorkspaceMembersResponse" },
+    relatedRequirements: ["REQ-WORKSPACE-MEMBER-MANAGEMENT"],
+  },
+  {
+    id: "workspace-members.create",
+    method: "POST",
+    path: "/workspaces/:workspaceId/members",
+    owner: "WorkspaceModule",
+    audience: "product",
+    requestDto: "CreateWorkspaceMemberRequestDto",
+    responseDto: "WorkspaceMemberResponseDto",
+    schemas: {
+      params: "WorkspaceIdPathParams",
+      body: "CreateWorkspaceMemberRequest",
+      response: "WorkspaceMemberResponse",
+    },
+    relatedRequirements: ["REQ-WORKSPACE-MEMBER-MANAGEMENT"],
+  },
+  {
+    id: "workspace-members.update",
+    method: "PATCH",
+    path: "/workspaces/:workspaceId/members/:memberId",
+    owner: "WorkspaceModule",
+    audience: "product",
+    requestDto: "UpdateWorkspaceMemberRequestDto",
+    responseDto: "WorkspaceMemberResponseDto",
+    schemas: {
+      params: "WorkspaceMemberIdPathParams",
+      body: "UpdateWorkspaceMemberRequest",
+      response: "WorkspaceMemberResponse",
+    },
+    relatedRequirements: ["REQ-WORKSPACE-MEMBER-MANAGEMENT"],
+  },
+  {
+    id: "workspace-members.delete",
+    method: "DELETE",
+    path: "/workspaces/:workspaceId/members/:memberId",
+    owner: "WorkspaceModule",
+    audience: "product",
+    responseDto: "DeletedResourceResponseDto",
+    schemas: {
+      params: "WorkspaceMemberIdPathParams",
+      response: "DeletedResourceResponse",
+    },
+    relatedRequirements: ["REQ-WORKSPACE-MEMBER-MANAGEMENT"],
   },
   {
     id: "workspaces.getNavigation",

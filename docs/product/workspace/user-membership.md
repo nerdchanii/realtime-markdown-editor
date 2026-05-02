@@ -52,6 +52,9 @@ foundation이다. Account management의 상세 운영 범위는 별도 requireme
 - 비활성화된 user의 active sessions는 revoked 상태가 되고 새 session 발급은 거부한다.
 - WorkspaceMembership record는 과거 presence/checkpoint label 해석을 위해 보존하되, 새
   collaboration session 발급과 workspace 진입은 막는다.
+- Workspace member removal도 같은 보존 정책을 따른다. `removedAt`이 설정된 membership은
+  session/workspace authorization과 collaboration allowed member 목록에서 제외하지만, checkpoint와
+  revision authorship 해석을 위해 record 자체는 유지한다.
 - Membership display name/color는 과거 authorship 표시를 위해 보존한다. 사용자가 profile display
   name을 수정하더라도 기존 checkpoint author reference는 membership id 기준으로 해석한다.
 - Hard delete, email erasure, external identity provider unlink는 별도 privacy/data-retention

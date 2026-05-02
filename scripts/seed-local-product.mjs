@@ -187,6 +187,7 @@ function membershipUpsertData(workspaceMember, userId) {
     displayName: workspaceMember.displayName,
     color: workspaceMember.color,
     role: workspaceMember.role,
+    removedAt: null,
   };
 }
 

@@ -2,6 +2,7 @@ import type {
   CollaborationSessionDto,
   CollaborationSessionResponseDto,
   CreateAccountRequestDto,
+  CreateWorkspaceMemberRequestDto,
   CreateProjectRequestDto,
   CreateDocumentRequestDto,
   CreateFolderRequestDto,
@@ -17,6 +18,7 @@ import type {
   FolderResponseDto,
   ListArchivedDocumentsResponseDto,
   ListCheckpointsResponseDto,
+  ListWorkspaceMembersResponseDto,
   ListWorkspacesResponseDto,
   ProjectId,
   ProjectResponseDto,
@@ -28,9 +30,12 @@ import type {
   UpdateAccountProfileRequestDto,
   UpdateFolderRequestDto,
   UpdateProjectRequestDto,
+  UpdateWorkspaceMemberRequestDto,
   UpdateWorkspaceRequestDto,
   UserResponseDto,
   WorkspaceId,
+  WorkspaceMemberResponseDto,
+  WorkspaceMembershipId,
   WorkspaceNavigationResponseDto,
   WorkspaceResponseDto,
 } from "@rme/contracts";
@@ -126,6 +131,54 @@ export async function updateWorkspace(
     method: "PATCH",
     body: JSON.stringify(request),
   });
+}
+
+export async function fetchWorkspaceMembers(
+  client: ApiClient,
+  workspaceId: WorkspaceId,
+): Promise<ListWorkspaceMembersResponseDto> {
+  return fetchJson(client, `/workspaces/${encodeURIComponent(workspaceId)}/members`);
+}
+
+export async function createWorkspaceMember(
+  client: ApiClient,
+  workspaceId: WorkspaceId,
+  request: CreateWorkspaceMemberRequestDto,
+): Promise<WorkspaceMemberResponseDto> {
+  return fetchJson(client, `/workspaces/${encodeURIComponent(workspaceId)}/members`, {
+    method: "POST",
+    body: JSON.stringify(request),
+  });
+}
+
+export async function updateWorkspaceMember(
+  client: ApiClient,
+  workspaceId: WorkspaceId,
+  memberId: WorkspaceMembershipId,
+  request: UpdateWorkspaceMemberRequestDto,
+): Promise<WorkspaceMemberResponseDto> {
+  return fetchJson(
+    client,
+    `/workspaces/${encodeURIComponent(workspaceId)}/members/${encodeURIComponent(memberId)}`,
+    {
+      method: "PATCH",
+      body: JSON.stringify(request),
+    },
+  );
+}
+
+export async function deleteWorkspaceMember(
+  client: ApiClient,
+  workspaceId: WorkspaceId,
+  memberId: WorkspaceMembershipId,
+): Promise<DeletedResourceResponseDto> {
+  return fetchJson(
+    client,
+    `/workspaces/${encodeURIComponent(workspaceId)}/members/${encodeURIComponent(memberId)}`,
+    {
+      method: "DELETE",
+    },
+  );
 }
 
 export async function fetchWorkspaceNavigation(

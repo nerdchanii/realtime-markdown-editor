@@ -1,9 +1,15 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
+
+import type { WorkspaceMemberDto, WorkspaceMembershipId } from "@rme/contracts";
 
 import type { ApiClient } from "@/lib/api-client";
 import {
+  createWorkspaceMember,
   createProject,
+  deleteWorkspaceMember,
+  fetchWorkspaceMembers,
   updateAccountProfile,
+  updateWorkspaceMember,
   updateProject,
   updateWorkspace,
 } from "@/lib/api-client";
@@ -108,7 +114,25 @@ function WorkspaceSettingsPanel({
 }>) {
   const [workspaceName, setWorkspaceName] = useState(accountSurface?.workspaceName ?? "");
   const [projectName, setProjectName] = useState("");
+  const [memberEmail, setMemberEmail] = useState("");
+  const [members, setMembers] = useState<readonly WorkspaceMemberDto[]>([]);
   const [status, setStatus] = useState("");
+
+  useEffect(() => {
+    let isActive = true;
+    if (!accountSurface?.workspaceId) return undefined;
+    void fetchWorkspaceMembers(apiClient, accountSurface.workspaceId)
+      .then((response) => {
+        if (isActive) setMembers(response.members);
+      })
+      .catch(() => {
+        if (isActive) setStatus("Members could not be loaded.");
+      });
+
+    return () => {
+      isActive = false;
+    };
+  }, [accountSurface?.workspaceId, apiClient]);
 
   const handleRenameWorkspace = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -126,6 +150,41 @@ function WorkspaceSettingsPanel({
     await createProject(apiClient, accountSurface.workspaceId, { name });
     setProjectName("");
     setStatus("Project created.");
+    reload();
+  };
+
+  const handleAddMember = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const email = memberEmail.trim();
+    if (!accountSurface?.workspaceId || !email) return;
+    const response = await createWorkspaceMember(apiClient, accountSurface.workspaceId, {
+      email,
+      role: "editor",
+    });
+    setMembers((current) => upsertMember(current, response.member));
+    setMemberEmail("");
+    setStatus("Member added.");
+    reload();
+  };
+
+  const handleUpdateMemberRole = async (
+    memberId: WorkspaceMembershipId,
+    role: WorkspaceMemberDto["role"],
+  ) => {
+    if (!accountSurface?.workspaceId) return;
+    const response = await updateWorkspaceMember(apiClient, accountSurface.workspaceId, memberId, {
+      role,
+    });
+    setMembers((current) => upsertMember(current, response.member));
+    setStatus("Member role saved.");
+    reload();
+  };
+
+  const handleRemoveMember = async (memberId: WorkspaceMembershipId) => {
+    if (!accountSurface?.workspaceId) return;
+    await deleteWorkspaceMember(apiClient, accountSurface.workspaceId, memberId);
+    setMembers((current) => current.filter((member) => member.id !== memberId));
+    setStatus("Member removed.");
     reload();
   };
 
@@ -151,6 +210,46 @@ function WorkspaceSettingsPanel({
         label="Current member"
         value={accountSurface?.currentMemberDisplayName ?? "Member"}
       />
+      <form className="top-bar-settings__form" onSubmit={handleAddMember}>
+        <EditableSettingsField
+          label="New member email"
+          value={memberEmail}
+          onChange={setMemberEmail}
+        />
+        <button className="ui-button ui-button--secondary" type="submit">
+          Add member
+        </button>
+      </form>
+      <div className="top-bar-settings__members" aria-label="Workspace members">
+        {members.map((member) => (
+          <div className="top-bar-settings__member" key={member.id}>
+            <span className="top-bar-settings__member-color" style={{ background: member.color }} />
+            <strong>{member.displayName}</strong>
+            <select
+              aria-label={`Role for ${member.displayName}`}
+              className="top-bar-settings__select"
+              value={member.role === "owner" ? "owner" : "editor"}
+              onChange={(event) =>
+                void handleUpdateMemberRole(
+                  member.id,
+                  event.currentTarget.value === "owner" ? "owner" : "editor",
+                )
+              }
+            >
+              <option value="owner">Owner</option>
+              <option value="editor">Member</option>
+            </select>
+            <button
+              className="ui-button ui-button--secondary"
+              disabled={member.id === accountSurface?.currentMemberId}
+              type="button"
+              onClick={() => void handleRemoveMember(member.id)}
+            >
+              Remove
+            </button>
+          </div>
+        ))}
+      </div>
       {status ? <p className="top-bar-settings__status">{status}</p> : null}
     </div>
   );
@@ -218,4 +317,13 @@ function EditableSettingsField({
       />
     </label>
   );
+}
+
+function upsertMember(
+  members: readonly WorkspaceMemberDto[],
+  updatedMember: WorkspaceMemberDto,
+): readonly WorkspaceMemberDto[] {
+  const existing = members.find((member) => member.id === updatedMember.id);
+  if (!existing) return [...members, updatedMember];
+  return members.map((member) => (member.id === updatedMember.id ? updatedMember : member));
 }

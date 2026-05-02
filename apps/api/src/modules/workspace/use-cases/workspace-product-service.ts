@@ -1,18 +1,29 @@
-import { BadRequestException, Inject, Injectable, NotFoundException } from "@nestjs/common";
+import {
+  BadRequestException,
+  ForbiddenException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
 import type {
   CreateFolderRequestDto,
   CreateProjectRequestDto,
+  CreateWorkspaceMemberRequestDto,
   CreateWorkspaceRequestDto,
   DeletedResourceResponseDto,
   FolderChildrenResponseDto,
   FolderDto,
   ListProjectsResponseDto,
+  ListWorkspaceMembersResponseDto,
   ListWorkspacesResponseDto,
   MoveFolderRequestDto,
   ProjectDto,
   UpdateFolderRequestDto,
   UpdateProjectRequestDto,
+  UpdateWorkspaceMemberRequestDto,
   UpdateWorkspaceRequestDto,
+  WorkspaceMemberDto,
+  WorkspaceMembershipId,
   WorkspaceDto,
   WorkspaceId,
   WorkspaceNavigationResponseDto,
@@ -53,6 +64,65 @@ export class WorkspaceProductService {
     return required(
       await this.repository.updateWorkspace(workspaceId, input),
       "Workspace not found.",
+    );
+  }
+
+  async listWorkspaceMembers(workspaceId: string): Promise<ListWorkspaceMembersResponseDto> {
+    return required(
+      await this.repository.listWorkspaceMembers(workspaceId),
+      "Workspace not found.",
+    );
+  }
+
+  async addWorkspaceMember(
+    workspaceId: string,
+    input: CreateWorkspaceMemberRequestDto,
+  ): Promise<WorkspaceMemberDto> {
+    assertSupportedRole(input.role);
+
+    return required(
+      await this.repository.addWorkspaceMember(workspaceId, input),
+      "Workspace or user not found.",
+    );
+  }
+
+  async updateWorkspaceMember(
+    workspaceId: string,
+    memberId: string,
+    input: UpdateWorkspaceMemberRequestDto,
+  ): Promise<WorkspaceMemberDto> {
+    assertSupportedRole(input.role);
+    const members = await this.listWorkspaceMembers(workspaceId);
+    const member = members.members.find((candidate) => candidate.id === memberId);
+    if (!member) throw new NotFoundException("Workspace member not found.");
+    if (member.role === "owner" && input.role === "editor" && ownerCount(members.members) <= 1) {
+      throw new BadRequestException("Workspace must keep at least one owner.");
+    }
+
+    return required(
+      await this.repository.updateWorkspaceMember(workspaceId, memberId, input),
+      "Workspace member not found.",
+    );
+  }
+
+  async removeWorkspaceMember(
+    workspaceId: string,
+    memberId: string,
+    actorMemberId: WorkspaceMembershipId,
+  ): Promise<DeletedResourceResponseDto> {
+    if (memberId === actorMemberId) {
+      throw new ForbiddenException("Workspace owners cannot remove themselves.");
+    }
+    const members = await this.listWorkspaceMembers(workspaceId);
+    const member = members.members.find((candidate) => candidate.id === memberId);
+    if (!member) throw new NotFoundException("Workspace member not found.");
+    if (member.role === "owner" && ownerCount(members.members) <= 1) {
+      throw new BadRequestException("Workspace must keep at least one owner.");
+    }
+
+    return required(
+      await this.repository.removeWorkspaceMember(workspaceId, memberId),
+      "Workspace member not found.",
     );
   }
 
@@ -147,4 +217,14 @@ function assertSameFolderScope(folder: FolderDto, targetParent: FolderDto): void
   ) {
     throw new BadRequestException("Folder move target must be in the same owner scope.");
   }
+}
+
+function assertSupportedRole(role: UpdateWorkspaceMemberRequestDto["role"]): void {
+  if (role === "viewer") {
+    throw new BadRequestException("Workspace member role must be owner or editor.");
+  }
+}
+
+function ownerCount(members: readonly WorkspaceMemberDto[]): number {
+  return members.filter((member) => member.role === "owner").length;
 }

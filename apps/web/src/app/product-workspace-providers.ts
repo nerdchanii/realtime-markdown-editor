@@ -325,6 +325,7 @@ function createAccountSurface(
     userEmail: model.session?.user.email ?? "",
     currentMemberDisplayName: currentMember?.displayName ?? model.session?.user.name ?? "Member",
     currentMemberColor: currentMember?.color ?? "#8a99ad",
+    currentMemberId: currentMember?.id ?? null,
     workspaceName: model.navigation.workspace.name,
     projectId: (project?.id ?? null) as ProjectId | null,
     projectName: project?.name ?? model.navigation.projects[0]?.name ?? "Workspace root",

@@ -6,6 +6,7 @@ import type {
   ProjectId,
   SessionDto,
   WorkspaceId,
+  WorkspaceMembershipId,
   WorkspaceNavigationResponseDto,
 } from "@rme/contracts";
 
@@ -75,6 +76,7 @@ export type ProductAccountSurface = Readonly<{
   userEmail: string;
   currentMemberDisplayName: string;
   currentMemberColor: string;
+  currentMemberId: WorkspaceMembershipId | null;
   workspaceName: string;
   projectId: ProjectId | null;
   projectName: string;

@@ -283,6 +283,7 @@ async function seedMember(
       displayName: member.displayName,
       color: member.color ?? "#0969da",
       role: member.role ?? "owner",
+      removedAt: null,
     },
     create: {
       id: member.membershipId,
