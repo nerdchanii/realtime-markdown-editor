@@ -1,11 +1,11 @@
 ---
 id: REQ-CE-ACCEPTANCE-TEST-DECOUPLING
 title: CE acceptance test는 초기 UI 구현 세부사항이 아니라 사용자 행동 계약을 검증해야 한다.
-status: planned
+status: done
 category: subject-derived
 type: quality
 priority: high
-taskability: taskable
+taskability: done
 scope: testing
 derived_from:
   - CE-01-CONCURRENT-EDITING
@@ -15,10 +15,11 @@ derived_from:
   - CE-05-RICH-PREVIEW
 depends_on: []
 blocks: []
-next_step: CE 테스트 정책을 정리하고 기존 e2e를 사용자 행동 중심 acceptance contract로 재구성한다.
+next_step: done
 refs:
   - subject.md
   - docs/compliance/subject-matrix.md
+  - docs/compliance/ce-acceptance-testing.md
   - docs/architecture/frontend.md
   - DESIGN.md
   - e2e/
@@ -51,3 +52,12 @@ Non-goals:
 - CE-01부터 CE-05까지의 필수 행동 기준을 낮추지 않는다.
 - `DESIGN.md` UI refresh를 막기 위해 기존 초기 UI를 보존하지 않는다.
 - Product source code를 테스트 편의 목적으로 변경하지 않는다. 안정적인 hook이 필요하면 별도 UI/product task로 분리한다.
+
+Evidence:
+
+- `docs/compliance/ce-acceptance-testing.md` defines the CE acceptance policy and selector boundary.
+- `e2e/support/ce-acceptance.ts` centralizes CE setup and product interactions.
+- `e2e/ce-*.spec.ts` now calls acceptance helpers for editor, checkpoint, export, and sync actions
+  instead of encoding those interaction details in every CE story.
+- Toolbar-specific product smoke coverage moved to `e2e/product-editor-toolbar.spec.ts`, outside the
+  CE-05 acceptance spec.

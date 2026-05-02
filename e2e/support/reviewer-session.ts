@@ -38,13 +38,18 @@ export function richMarkdownEditor(page: Page) {
 }
 
 export async function createLocalMarkdownDocument(page: Page, title: string) {
-  await page.getByLabel("New document title").fill(title);
-  await page.getByTestId("create-document-button").click();
-  await expect(page.getByTestId("document-title")).toHaveText(title);
+  await page.getByLabel("New document").click();
+  const titleInput = page.getByLabel("Document title");
+  await expect(titleInput).toBeVisible();
+  await expect(titleInput).toHaveValue(/Untitled document/);
+  await titleInput.fill(title);
+  await expect(titleInput).toHaveValue(title);
+  await titleInput.blur();
 }
 
 export async function appendRichEditorLine(page: Page, editor: Locator, line: string) {
-  await editor.click();
+  await expect(editor).toBeVisible();
+  await editor.click({ force: true });
   await page.keyboard.insertText(`\n${line}`);
 }
 

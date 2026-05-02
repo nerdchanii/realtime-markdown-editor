@@ -1,10 +1,11 @@
 import { expect, test } from "@playwright/test";
 
 import {
-  openReviewerSession,
-  richMarkdownEditor,
-  uniqueReviewDocumentId,
-} from "./support/reviewer-session.js";
+  markdownSurface,
+  openCeDocument,
+  waitForCollaborationReady,
+} from "./support/ce-acceptance.js";
+import { uniqueReviewDocumentId } from "./support/reviewer-session.js";
 
 test("CE-02: remote cursor and selection show workspace member identity", async ({ browser }) => {
   const alice = await browser.newContext();
@@ -13,20 +14,20 @@ test("CE-02: remote cursor and selection show workspace member identity", async 
   const bobPage = await bob.newPage();
   const documentId = uniqueReviewDocumentId("ce-02");
 
-  await openReviewerSession(alicePage, { member: "alice", documentId });
-  await openReviewerSession(bobPage, { member: "bob", documentId });
+  await openCeDocument(alicePage, { member: "alice", documentId });
+  await openCeDocument(bobPage, { member: "bob", documentId });
 
-  const bobEditor = richMarkdownEditor(bobPage);
+  const bobEditor = markdownSurface(bobPage);
   await expect(bobEditor).toBeVisible();
-  await expect(alicePage.getByText(/^Synced$/i).last()).toBeVisible({ timeout: 10_000 });
-  await expect(bobPage.getByText(/^Synced$/i).last()).toBeVisible({ timeout: 10_000 });
+  await waitForCollaborationReady(alicePage);
+  await waitForCollaborationReady(bobPage);
   await bobEditor.click();
   await bobPage.keyboard.insertText("presence");
   await bobPage.keyboard.down("Shift");
   await bobPage.keyboard.press("ArrowLeft");
   await bobPage.keyboard.up("Shift");
 
-  const aliceEditor = richMarkdownEditor(alicePage);
+  const aliceEditor = markdownSurface(alicePage);
   const bobCursor = aliceEditor.locator(".collaboration-carets__caret", { hasText: "Bob" }).first();
   const bobSelection = aliceEditor.locator(".ProseMirror-yjs-selection").first();
   const bobCursorLabel = bobCursor.locator(".collaboration-carets__label");

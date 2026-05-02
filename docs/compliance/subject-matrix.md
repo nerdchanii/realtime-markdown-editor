@@ -54,6 +54,9 @@ integrity, UX coherence, runtime operability gate 위에서 성립해야 한다.
 
 ## 통합 product flow 증거
 
+CE e2e policy는 `docs/compliance/ce-acceptance-testing.md`에 둔다. CE specs는 사용자 행동 결과를
+검증하고, toolbar/control 배치 같은 제품 UI smoke는 별도 product e2e로 분리한다.
+
 `e2e/task-045-reviewer-flow.spec.ts`는 product workspace navigation에서 reviewer document를 열고,
 properties/backlinks, TipTap rich editor, checkpoint snapshot, Markdown export를 한 product path에서
 확인한다. 이 통합 spec은 CE-01부터 CE-05의 개별 acceptance를 대체하지 않고, product surface가 CE
