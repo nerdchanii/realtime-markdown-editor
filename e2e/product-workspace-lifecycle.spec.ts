@@ -76,6 +76,22 @@ test("Product: explorer moves documents and folders with drag and drop", async (
   await expect(page.getByRole("region", { name: "Trash" })).toContainText(title);
 });
 
+test("Product: explorer renames documents with double click", async ({ page }) => {
+  const documentId = uniqueReviewDocumentId("workspace-rename");
+  const title = titleFromDocumentId(documentId);
+  const renamedTitle = `Renamed document ${Date.now()}`;
+
+  await openReviewerSession(page, { member: "alice", documentId });
+  await expect(page.getByTestId("document-title")).toHaveValue(title);
+
+  await page.getByTestId(`workspace-document-${documentId}`).dblclick();
+  await page.getByLabel(`Rename ${title}`).fill(renamedTitle);
+  await page.getByLabel(`Rename ${title}`).press("Enter");
+
+  await expect(page.getByTestId("document-title")).toHaveValue(renamedTitle);
+  await expect(page.getByTestId(`workspace-document-${documentId}`)).toHaveText(renamedTitle);
+});
+
 test("Product: owner can archive the active project from settings", async ({ page }) => {
   const documentId = uniqueReviewDocumentId("project-archive");
   const title = titleFromDocumentId(documentId);

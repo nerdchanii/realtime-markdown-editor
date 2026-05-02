@@ -7,6 +7,7 @@ import type {
   WorkspaceFolderCreateRequest,
   WorkspaceFolderMoveRequest,
   WorkspaceFolderRenameRequest,
+  WorkspaceDocumentRenameRequest,
   WorkspaceNavigationNode,
   WorkspaceNavigationSelection,
 } from "@/features/workspace";
@@ -22,6 +23,7 @@ export function createWorkspaceNavigation(
   onListArchivedDocuments: () => Promise<readonly WorkspaceArchivedDocument[]>,
   onRestoreDocument: (documentId: string) => void,
   onDeleteFolder: (folderId: string) => void,
+  onRenameDocument: (request: WorkspaceDocumentRenameRequest) => void,
   onRenameFolder: (request: WorkspaceFolderRenameRequest) => void,
   onMoveFolder: (request: WorkspaceFolderMoveRequest) => void,
   onMoveDocument: (request: WorkspaceDocumentMoveRequest) => void,
@@ -44,7 +46,7 @@ export function createWorkspaceNavigation(
     defaultFolderId: navigation.projects[0]?.rootFolderId ?? navigation.workspace.rootFolderId,
     ...{ onSelectDocument, onCreateDocument, onCreateFolder },
     ...{ onListArchivedDocuments, onRestoreDocument },
-    ...{ onDeleteDocument, onDeleteFolder, onRenameFolder },
+    ...{ onDeleteDocument, onDeleteFolder, onRenameDocument, onRenameFolder },
     ...{ onMoveFolder, onMoveDocument },
   };
 }

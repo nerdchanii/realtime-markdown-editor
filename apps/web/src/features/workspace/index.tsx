@@ -18,6 +18,7 @@ import type {
   WorkspaceNavigationNode,
   WorkspaceNavigationSelection,
   WorkspaceNavigationViewModel,
+  WorkspaceDocumentRenameRequest,
 } from "./types";
 import { useWorkspaceSelection } from "./useWorkspaceSelection";
 
@@ -29,6 +30,7 @@ export type {
   WorkspaceArchivedDocument,
   WorkspaceDocumentCreateRequest,
   WorkspaceDocumentMoveRequest,
+  WorkspaceDocumentRenameRequest,
   WorkspaceFolderCreateRequest,
   WorkspaceFolderMoveRequest,
   WorkspaceFolderMoveTarget,
@@ -168,6 +170,7 @@ export function WorkspaceNavigationSlot({ viewModel }: WorkspaceNavigationSlotPr
                   onSelectDocument={handleSelectDocument}
                   onDeleteDocument={(documentId) => model.onDeleteDocument?.(documentId)}
                   onDeleteFolder={(folderId) => model.onDeleteFolder?.(folderId)}
+                  onRenameDocument={(request) => model.onRenameDocument?.(request)}
                   onRenameFolder={(request) => model.onRenameFolder?.(request)}
                   onMoveFolder={(request) => model.onMoveFolder?.(request)}
                   onMoveDocument={(request) => model.onMoveDocument?.(request)}
@@ -184,6 +187,7 @@ export function WorkspaceNavigationSlot({ viewModel }: WorkspaceNavigationSlotPr
                   onSelectDocument={handleSelectDocument}
                   onDeleteDocument={(documentId) => model.onDeleteDocument?.(documentId)}
                   onDeleteFolder={(folderId) => model.onDeleteFolder?.(folderId)}
+                  onRenameDocument={(request) => model.onRenameDocument?.(request)}
                   onRenameFolder={(request) => model.onRenameFolder?.(request)}
                   onMoveFolder={(request) => model.onMoveFolder?.(request)}
                   onMoveDocument={(request) => model.onMoveDocument?.(request)}
@@ -231,6 +235,7 @@ function WorkspaceRoot({
   onDeleteDocument,
   onDeleteFolder,
   onRenameFolder,
+  onRenameDocument,
   onMoveFolder,
   onMoveDocument,
   moveTargets,
@@ -245,6 +250,7 @@ function WorkspaceRoot({
   onSelectDocument: (selection: WorkspaceNavigationSelection) => void;
   onDeleteDocument: (documentId: string) => void;
   onDeleteFolder: (folderId: string) => void;
+  onRenameDocument: (request: WorkspaceDocumentRenameRequest) => void;
   onRenameFolder: (request: WorkspaceFolderRenameRequest) => void;
   onMoveFolder: (request: WorkspaceFolderMoveRequest) => void;
   onMoveDocument: (request: WorkspaceDocumentMoveRequest) => void;
@@ -265,6 +271,7 @@ function WorkspaceRoot({
         onSelectDocument={onSelectDocument}
         onDeleteDocument={onDeleteDocument}
         onDeleteFolder={onDeleteFolder}
+        onRenameDocument={onRenameDocument}
         onRenameFolder={onRenameFolder}
         onMoveFolder={onMoveFolder}
         onMoveDocument={onMoveDocument}
@@ -286,6 +293,7 @@ function ProjectList({
   onDeleteDocument,
   onDeleteFolder,
   onRenameFolder,
+  onRenameDocument,
   onMoveFolder,
   onMoveDocument,
   moveTargets,
@@ -300,6 +308,7 @@ function ProjectList({
   onSelectDocument: (selection: WorkspaceNavigationSelection) => void;
   onDeleteDocument: (documentId: string) => void;
   onDeleteFolder: (folderId: string) => void;
+  onRenameDocument: (request: WorkspaceDocumentRenameRequest) => void;
   onRenameFolder: (request: WorkspaceFolderRenameRequest) => void;
   onMoveFolder: (request: WorkspaceFolderMoveRequest) => void;
   onMoveDocument: (request: WorkspaceDocumentMoveRequest) => void;
@@ -321,6 +330,7 @@ function ProjectList({
           onSelectDocument={onSelectDocument}
           onDeleteDocument={onDeleteDocument}
           onDeleteFolder={onDeleteFolder}
+          onRenameDocument={onRenameDocument}
           onRenameFolder={onRenameFolder}
           onMoveFolder={onMoveFolder}
           onMoveDocument={onMoveDocument}

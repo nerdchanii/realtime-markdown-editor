@@ -4,6 +4,7 @@ import { panelStyles } from "./styles";
 import type {
   NormalizedWorkspaceNavigationViewModel,
   WorkspaceDocumentMoveRequest,
+  WorkspaceDocumentRenameRequest,
   WorkspaceFolderMoveRequest,
   WorkspaceFolderMoveTarget,
   WorkspaceFolderRenameRequest,
@@ -20,6 +21,7 @@ export function WorkspaceProjectSection({
   onSelectDocument,
   onDeleteDocument,
   onDeleteFolder,
+  onRenameDocument,
   onRenameFolder,
   onMoveFolder,
   onMoveDocument,
@@ -36,6 +38,7 @@ export function WorkspaceProjectSection({
   onSelectDocument: (selection: WorkspaceNavigationSelection) => void;
   onDeleteDocument: (documentId: string) => void;
   onDeleteFolder: (folderId: string) => void;
+  onRenameDocument: (request: WorkspaceDocumentRenameRequest) => void;
   onRenameFolder: (request: WorkspaceFolderRenameRequest) => void;
   onMoveFolder: (request: WorkspaceFolderMoveRequest) => void;
   onMoveDocument: (request: WorkspaceDocumentMoveRequest) => void;
@@ -62,6 +65,7 @@ export function WorkspaceProjectSection({
           onSelectDocument={onSelectDocument}
           onDeleteDocument={onDeleteDocument}
           onDeleteFolder={onDeleteFolder}
+          onRenameDocument={onRenameDocument}
           onRenameFolder={onRenameFolder}
           onMoveFolder={onMoveFolder}
           onMoveDocument={onMoveDocument}

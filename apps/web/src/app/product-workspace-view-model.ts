@@ -12,6 +12,7 @@ import { createTiptapYjsCollaborationAdapter } from "@/features/editor";
 import type {
   WorkspaceDocumentCreateRequest,
   WorkspaceDocumentMoveRequest,
+  WorkspaceDocumentRenameRequest,
   WorkspaceArchivedDocument,
   WorkspaceFolderCreateRequest,
   WorkspaceFolderMoveRequest,
@@ -32,6 +33,7 @@ export function createProductProviders(
   onListArchivedDocuments: () => Promise<readonly WorkspaceArchivedDocument[]>,
   onRestoreDocument: (documentId: string) => void,
   onDeleteFolder: (folderId: string) => void,
+  onRenameDocument: (request: WorkspaceDocumentRenameRequest) => void,
   onRenameFolder: (request: WorkspaceFolderRenameRequest) => void,
   onMoveFolder: (request: WorkspaceFolderMoveRequest) => void,
   onMoveDocument: (request: WorkspaceDocumentMoveRequest) => void,
@@ -49,6 +51,7 @@ export function createProductProviders(
       onListArchivedDocuments,
       onRestoreDocument,
       onDeleteFolder,
+      onRenameDocument,
       onRenameFolder,
       onMoveFolder,
       onMoveDocument,

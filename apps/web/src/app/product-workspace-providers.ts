@@ -5,6 +5,7 @@ import type { DocumentId, FolderId, ProjectId, WorkspaceId } from "@rme/contract
 import type {
   WorkspaceDocumentCreateRequest,
   WorkspaceDocumentMoveRequest,
+  WorkspaceDocumentRenameRequest,
   WorkspaceArchivedDocument,
   WorkspaceFolderCreateRequest,
   WorkspaceFolderMoveRequest,
@@ -21,6 +22,7 @@ import {
   moveDocument,
   moveFolder,
   restoreDocument,
+  updateDocument,
   updateFolder,
   type ApiClient,
 } from "@/lib/api-client";
@@ -44,6 +46,7 @@ type LoadedProductWorkspaceInput = {
   ) => Promise<readonly WorkspaceArchivedDocument[]>;
   moveProductDocument: (request: WorkspaceDocumentMoveRequest) => void;
   moveProductFolder: (request: WorkspaceFolderMoveRequest) => void;
+  renameProductDocument: (request: WorkspaceDocumentRenameRequest) => void;
   renameProductFolder: (request: WorkspaceFolderRenameRequest) => void;
   restoreProductDocument: (documentId: string) => void;
   reloadToken: number;
@@ -97,6 +100,7 @@ function useWorkspaceMutations(
   const listArchivedProductDocuments = useProductArchivedDocumentLister(apiClient);
   const moveProductDocument = useProductDocumentMover(apiClient, reload, setSelectedDocumentId);
   const moveProductFolder = useProductFolderMover(apiClient, reload, setSelectedDocumentId);
+  const renameProductDocument = useProductDocumentRenamer(apiClient, reload);
   const renameProductFolder = useProductFolderRenamer(apiClient, reload);
   const restoreProductDocument = useProductDocumentRestorer(
     apiClient,
@@ -113,6 +117,7 @@ function useWorkspaceMutations(
       listArchivedProductDocuments,
       moveProductDocument,
       moveProductFolder,
+      renameProductDocument,
       renameProductFolder,
       restoreProductDocument,
     }),
@@ -124,6 +129,7 @@ function useWorkspaceMutations(
       listArchivedProductDocuments,
       moveProductDocument,
       moveProductFolder,
+      renameProductDocument,
       renameProductFolder,
       restoreProductDocument,
     ],
@@ -244,6 +250,18 @@ function useProductFolderRenamer(apiClient: ApiClient, reload: () => void) {
   );
 }
 
+function useProductDocumentRenamer(apiClient: ApiClient, reload: () => void) {
+  return useCallback(
+    (request: WorkspaceDocumentRenameRequest) => {
+      const title = request.title.trim();
+      if (!title) return;
+
+      void updateDocument(apiClient, request.documentId as DocumentId, { title }).then(reload);
+    },
+    [apiClient, reload],
+  );
+}
+
 function useProductDocumentMover(
   apiClient: ApiClient,
   reload: () => void,
@@ -359,6 +377,7 @@ function createLoadedState(
       () => input.listArchivedProductDocuments(model.navigation.workspace.id),
       input.restoreProductDocument,
       input.deleteProductFolder,
+      input.renameProductDocument,
       input.renameProductFolder,
       input.moveProductFolder,
       input.moveProductDocument,

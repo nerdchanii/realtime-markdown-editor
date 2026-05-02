@@ -1,4 +1,4 @@
-import type { DragEvent, KeyboardEvent, RefObject } from "react";
+import type { DragEvent, RefObject } from "react";
 import { useEffect, useRef, useState } from "react";
 
 import { DeleteNodeButton } from "./DeleteNodeButton";
@@ -17,10 +17,12 @@ import {
   folderSelectStyle,
   folderToggleStyle,
 } from "./node-view-styles";
+import { handleRenameKeyDown, isDuplicateSiblingName } from "./rename-utils";
 import { panelStyles } from "./styles";
 import { createWorkspaceDocumentSelection, isFolderNode } from "./tree-utils";
 import type {
   WorkspaceDocumentMoveRequest,
+  WorkspaceDocumentRenameRequest,
   WorkspaceFolderMoveRequest,
   WorkspaceFolderMoveTarget,
   WorkspaceFolderRenameRequest,
@@ -40,6 +42,7 @@ type WorkspaceNodeViewProps = Readonly<{
   onSelectDocument: (selection: WorkspaceNavigationSelection) => void;
   onDeleteDocument: (documentId: string) => void;
   onDeleteFolder: (folderId: string) => void;
+  onRenameDocument: (request: WorkspaceDocumentRenameRequest) => void;
   onRenameFolder: (request: WorkspaceFolderRenameRequest) => void;
   onMoveFolder: (request: WorkspaceFolderMoveRequest) => void;
   onMoveDocument: (request: WorkspaceDocumentMoveRequest) => void;
@@ -287,16 +290,38 @@ function DocumentNodeView({
   projectId = null,
   onSelectDocument,
   onDeleteDocument,
+  onRenameDocument,
   onDragStart,
   onDragEnd,
+  siblingNames,
 }: WorkspaceNodeViewProps) {
+  const [isRenaming, setIsRenaming] = useState(false);
+  const [draftTitle, setDraftTitle] = useState(node.name);
+  const inputRef = useRef<HTMLInputElement | null>(null);
   const isSelected = node.id === selectedDocumentId;
   const selection = createWorkspaceDocumentSelection(node, workspaceId, projectId, path);
+  const finishRenaming = () => {
+    const nextTitle = draftTitle.trim();
+    if (!nextTitle || isDuplicateSiblingName(nextTitle, node.name, siblingNames)) {
+      setDraftTitle(node.name);
+      setIsRenaming(false);
+      return;
+    }
+
+    setIsRenaming(false);
+    if (nextTitle !== node.name) onRenameDocument({ documentId: node.id, title: nextTitle });
+  };
+
+  useEffect(() => {
+    if (!isRenaming) return;
+    inputRef.current?.focus();
+    inputRef.current?.select();
+  }, [isRenaming]);
 
   return (
     <li data-node-kind={node.kind} data-node-id={node.id}>
       <div
-        draggable
+        draggable={!isRenaming}
         data-testid={`workspace-document-row-${node.id}`}
         onDragEnd={onDragEnd}
         onDragStart={(event) => {
@@ -313,26 +338,50 @@ function DocumentNodeView({
         }}
         style={documentRowStyle(isSelected)}
       >
-        <button
-          type="button"
-          style={documentButtonStyle(isSelected)}
-          aria-current={isSelected ? "page" : undefined}
-          data-testid={`workspace-document-${node.id}`}
-          onClick={() => onSelectDocument(selection)}
-        >
-          <span style={panelStyles.nodeContent}>
-            <span style={panelStyles.nodeLabel}>
-              <FileText
-                size={16}
-                color={isSelected ? "var(--color-accent)" : "currentColor"}
-                style={{ flexShrink: 0 }}
-              />
-              <span style={{ ...panelStyles.nodeTitle, fontWeight: isSelected ? 500 : 400 }}>
-                {node.name}
+        {isRenaming ? (
+          <span style={folderRenameWrapStyle}>
+            <FileText size={16} color={isSelected ? "var(--color-accent)" : "currentColor"} />
+            <input
+              ref={inputRef}
+              aria-label={`Rename ${node.name}`}
+              value={draftTitle}
+              onBlur={finishRenaming}
+              onChange={(event) => setDraftTitle(event.target.value)}
+              onKeyDown={(event) =>
+                handleRenameKeyDown(event, finishRenaming, () => {
+                  setDraftTitle(node.name);
+                  setIsRenaming(false);
+                })
+              }
+              style={folderRenameInputStyle}
+            />
+          </span>
+        ) : (
+          <button
+            type="button"
+            style={documentButtonStyle(isSelected)}
+            aria-current={isSelected ? "page" : undefined}
+            data-testid={`workspace-document-${node.id}`}
+            onClick={() => onSelectDocument(selection)}
+            onDoubleClick={() => {
+              setDraftTitle(node.name);
+              setIsRenaming(true);
+            }}
+          >
+            <span style={panelStyles.nodeContent}>
+              <span style={panelStyles.nodeLabel}>
+                <FileText
+                  size={16}
+                  color={isSelected ? "var(--color-accent)" : "currentColor"}
+                  style={{ flexShrink: 0 }}
+                />
+                <span style={{ ...panelStyles.nodeTitle, fontWeight: isSelected ? 500 : 400 }}>
+                  {node.name}
+                </span>
               </span>
             </span>
-          </span>
-        </button>
+          </button>
+        )}
         <DeleteNodeButton
           label={`Delete ${node.name}`}
           message={`Delete document "${node.name}"?`}
@@ -341,31 +390,4 @@ function DocumentNodeView({
       </div>
     </li>
   );
-}
-
-function handleRenameKeyDown(
-  event: KeyboardEvent<HTMLInputElement>,
-  onFinish: () => void,
-  onCancel: () => void,
-) {
-  if (event.key === "Enter") {
-    event.preventDefault();
-    onFinish();
-  }
-  if (event.key === "Escape") {
-    event.preventDefault();
-    onCancel();
-  }
-}
-
-function isDuplicateSiblingName(
-  nextName: string,
-  currentName: string,
-  siblingNames: readonly string[] = [],
-) {
-  const normalizedNextName = nextName.trim().toLowerCase();
-  const normalizedCurrentName = currentName.trim().toLowerCase();
-  if (normalizedNextName === normalizedCurrentName) return false;
-
-  return siblingNames.some((name) => name.trim().toLowerCase() === normalizedNextName);
 }

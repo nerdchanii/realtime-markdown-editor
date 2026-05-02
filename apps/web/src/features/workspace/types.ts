@@ -55,6 +55,11 @@ export type WorkspaceFolderRenameRequest = Readonly<{
   name: string;
 }>;
 
+export type WorkspaceDocumentRenameRequest = Readonly<{
+  documentId: string;
+  title: string;
+}>;
+
 export type WorkspaceFolderMoveRequest = Readonly<{
   folderId: string;
   targetParentFolderId: string;
@@ -93,6 +98,7 @@ export type WorkspaceNavigationViewModel = Readonly<{
   onListArchivedDocuments?: () => Promise<readonly WorkspaceArchivedDocument[]>;
   onRestoreDocument?: (documentId: string) => void;
   onDeleteFolder?: (folderId: string) => void;
+  onRenameDocument?: (request: WorkspaceDocumentRenameRequest) => void;
   onRenameFolder?: (request: WorkspaceFolderRenameRequest) => void;
   onMoveFolder?: (request: WorkspaceFolderMoveRequest) => void;
   onMoveDocument?: (request: WorkspaceDocumentMoveRequest) => void;
@@ -108,6 +114,7 @@ export type NormalizedWorkspaceNavigationViewModel = Required<
     | "onListArchivedDocuments"
     | "onRestoreDocument"
     | "onDeleteFolder"
+    | "onRenameDocument"
     | "onRenameFolder"
     | "onMoveFolder"
     | "onMoveDocument"
@@ -122,6 +129,7 @@ export type NormalizedWorkspaceNavigationViewModel = Required<
     | "onListArchivedDocuments"
     | "onRestoreDocument"
     | "onDeleteFolder"
+    | "onRenameDocument"
     | "onRenameFolder"
     | "onMoveFolder"
     | "onMoveDocument"
