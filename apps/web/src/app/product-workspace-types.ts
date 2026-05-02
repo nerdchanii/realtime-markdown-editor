@@ -3,7 +3,9 @@ import type {
   CollaborationSessionDto,
   DocumentId,
   DocumentDetailDto,
+  ProjectId,
   SessionDto,
+  WorkspaceId,
   WorkspaceNavigationResponseDto,
 } from "@rme/contracts";
 
@@ -68,10 +70,12 @@ export type ProductWorkspaceModel = Readonly<{
 }>;
 
 export type ProductAccountSurface = Readonly<{
+  workspaceId: WorkspaceId;
   userName: string;
   userEmail: string;
   currentMemberDisplayName: string;
   currentMemberColor: string;
   workspaceName: string;
+  projectId: ProjectId | null;
   projectName: string;
 }>;

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import type { DocumentId, FolderId, WorkspaceId } from "@rme/contracts";
+import type { DocumentId, FolderId, ProjectId, WorkspaceId } from "@rme/contracts";
 
 import type {
   WorkspaceDocumentCreateRequest,
@@ -312,11 +312,13 @@ function createAccountSurface(
   const project = model.navigation.projects.find((candidate) => candidate.id === folder?.projectId);
 
   return {
+    workspaceId: model.navigation.workspace.id,
     userName: model.session?.user.name ?? "Signed in user",
     userEmail: model.session?.user.email ?? "",
     currentMemberDisplayName: currentMember?.displayName ?? model.session?.user.name ?? "Member",
     currentMemberColor: currentMember?.color ?? "#8a99ad",
     workspaceName: model.navigation.workspace.name,
+    projectId: (project?.id ?? null) as ProjectId | null,
     projectName: project?.name ?? model.navigation.projects[0]?.name ?? "Workspace root",
   };
 }

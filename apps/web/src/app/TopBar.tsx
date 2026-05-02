@@ -14,8 +14,7 @@ import {
 import type { ApiClient } from "@/lib/api-client";
 import { deleteAuthSession } from "@/lib/api-client";
 import type { ProductAccountSurface } from "./product-workspace-types";
-
-type SettingsScope = "user" | "workspace" | "project";
+import { SettingsPanel, type SettingsScope } from "./TopBarSettingsPanels";
 
 export function TopBar({
   accountSurface,
@@ -72,6 +71,8 @@ export function TopBar({
           accountSurface={accountSurface}
           activeScope={settingsScope}
           onScopeChange={setSettingsScope}
+          apiClient={apiClient}
+          reload={reload}
           onClose={() => setIsSettingsOpen(false)}
         />
       ) : null}
@@ -201,11 +202,15 @@ function SettingsDialog({
   accountSurface,
   activeScope,
   onScopeChange,
+  apiClient,
+  reload,
   onClose,
 }: Readonly<{
   accountSurface: ProductAccountSurface | undefined;
   activeScope: SettingsScope;
   onScopeChange: (scope: SettingsScope) => void;
+  apiClient: ApiClient;
+  reload: () => void;
   onClose: () => void;
 }>) {
   return (
@@ -240,7 +245,12 @@ function SettingsDialog({
                 </button>
               ))}
             </div>
-            <SettingsPanel accountSurface={accountSurface} scope={activeScope} />
+            <SettingsPanel
+              accountSurface={accountSurface}
+              apiClient={apiClient}
+              reload={reload}
+              scope={activeScope}
+            />
           </div>
           <footer className="ui-dialog-footer">
             <button className="ui-button ui-button--secondary" onClick={onClose}>
@@ -250,63 +260,6 @@ function SettingsDialog({
         </div>
       </div>
     </>
-  );
-}
-
-function SettingsPanel({
-  accountSurface,
-  scope,
-}: Readonly<{ accountSurface: ProductAccountSurface | undefined; scope: SettingsScope }>) {
-  if (scope === "user") {
-    return (
-      <div className="ui-tabs-content top-bar-settings__panel">
-        <SettingsField label="Name" value={accountSurface?.userName ?? "Signed in user"} />
-        <SettingsField label="Email" value={accountSurface?.userEmail ?? "Not available"} />
-        <SettingsField
-          label="Workspace display name"
-          value={accountSurface?.currentMemberDisplayName ?? "Member"}
-        />
-        <p className="top-bar-settings__notice">
-          Profile editing and account deactivation need the account management API contract before
-          they can be enabled.
-        </p>
-      </div>
-    );
-  }
-
-  if (scope === "workspace") {
-    return (
-      <div className="ui-tabs-content top-bar-settings__panel">
-        <SettingsField label="Workspace" value={accountSurface?.workspaceName ?? "Workspace"} />
-        <SettingsField
-          label="Current member"
-          value={accountSurface?.currentMemberDisplayName ?? "Member"}
-        />
-        <p className="top-bar-settings__notice">
-          Workspace member administration remains disabled until owner-backed membership mutations
-          are available.
-        </p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="ui-tabs-content top-bar-settings__panel">
-      <SettingsField label="Project" value={accountSurface?.projectName ?? "Project"} />
-      <p className="top-bar-settings__notice">
-        Project settings are read-only while the project management API is limited to core workspace
-        navigation.
-      </p>
-    </div>
-  );
-}
-
-function SettingsField({ label, value }: Readonly<{ label: string; value: string }>) {
-  return (
-    <div className="top-bar-settings__field">
-      <span>{label}</span>
-      <strong>{value}</strong>
-    </div>
   );
 }
 

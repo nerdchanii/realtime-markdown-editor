@@ -1,11 +1,13 @@
 import type {
   CollaborationSessionDto,
   CollaborationSessionResponseDto,
+  CreateProjectRequestDto,
   CreateDocumentRequestDto,
   CreateFolderRequestDto,
   CreateCheckpointRequestDto,
   CreateCheckpointResponseDto,
   CreateSessionRequestDto,
+  CreateWorkspaceRequestDto,
   DeletedResourceResponseDto,
   DocumentConnectionsResponseDto,
   DocumentContentResponseDto,
@@ -15,14 +17,19 @@ import type {
   ListArchivedDocumentsResponseDto,
   ListCheckpointsResponseDto,
   ListWorkspacesResponseDto,
+  ProjectId,
+  ProjectResponseDto,
   ReplaceDocumentPropertiesRequestDto,
   SeedReviewContextDto,
   SessionResponseDto,
   UpdateDocumentContentRequestDto,
   UpdateDocumentRequestDto,
   UpdateFolderRequestDto,
+  UpdateProjectRequestDto,
+  UpdateWorkspaceRequestDto,
   WorkspaceId,
   WorkspaceNavigationResponseDto,
+  WorkspaceResponseDto,
 } from "@rme/contracts";
 
 export {
@@ -77,11 +84,54 @@ export async function fetchWorkspaces(client: ApiClient): Promise<ListWorkspaces
   return fetchJson(client, "/workspaces");
 }
 
+export async function createWorkspace(
+  client: ApiClient,
+  request: CreateWorkspaceRequestDto,
+): Promise<WorkspaceResponseDto> {
+  return fetchJson(client, "/workspaces", {
+    method: "POST",
+    body: JSON.stringify(request),
+  });
+}
+
+export async function updateWorkspace(
+  client: ApiClient,
+  workspaceId: WorkspaceId,
+  request: UpdateWorkspaceRequestDto,
+): Promise<WorkspaceResponseDto> {
+  return fetchJson(client, `/workspaces/${encodeURIComponent(workspaceId)}`, {
+    method: "PATCH",
+    body: JSON.stringify(request),
+  });
+}
+
 export async function fetchWorkspaceNavigation(
   client: ApiClient,
   workspaceId: WorkspaceId,
 ): Promise<WorkspaceNavigationResponseDto> {
   return fetchJson(client, `/workspaces/${encodeURIComponent(workspaceId)}/navigation`);
+}
+
+export async function createProject(
+  client: ApiClient,
+  workspaceId: WorkspaceId,
+  request: CreateProjectRequestDto,
+): Promise<ProjectResponseDto> {
+  return fetchJson(client, `/workspaces/${encodeURIComponent(workspaceId)}/projects`, {
+    method: "POST",
+    body: JSON.stringify(request),
+  });
+}
+
+export async function updateProject(
+  client: ApiClient,
+  projectId: ProjectId,
+  request: UpdateProjectRequestDto,
+): Promise<ProjectResponseDto> {
+  return fetchJson(client, `/projects/${encodeURIComponent(projectId)}`, {
+    method: "PATCH",
+    body: JSON.stringify(request),
+  });
 }
 
 export async function fetchDocument(

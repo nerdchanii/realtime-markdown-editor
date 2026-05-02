@@ -2,6 +2,7 @@ import { useState } from "react";
 import { FilePlus2, FolderPlus, RotateCcw, Trash2 } from "lucide-react";
 
 import { workspaceFeatureId } from "./events";
+import { WorkspaceProjectSection } from "./WorkspaceProjectSection";
 import { WorkspaceNodeView } from "./WorkspaceNodeView";
 import { panelStyles } from "./styles";
 import { normalizeViewModel } from "./tree-utils";
@@ -263,8 +264,8 @@ function WorkspaceRoot({
   onRenameFolder,
 }: Readonly<{
   model: ReturnType<typeof normalizeViewModel>;
-  selectedDocumentId?: string | null;
-  selectedFolderId?: string | null;
+  selectedDocumentId: string | null | undefined;
+  selectedFolderId: string | null | undefined;
   onSelectFolder: (folderId: string) => void;
   onSelectDocument: (selection: WorkspaceNavigationSelection) => void;
   onDeleteDocument: (documentId: string) => void;
@@ -311,21 +312,18 @@ function ProjectList({
   return (
     <div style={{ display: "grid", gap: "2px" }}>
       {model.projects.map((project) => (
-        <ul key={project.id} style={panelStyles.tree}>
-          <WorkspaceNodeView
-            node={project.root}
-            path={[model.workspaceName, project.name]}
-            projectId={project.id}
-            selectedDocumentId={selectedDocumentId}
-            selectedFolderId={selectedFolderId}
-            workspaceId={model.workspaceId}
-            onSelectFolder={onSelectFolder}
-            onSelectDocument={onSelectDocument}
-            onDeleteDocument={onDeleteDocument}
-            onDeleteFolder={onDeleteFolder}
-            onRenameFolder={onRenameFolder}
-          />
-        </ul>
+        <WorkspaceProjectSection
+          key={project.id}
+          model={model}
+          project={project}
+          selectedDocumentId={selectedDocumentId}
+          selectedFolderId={selectedFolderId}
+          onSelectFolder={onSelectFolder}
+          onSelectDocument={onSelectDocument}
+          onDeleteDocument={onDeleteDocument}
+          onDeleteFolder={onDeleteFolder}
+          onRenameFolder={onRenameFolder}
+        />
       ))}
     </div>
   );

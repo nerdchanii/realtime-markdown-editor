@@ -11,11 +11,12 @@ derived_from: REQ-WORKSPACE-HIERARCHY
 depends_on:
   - REQ-WORKSPACE-HIERARCHY
 blocks: []
-next_step: 현재 product API의 create/update/delete coverage를 UI flow와 대조하고, workspace/project/folder/document별 누락된 lifecycle action을 task로 나눈다.
+next_step: workspace creation from no-workspace state, workspace delete/archive policy, project delete/archive policy, folder/document move UI, and full lifecycle e2e coverage를 후속 task로 나눈다.
 refs:
   - docs/product/workspace/workspace-hierarchy.md
   - packages/contracts/src/http/routes.ts
   - tasks/archive/TASK-075-workspace-folder-document-product-apis.md
+  - tasks/archive/TASK-098-workspace-project-lifecycle-settings.md
 ---
 
 # REQ-WORKSPACE-LIFECYCLE-MANAGEMENT
@@ -34,3 +35,16 @@ Acceptance:
 - Root folder처럼 삭제하면 안 되는 structural node는 UI와 API 양쪽에서 보호된다.
 - 삭제 또는 archive 같은 destructive action은 사용자가 의도적으로 확인해야 한다.
 - 생성, 수정, 삭제 결과는 creator-only local state가 아니라 product state로 반영된다.
+
+## Current State
+
+`TASK-098` exposes the existing workspace/project product APIs through normal settings flows:
+workspace rename, project creation, and active project rename are available from the profile-menu
+settings dialog. Explorer now shows project group headers so created or renamed projects are visible
+as product state.
+
+Folder create/rename/delete, document create/title edit/archive/trash restore, workspace rename,
+project create, and active project rename have product UI coverage. The requirement remains open
+because workspace creation from the no-workspace state, workspace delete/archive policy, project
+delete/archive policy, folder/document move UI, and consolidated lifecycle acceptance coverage are
+not complete.
