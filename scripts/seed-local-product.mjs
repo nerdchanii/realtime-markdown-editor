@@ -4,67 +4,30 @@ import { createRequire } from "node:module";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import {
+  localProductPassword,
+  localProductPasswordHash,
+  localProductPasswordSalt,
+  localProductSeedSpec,
+} from "./product-seed-spec.mjs";
+
 const scriptPath = fileURLToPath(import.meta.url);
 const repoRoot = resolve(dirname(scriptPath), "..");
-
-const localProductPasswordSalt = "local-review-password-salt";
-const localProductPasswordHash =
-  "3bbff257761674495c3ad315d62259d7d7f1b13901c9c63eac6cb9bf189cc2f49d5254e6f2858b69cf2ac9cae04982f423a3253b239d3c450cb8c72785057e81";
-
-const workspaceFixture = {
-  workspaceId: "workspace_review",
-  workspaceName: "Review Team Workspace",
-  workspaceRootFolderId: "folder_workspace_root",
-  projectId: "project_editor",
-  projectName: "Editor Review",
-  projectRootFolderId: "folder_project_root",
-};
-
 const folders = [
-  [workspaceFixture.workspaceRootFolderId, null, null, "Workspace root", "workspaceRoot"],
-  [
-    workspaceFixture.projectRootFolderId,
-    workspaceFixture.projectId,
+  folder(
+    localProductSeedSpec.workspace.rootFolderId,
+    null,
+    null,
+    "Workspace root",
+    "workspaceRoot",
+  ),
+  folder(
+    localProductSeedSpec.project.rootFolderId,
+    localProductSeedSpec.project.id,
     null,
     "Project root",
     "projectRoot",
-  ],
-].map(folder);
-
-const members = [
-  member("user_alice", "alice@example.test", "member_alice", "Alice", "#0969da", "owner"),
-  member("user_bob", "bob@example.test", "member_bob", "Bob", "#1a7f37", "member"),
-  member("user_carol", "carol@example.test", "member_carol", "Carol", "#8250df", "member"),
-  member("user_dana", "dana@example.test", "member_dana", "Dana", "#bf3989", "member"),
-];
-
-const documents = [
-  documentFixture(
-    "document_review_plan",
-    "Review Plan",
-    "review",
-    "# Review Plan\n\nThis document keeps product properties outside the Markdown body.",
   ),
-  documentFixture(
-    "document_decision_log",
-    "Decision Log",
-    "saved",
-    "# Decision Log\n\nLinks to [Review Plan](./review-plan.md).",
-  ),
-];
-
-const documentProperties = [
-  property("document_review_plan", "Status", "status", { type: "status", value: "In Review" }),
-  property("document_review_plan", "Owner", "member", { type: "member", value: "member_alice" }),
-];
-
-const linkEdges = [
-  {
-    sourceDocumentId: "document_decision_log",
-    targetDocumentId: "document_review_plan",
-    markdownHref: "./review-plan.md",
-    preview: "Decision Log references the current review plan.",
-  },
 ];
 
 loadLocalEnv();
@@ -75,20 +38,22 @@ const { PrismaClient } = apiRequire("@prisma/client");
 const prisma = new PrismaClient();
 
 try {
-  await seedReviewerProductFixture();
+  await seedLocalProductData();
   console.log(
-    `Seeded local product accounts ${members.map((item) => item.email).join(", ")} with password 'password'.`,
+    `Seeded local product workspace "${localProductSeedSpec.workspace.name}" for ${localProductSeedSpec.members
+      .map((item) => item.email)
+      .join(", ")} with password '${localProductPassword}'.`,
   );
 } finally {
   await prisma.$disconnect();
 }
 
-async function seedReviewerProductFixture() {
+async function seedLocalProductData() {
   await seedWorkspaceScaffold();
-  await seedEach(members, seedMember);
-  await seedEach(documents, seedDocument);
-  await seedEach(documentProperties, seedDocumentProperty);
-  await seedEach(linkEdges, seedLinkEdge);
+  await seedEach(localProductSeedSpec.members, seedMember);
+  await seedEach(localProductSeedSpec.documents, seedDocument);
+  await seedEach(localProductSeedSpec.documentProperties, seedDocumentProperty);
+  await seedEach(localProductSeedSpec.linkEdges, seedLinkEdge);
 }
 
 async function seedWorkspaceScaffold() {
@@ -96,34 +61,37 @@ async function seedWorkspaceScaffold() {
   await upsertFolder(folders[0]);
   await attachRootFolder(
     "workspace",
-    workspaceFixture.workspaceId,
-    workspaceFixture.workspaceRootFolderId,
+    localProductSeedSpec.workspace.id,
+    localProductSeedSpec.workspace.rootFolderId,
   );
   await upsertProject();
   await upsertFolder(folders[1]);
   await attachRootFolder(
     "project",
-    workspaceFixture.projectId,
-    workspaceFixture.projectRootFolderId,
+    localProductSeedSpec.project.id,
+    localProductSeedSpec.project.rootFolderId,
   );
 }
 
 async function upsertWorkspace() {
   await prisma.workspace.upsert({
-    where: { id: workspaceFixture.workspaceId },
-    update: { name: workspaceFixture.workspaceName },
-    create: { id: workspaceFixture.workspaceId, name: workspaceFixture.workspaceName },
+    where: { id: localProductSeedSpec.workspace.id },
+    update: { name: localProductSeedSpec.workspace.name },
+    create: {
+      id: localProductSeedSpec.workspace.id,
+      name: localProductSeedSpec.workspace.name,
+    },
   });
 }
 
 async function upsertProject() {
   await prisma.project.upsert({
-    where: { id: workspaceFixture.projectId },
-    update: { name: workspaceFixture.projectName },
+    where: { id: localProductSeedSpec.project.id },
+    update: { name: localProductSeedSpec.project.name },
     create: {
-      id: workspaceFixture.projectId,
-      workspaceId: workspaceFixture.workspaceId,
-      name: workspaceFixture.projectName,
+      id: localProductSeedSpec.project.id,
+      workspaceId: localProductSeedSpec.workspace.id,
+      name: localProductSeedSpec.project.name,
     },
   });
 }
@@ -135,11 +103,11 @@ async function attachRootFolder(model, id, rootFolderId) {
   });
 }
 
-async function upsertFolder(folder) {
+async function upsertFolder(folderData) {
   await prisma.folder.upsert({
-    where: { id: folder.id },
-    update: { name: folder.name, deletedAt: null },
-    create: folder,
+    where: { id: folderData.id },
+    update: { name: folderData.name, deletedAt: null },
+    create: folderData,
   });
 }
 
@@ -193,20 +161,15 @@ async function seedEach(items, seedItem) {
   }
 }
 
-function folder([id, projectId, parentFolderId, name, kind]) {
-  return { id, workspaceId: workspaceFixture.workspaceId, projectId, parentFolderId, name, kind };
-}
-
-function member(userId, email, membershipId, displayName, color, role) {
-  return { userId, email, membershipId, displayName, color, role };
-}
-
-function documentFixture(id, title, state, markdownBody) {
-  return { id, title, state, markdownBody };
-}
-
-function property(documentId, key, type, value) {
-  return { documentId, key, type, value };
+function folder(id, projectId, parentFolderId, name, kind) {
+  return {
+    id,
+    workspaceId: localProductSeedSpec.workspace.id,
+    projectId,
+    parentFolderId,
+    name,
+    kind,
+  };
 }
 
 function userUpsertData(workspaceMember) {
@@ -220,7 +183,7 @@ function userUpsertData(workspaceMember) {
 function membershipUpsertData(workspaceMember, userId) {
   return {
     userId,
-    workspaceId: workspaceFixture.workspaceId,
+    workspaceId: localProductSeedSpec.workspace.id,
     displayName: workspaceMember.displayName,
     color: workspaceMember.color,
     role: workspaceMember.role,
@@ -229,13 +192,17 @@ function membershipUpsertData(workspaceMember, userId) {
 
 function documentUpsertData(seededDocument) {
   return {
-    folderId: workspaceFixture.projectRootFolderId,
+    folderId: localProductSeedSpec.project.rootFolderId,
     title: seededDocument.title,
     state: seededDocument.state,
     archivedAt: null,
-    markdownBody: seededDocument.markdownBody,
+    markdownBody: readSeedMarkdown(seededDocument),
     contentSource: "manualImport",
   };
+}
+
+function readSeedMarkdown(seededDocument) {
+  return readFileSync(join(repoRoot, seededDocument.sourcePath), "utf8");
 }
 
 function pickDocumentPropertyKey(documentProperty) {
@@ -283,5 +250,19 @@ function stripEnvQuotes(value) {
 function assertLocalSeedTarget() {
   if (process.env.NODE_ENV === "production") {
     throw new Error("Refusing to seed local product data with NODE_ENV=production.");
+  }
+  const databaseUrl = process.env.DATABASE_URL;
+  if (!databaseUrl) return;
+  const host = databaseHost(databaseUrl);
+  if (host && !["127.0.0.1", "localhost"].includes(host)) {
+    throw new Error("Refusing to seed local product data against a non-local database host.");
+  }
+}
+
+function databaseHost(databaseUrl) {
+  try {
+    return new URL(databaseUrl).hostname;
+  } catch {
+    return null;
   }
 }

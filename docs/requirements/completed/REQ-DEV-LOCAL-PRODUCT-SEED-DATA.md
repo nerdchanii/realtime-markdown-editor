@@ -1,11 +1,11 @@
 ---
 id: REQ-DEV-LOCAL-PRODUCT-SEED-DATA
 title: Local development can bootstrap realistic product seed data into the real database.
-status: planned
+status: done
 category: product-extension
 type: ops
 priority: medium-high
-taskability: taskable
+taskability: done
 scope: platform
 derived_from:
   - REQ-WORKSPACE-HIERARCHY
@@ -16,13 +16,15 @@ depends_on:
   - REQ-IDENTITY-MEMBERSHIP
   - REQ-PLATFORM-PORTABILITY-GUARDRAIL
 blocks: []
-next_step: 공용 seed spec과 CLI script를 추가하고 e2e fixture가 같은 seed source를 재사용하도록 정리한다.
 refs:
   - docs/product/workspace/workspace-hierarchy.md
   - docs/product/workspace/user-membership.md
   - docs/product/README.md
   - e2e/support/product-fixtures.ts
   - scripts/db-bootstrap.mjs
+  - scripts/product-seed-spec.mjs
+  - scripts/seed-local-product.mjs
+  - tasks/archive/TASK-103-local-product-seed-spec.md
 ---
 
 # REQ-DEV-LOCAL-PRODUCT-SEED-DATA
@@ -68,3 +70,14 @@ Non-goals:
 - This requirement does not implement production account management or workspace administration.
 - This requirement does not require seeding checkpoint history or live Yjs state by default.
 - This requirement does not require importing every file under `docs/`.
+
+## Current State
+
+`TASK-103` adds the canonical local product seed spec and shares it between `pnpm db:seed:dev` and
+the e2e product fixture. The default workspace is `Atlas Knowledge Workspace`, the default project
+is `Product Architecture`, and seeded documents load curated repository Markdown from architecture,
+product, domain, and ADR docs. Stable IDs remain in place for local runtime and collaboration test
+compatibility.
+
+The seed command is idempotent, does not seed sessions, refuses production mode and non-local
+database hosts, and uses normal product auth for seeded users.
