@@ -131,17 +131,21 @@ function useWorkspaceMutations(
 }
 
 function useLoadedProductWorkspace(input: LoadedProductWorkspaceInput) {
+  const { reload } = input;
   const [state, setState] = useState<ProductWorkspaceState>({
     status: "loading",
     apiClient: input.apiClient,
-    reload: input.reload,
+    reload,
   });
 
   useEffect(() => {
     if (state.status !== "ready") return undefined;
-    const intervalId = window.setInterval(input.reload, productWorkspacePollIntervalMs);
+    const intervalId = window.setInterval(() => {
+      if (isRichEditorFocused()) return;
+      reload();
+    }, productWorkspacePollIntervalMs);
     return () => window.clearInterval(intervalId);
-  }, [input.reload, state.status]);
+  }, [reload, state.status]);
 
   useEffect(() => {
     const abortController = new AbortController();
@@ -166,6 +170,13 @@ function useLoadedProductWorkspace(input: LoadedProductWorkspaceInput) {
 }
 
 const productWorkspacePollIntervalMs = 2500;
+
+function isRichEditorFocused() {
+  if (typeof HTMLElement === "undefined") return false;
+  const activeElement = globalThis.document?.activeElement;
+  if (!(activeElement instanceof HTMLElement)) return false;
+  return activeElement.closest('[data-testid="rich-markdown-editor"]') !== null;
+}
 
 function createFailedState(
   error: unknown,

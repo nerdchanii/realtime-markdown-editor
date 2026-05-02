@@ -21,7 +21,12 @@ export function useRuntimeSyncSnapshot(runtime: RuntimeSyncSource | null): Runti
     if (!runtime) return undefined;
 
     const provider = runtime.provider;
-    const updateSyncSnapshot = () => setSyncSnapshot(createRuntimeSyncSnapshot(runtime));
+    const updateSyncSnapshot = () => {
+      const nextSnapshot = createRuntimeSyncSnapshot(runtime);
+      setSyncSnapshot((currentSnapshot) =>
+        isSameRuntimeSyncSnapshot(currentSnapshot, nextSnapshot) ? currentSnapshot : nextSnapshot,
+      );
+    };
     const handleOnline = () => {
       updateSyncSnapshot();
       void provider.connect();
@@ -156,4 +161,13 @@ function unsubscribeFromProvider(provider: HocuspocusProvider, listener: () => v
 function readBrowserOnline() {
   if (typeof navigator === "undefined") return true;
   return navigator.onLine;
+}
+
+function isSameRuntimeSyncSnapshot(left: RuntimeSyncSnapshot, right: RuntimeSyncSnapshot): boolean {
+  return (
+    left.browserOnline === right.browserOnline &&
+    left.providerStatus === right.providerStatus &&
+    left.providerSynced === right.providerSynced &&
+    left.pendingLocalEdits === right.pendingLocalEdits
+  );
 }

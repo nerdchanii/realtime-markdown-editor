@@ -28,13 +28,17 @@ test("CE-02: remote cursor and selection show workspace member identity", async 
   await bobPage.keyboard.up("Shift");
 
   const aliceEditor = markdownSurface(alicePage);
-  const bobCursor = aliceEditor.locator(".collaboration-carets__caret", { hasText: "Bob" }).first();
+  const bobCursor = aliceEditor
+    .locator(
+      '.collaboration-carets__caret:has(.collaboration-carets__label[data-member-name="Bob"])',
+    )
+    .first();
   const bobSelection = aliceEditor.locator(".ProseMirror-yjs-selection").first();
   const bobCursorLabel = bobCursor.locator(".collaboration-carets__label");
 
   await expect(bobCursor).toBeVisible({ timeout: 10_000 });
   await expect(bobSelection).toBeVisible({ timeout: 10_000 });
-  await expect(bobCursorLabel).toHaveText("Bob", { timeout: 10_000 });
+  await expect(bobCursorLabel).toHaveAttribute("data-member-name", "Bob", { timeout: 10_000 });
   await expect(bobCursor).toHaveCSS("border-left-width", "2px");
 
   await alice.close();
