@@ -10,12 +10,12 @@
     "test": "tsx --test \"src/**/*.test.ts\""
   },
   "dependencies": {
-    "@rme/contracts": "workspace:*",
     "@floating-ui/react": "^0.27.19",
     "@hocuspocus/provider": "^3.2.3",
     "@radix-ui/react-dropdown-menu": "^2.1.16",
     "@radix-ui/react-popover": "^1.1.15",
     "@radix-ui/react-select": "^2.2.6",
+    "@rme/contracts": "workspace:*",
     "@tiptap/core": "^3.4.1",
     "@tiptap/extension-collaboration": "^3.4.1",
     "@tiptap/extension-collaboration-caret": "^3.4.1",
@@ -44,8 +44,10 @@
   },
   "devDependencies": {
     "@base-ui/react": "^1.4.1",
+    "@tailwindcss/vite": "4.1.18",
     "@types/lodash.throttle": "^4.1.9",
     "class-variance-authority": "^0.7.1",
-    "sass-embedded": "^1.99.0"
+    "sass-embedded": "^1.99.0",
+    "tailwindcss": "4.1.18"
   }
 }
