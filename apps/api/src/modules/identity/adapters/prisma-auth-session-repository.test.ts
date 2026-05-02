@@ -35,6 +35,29 @@ test("PrismaAuthSessionRepository rejects an invalid password without creating a
   assert.equal(database.createdSessionCount, 0);
 });
 
+test("PrismaAuthSessionRepository creates an account-only session before workspace membership", async () => {
+  const credential = createPasswordCredential("correct-password");
+  const database = new FakeAuthSessionDatabase({
+    id: "user_alice",
+    email: "alice@example.test",
+    name: "Alice",
+    passwordHash: credential.passwordHash,
+    passwordSalt: credential.passwordSalt,
+    memberships: [],
+  });
+  const repository = new PrismaAuthSessionRepository(database as never);
+
+  const session = await repository.createSession({
+    email: "alice@example.test",
+    password: "correct-password",
+    workspaceId: null,
+  });
+
+  assert.equal(session?.context.currentMembership, null);
+  assert.deepEqual(session?.context.memberships, []);
+  assert.equal(database.createdSession?.currentMembershipId, null);
+});
+
 type StoredAuthUser = Readonly<{
   id: string;
   email: string;
@@ -53,6 +76,7 @@ type StoredAuthUser = Readonly<{
 
 class FakeAuthSessionDatabase {
   createdSessionCount = 0;
+  createdSession: { currentMembershipId: string | null } | null = null;
 
   constructor(private readonly storedUser: StoredAuthUser | null) {}
 
@@ -64,8 +88,9 @@ class FakeAuthSessionDatabase {
   };
 
   readonly session = {
-    create: async () => {
+    create: async ({ data }: { data: { currentMembershipId: string | null } }) => {
       this.createdSessionCount += 1;
+      this.createdSession = { currentMembershipId: data.currentMembershipId };
       return {};
     },
   };

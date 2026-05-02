@@ -44,14 +44,17 @@ const { PrismaClient } = apiRequire("@prisma/client") as {
   PrismaClient: new () => PrismaFixtureClient;
 };
 
-export async function createProductSession(page: Page, email: string, workspaceId: string) {
+export async function createProductSession(page: Page, email: string, workspaceId?: string) {
   const endpoint = `${apiBaseUrl()}/auth/session`;
   let lastError: string | null = null;
+  const data = workspaceId
+    ? { email, password: localProductPassword, workspaceId }
+    : { email, password: localProductPassword };
 
   for (let attempt = 0; attempt < 20; attempt += 1) {
     try {
       const response = await page.request.post(endpoint, {
-        data: { email, password: localProductPassword, workspaceId },
+        data,
       });
       if (response.ok()) return;
       lastError = await response.text();
@@ -63,6 +66,34 @@ export async function createProductSession(page: Page, email: string, workspaceI
   }
 
   expect(false, lastError ?? "Timed out creating product session.").toBeTruthy();
+}
+
+export async function ensureStandaloneProductUser(
+  email: string,
+  name = "Standalone User",
+  userId = `user_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+) {
+  const prisma = new PrismaClient();
+
+  try {
+    await prisma.user.upsert({
+      where: { email },
+      update: {
+        name,
+        passwordHash: localProductPasswordHash,
+        passwordSalt: localProductPasswordSalt,
+      },
+      create: {
+        id: userId,
+        email,
+        name,
+        passwordHash: localProductPasswordHash,
+        passwordSalt: localProductPasswordSalt,
+      },
+    });
+  } finally {
+    await prisma.$disconnect();
+  }
 }
 
 export async function ensureCe04ProductFixture() {

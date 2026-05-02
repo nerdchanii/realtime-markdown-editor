@@ -270,6 +270,35 @@ a {
   text-transform: uppercase;
 }
 
+.workspace-onboarding {
+  display: grid;
+  width: min(100%, 360px);
+  gap: 16px;
+}
+
+.workspace-onboarding__title {
+  margin: 0;
+  color: var(--color-text-primary);
+  font-size: 18px;
+  line-height: 1.35;
+  font-weight: 650;
+}
+
+.workspace-onboarding__copy {
+  margin: -8px 0 4px;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.workspace-onboarding__submit {
+  justify-content: center;
+}
+
+.workspace-onboarding__error {
+  margin: -4px 0 0;
+}
+
 .top-bar {
   grid-column: 1 / -1;
   display: flex;

@@ -30,26 +30,24 @@ export class PrismaAuthSessionRepository implements AuthSessionRepository {
     if (!user) return null;
     if (!isValidPassword(input.password, user)) return null;
 
-    const currentMembership =
-      user.memberships.find((membership) => membership.workspaceId === input.workspaceId) ??
-      (input.workspaceId ? null : (user.memberships[0] ?? null));
-    if (!currentMembership) return null;
+    const currentMembership = selectCurrentMembership(user.memberships, input.workspaceId);
+    if (isMissingRequestedWorkspaceMembership(input.workspaceId, currentMembership)) return null;
 
     const token = randomBytes(32).toString("base64url");
     const expiresAt = new Date(Date.now() + sessionTtlMs);
-    await this.createDatabaseSession(token, user.id, currentMembership.id, expiresAt);
+    await this.createDatabaseSession(token, user.id, currentMembership?.id ?? null, expiresAt);
 
     return {
       token,
       expiresAt,
-      context: sessionContextFromUser(user, currentMembership.id),
+      context: sessionContextFromUser(user, currentMembership?.id ?? null),
     };
   }
 
   private async createDatabaseSession(
     token: string,
     userId: string,
-    currentMembershipId: string,
+    currentMembershipId: string | null,
     expiresAt: Date,
   ): Promise<void> {
     await this.database.session.create({
@@ -114,6 +112,21 @@ type UserWithMemberships = Readonly<{
   }>;
 }>;
 
+function selectCurrentMembership(
+  memberships: UserWithMemberships["memberships"],
+  workspaceId: WorkspaceId | null,
+): UserWithMemberships["memberships"][number] | null {
+  if (workspaceId === null) return memberships[0] ?? null;
+  return memberships.find((membership) => membership.workspaceId === workspaceId) ?? null;
+}
+
+function isMissingRequestedWorkspaceMembership(
+  workspaceId: WorkspaceId | null,
+  membership: UserWithMemberships["memberships"][number] | null,
+) {
+  return workspaceId !== null && !membership;
+}
+
 function sessionContextFromUser(
   user: UserWithMemberships,
   currentMembershipId: string | null,
@@ -135,7 +148,8 @@ function sessionContextFromUser(
     },
     memberships,
     currentMembership:
-      memberships.find((membership) => membership.id === currentMembershipId) ?? null,
+      memberships.find((membership) => membership.id === currentMembershipId) ??
+      (currentMembershipId ? null : (memberships[0] ?? null)),
   };
 }
 

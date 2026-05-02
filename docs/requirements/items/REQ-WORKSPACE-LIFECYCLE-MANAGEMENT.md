@@ -11,12 +11,13 @@ derived_from: REQ-WORKSPACE-HIERARCHY
 depends_on:
   - REQ-WORKSPACE-HIERARCHY
 blocks: []
-next_step: workspace creation from no-workspace state, workspace delete/archive policy, project delete/archive policy, folder/document move UI, and full lifecycle e2e coverage를 후속 task로 나눈다.
+next_step: workspace delete/archive policy, project delete/archive policy, folder/document move UI, and full lifecycle e2e coverage를 후속 task로 나눈다.
 refs:
   - docs/product/workspace/workspace-hierarchy.md
   - packages/contracts/src/http/routes.ts
   - tasks/archive/TASK-075-workspace-folder-document-product-apis.md
   - tasks/archive/TASK-098-workspace-project-lifecycle-settings.md
+  - tasks/archive/TASK-100-workspace-first-workspace-create.md
 ---
 
 # REQ-WORKSPACE-LIFECYCLE-MANAGEMENT
@@ -41,10 +42,12 @@ Acceptance:
 `TASK-098` exposes the existing workspace/project product APIs through normal settings flows:
 workspace rename, project creation, and active project rename are available from the profile-menu
 settings dialog. Explorer now shows project group headers so created or renamed projects are visible
-as product state.
+as product state. `TASK-100` makes account-only sessions possible before a user has any workspace
+membership and replaces the no-workspace placeholder with a product form that creates the user's
+first workspace through the existing API.
 
 Folder create/rename/delete, document create/title edit/archive/trash restore, workspace rename,
-project create, and active project rename have product UI coverage. The requirement remains open
-because workspace creation from the no-workspace state, workspace delete/archive policy, project
-delete/archive policy, folder/document move UI, and consolidated lifecycle acceptance coverage are
-not complete.
+workspace create from the no-workspace state, project create, and active project rename have product
+UI coverage. The requirement remains open because workspace delete/archive policy, project
+delete/archive policy, folder/document move UI, and consolidated lifecycle acceptance coverage are not
+complete.

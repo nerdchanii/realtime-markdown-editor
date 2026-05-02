@@ -15,6 +15,7 @@ import { WorkspaceNavigationSlot } from "@/features/workspace";
 
 import { AuthScreen } from "./AuthScreen";
 import { EditorTabs, type EditorTabViewModel } from "./EditorTabs";
+import { FirstWorkspaceForm } from "./FirstWorkspaceForm";
 import { TopBar } from "./TopBar";
 import { useProductWorkspaceProviders } from "./product-workspace-providers";
 import type { AppFeatureProviders } from "./mock-providers";
@@ -417,9 +418,7 @@ function ProductWorkspaceStatus({
         ) : state.status === "empty" ? (
           "No workspace documents available."
         ) : state.status === "no-workspace" ? (
-          <div>
-            You don't have any workspaces yet. [Placeholder for REQ-ACCOUNT-WORKSPACE-ONBOARDING]
-          </div>
+          <FirstWorkspaceForm state={state} />
         ) : (
           "Workspace unavailable"
         )}
