@@ -36,6 +36,7 @@ node scripts/requirements-index.mjs --scope frontend
 - `CE-04-REVISION-HISTORY`
 - `CE-05-RICH-PREVIEW`
 - `REQ-COLLAB-ENGINE-ADAPTER`
+- `REQ-COLLABORATIVE-CREATION-VISIBILITY`
 - `REQ-DOCUMENT-STATE-FOUNDATION`
 - `REQ-DOCUMENT-TRASH-RESTORE`
 - `REQ-EDITOR-RICH-AUTHORING-SURFACE`
@@ -59,7 +60,6 @@ node scripts/requirements-index.mjs --scope frontend
 
 진행 중이거나 guardrail로 유지되는 항목은 `docs/requirements/items/`에 둔다.
 
-- `REQ-COLLABORATIVE-CREATION-VISIBILITY`
 - `REQ-CE-ACCEPTANCE-TEST-DECOUPLING`
 - `REQ-DEV-LOCAL-PRODUCT-SEED-DATA`
 - `REQ-EDITOR-FIRST-UI-REFRESH`

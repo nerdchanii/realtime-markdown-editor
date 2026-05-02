@@ -126,6 +126,12 @@ function useLoadedProductWorkspace(input: LoadedProductWorkspaceInput) {
   });
 
   useEffect(() => {
+    if (state.status !== "ready") return undefined;
+    const intervalId = window.setInterval(input.reload, productWorkspacePollIntervalMs);
+    return () => window.clearInterval(intervalId);
+  }, [input.reload, state.status]);
+
+  useEffect(() => {
     const abortController = new AbortController();
     void loadProductWorkspace(
       input.apiClient,
@@ -146,6 +152,8 @@ function useLoadedProductWorkspace(input: LoadedProductWorkspaceInput) {
 
   return state;
 }
+
+const productWorkspacePollIntervalMs = 2500;
 
 function createFailedState(
   error: unknown,

@@ -1,21 +1,23 @@
 ---
 id: REQ-COLLABORATIVE-CREATION-VISIBILITY
 title: Document와 checkpoint 생성은 다른 활성 workspace member에게도 보여야 한다.
-status: planned
+status: done
 category: product-extension
 type: functional
-taskability: taskable
+taskability: done
 scope: collaboration
 derived_from: REQ-WORKSPACE-HIERARCHY, REQ-HISTORY-CHECKPOINTS
 depends_on:
   - REQ-WORKSPACE-HIERARCHY
   - REQ-HISTORY-CHECKPOINTS
 blocks: []
-next_step: document list와 checkpoint list의 cross-user propagation 방식을 refetch, polling, realtime event 중에서 정하고 product e2e로 검증한다.
+completed_by:
+  - tasks/archive/TASK-099-collaborative-creation-visibility.md
 refs:
   - docs/product/workspace/workspace-hierarchy.md
   - docs/product/editor/history.md
   - docs/compliance/subject-matrix.md
+  - tasks/archive/TASK-099-collaborative-creation-visibility.md
 ---
 
 # REQ-COLLABORATIVE-CREATION-VISIBILITY
@@ -31,3 +33,16 @@ Acceptance:
 - Alice가 checkpoint를 만들면 Bob의 history list에도 같은 checkpoint metadata와 inspectable
   snapshot entry가 표시된다.
 - 이 동작은 dev seed route, URL spoofing, creator-only React state에 의존하지 않는다.
+
+## Completion Evidence
+
+`TASK-099` uses conservative product polling instead of a realtime event bus. Active product
+workspace sessions periodically reload workspace navigation, and the active history inspector
+periodically reloads checkpoint metadata and snapshots for the current document. This keeps
+document and checkpoint creation visible to other active members through product APIs without
+touching the editor collaboration adapter.
+
+Evidence:
+
+- `scripts/with-node.sh pnpm --filter @rme/web typecheck`
+- `DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5432/realtime_markdown_editor COLLAB_PORT=4001 RME_COLLAB_PORT=4001 scripts/with-node.sh pnpm test:e2e -- e2e/product-collaborative-creation-visibility.spec.ts`

@@ -64,28 +64,38 @@ export function useHistoryInspectorState(
 function useProductCheckpointList(
   viewModel: HistoryInspectorViewModel,
   setCheckpoints: Dispatch<SetStateAction<HistoryCheckpoint[]>>,
-  setSelectedCheckpointId: (checkpointId: string | undefined) => void,
+  setSelectedCheckpointId: Dispatch<SetStateAction<string | undefined>>,
   refreshToken?: number,
 ) {
   useEffect(() => {
     if (!viewModel.apiClient || !viewModel.documentId) return;
 
-    const abortController = new AbortController();
-    void loadProductCheckpoints(viewModel).then(
-      (loadedCheckpoints) => {
-        if (abortController.signal.aborted) return;
-        setCheckpoints(loadedCheckpoints);
-        setSelectedCheckpointId(loadedCheckpoints[0]?.id);
-      },
-      () => {
-        if (!abortController.signal.aborted) {
+    let isDisposed = false;
+    const refreshCheckpoints = () => {
+      void loadProductCheckpoints(viewModel).then(
+        (loadedCheckpoints) => {
+          if (isDisposed) return;
+          setCheckpoints(loadedCheckpoints);
+          setSelectedCheckpointId((current) =>
+            current && loadedCheckpoints.some((checkpoint) => checkpoint.id === current)
+              ? current
+              : loadedCheckpoints[0]?.id,
+          );
+        },
+        () => {
+          if (isDisposed) return;
           setCheckpoints([]);
           setSelectedCheckpointId(undefined);
-        }
-      },
-    );
+        },
+      );
+    };
+    refreshCheckpoints();
+    const intervalId = window.setInterval(refreshCheckpoints, productCheckpointPollIntervalMs);
 
-    return () => abortController.abort();
+    return () => {
+      isDisposed = true;
+      window.clearInterval(intervalId);
+    };
   }, [
     setCheckpoints,
     setSelectedCheckpointId,
@@ -96,6 +106,8 @@ function useProductCheckpointList(
     refreshToken,
   ]);
 }
+
+const productCheckpointPollIntervalMs = 2500;
 
 function useInitialCheckpoints(
   viewModel: HistoryInspectorViewModel,
