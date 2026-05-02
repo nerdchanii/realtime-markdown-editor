@@ -2,6 +2,9 @@ import { WorkspaceNodeView } from "./WorkspaceNodeView";
 import { panelStyles } from "./styles";
 import type {
   NormalizedWorkspaceNavigationViewModel,
+  WorkspaceDocumentMoveRequest,
+  WorkspaceFolderMoveRequest,
+  WorkspaceFolderMoveTarget,
   WorkspaceFolderRenameRequest,
   WorkspaceNavigationProject,
   WorkspaceNavigationSelection,
@@ -17,6 +20,9 @@ export function WorkspaceProjectSection({
   onDeleteDocument,
   onDeleteFolder,
   onRenameFolder,
+  onMoveFolder,
+  onMoveDocument,
+  moveTargets,
 }: Readonly<{
   model: NormalizedWorkspaceNavigationViewModel;
   project: WorkspaceNavigationProject;
@@ -27,6 +33,9 @@ export function WorkspaceProjectSection({
   onDeleteDocument: (documentId: string) => void;
   onDeleteFolder: (folderId: string) => void;
   onRenameFolder: (request: WorkspaceFolderRenameRequest) => void;
+  onMoveFolder: (request: WorkspaceFolderMoveRequest) => void;
+  onMoveDocument: (request: WorkspaceDocumentMoveRequest) => void;
+  moveTargets: readonly WorkspaceFolderMoveTarget[];
 }>) {
   return (
     <section className="workspace-project-section" aria-label={project.name}>
@@ -47,6 +56,9 @@ export function WorkspaceProjectSection({
           onDeleteDocument={onDeleteDocument}
           onDeleteFolder={onDeleteFolder}
           onRenameFolder={onRenameFolder}
+          onMoveFolder={onMoveFolder}
+          onMoveDocument={onMoveDocument}
+          moveTargets={moveTargets}
         />
       </ul>
     </section>

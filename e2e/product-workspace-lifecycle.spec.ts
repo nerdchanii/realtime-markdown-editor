@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
 import { openReviewerSession, uniqueReviewDocumentId } from "./support/reviewer-session.js";
 
@@ -38,6 +38,59 @@ test("Product: workspace settings rename workspace/project and create a project"
   await expect(page.getByRole("region", { name: renamedProjectName })).toBeVisible();
 });
 
+test("Product: explorer moves documents and folders from normal navigation controls", async ({
+  page,
+}) => {
+  const documentId = uniqueReviewDocumentId("workspace-move");
+  const title = titleFromDocumentId(documentId);
+  const timestamp = Date.now();
+  const sourceFolder = `Move Source ${timestamp}`;
+  const targetFolder = `Move Target ${timestamp}`;
+  const sourceLabel = folderTargetLabel(sourceFolder);
+  const targetLabel = folderTargetLabel(targetFolder);
+
+  await openReviewerSession(page, { member: "alice", documentId });
+  await expect(page.getByTestId("document-title")).toHaveValue(title);
+
+  await createExplorerFolder(page, sourceFolder);
+  await page.getByTestId(`workspace-document-${documentId}`).click();
+  await createExplorerFolder(page, targetFolder);
+
+  await page.getByLabel(`Move ${title}`).selectOption({ label: sourceLabel });
+  const sourceFolderItem = folderItem(page, sourceFolder);
+  await expect(sourceFolderItem.getByTestId(`workspace-document-${documentId}`)).toBeVisible();
+
+  await page.getByLabel(`Move ${sourceFolder}`).selectOption({ label: targetLabel });
+  await expect(
+    folderItem(page, targetFolder).getByRole("button", { name: sourceFolder, exact: true }),
+  ).toBeVisible();
+  await expect(
+    folderItem(page, targetFolder).getByTestId(`workspace-document-${documentId}`),
+  ).toBeVisible();
+});
+
 function titleFromDocumentId(documentId: string) {
   return documentId.replace(/[_-]/g, " ").replace(/\b\w/g, (character) => character.toUpperCase());
+}
+
+async function createExplorerFolder(page: Page, name: string) {
+  await page.getByLabel("New folder").click();
+  const createdFolder = page.getByRole("button", { name: /^Untitled folder(?: \d+)?$/ }).last();
+  await expect(createdFolder).toBeVisible();
+  await createdFolder.dblclick();
+  const renameInput = page.getByLabel(/^Rename Untitled folder(?: \d+)?$/).last();
+  await expect(renameInput).toBeVisible();
+  await renameInput.fill(name);
+  await renameInput.press("Enter");
+  await expect(page.getByRole("button", { name, exact: true })).toBeVisible();
+}
+
+function folderItem(page: Page, name: string) {
+  return page.locator('li[data-node-kind="regular"]').filter({
+    has: page.getByRole("button", { name, exact: true }),
+  });
+}
+
+function folderTargetLabel(folderName: string) {
+  return `Atlas Knowledge Workspace / Product Architecture / Project root / ${folderName}`;
 }

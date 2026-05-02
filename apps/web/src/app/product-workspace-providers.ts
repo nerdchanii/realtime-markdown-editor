@@ -4,8 +4,10 @@ import type { DocumentId, FolderId, ProjectId, WorkspaceId } from "@rme/contract
 
 import type {
   WorkspaceDocumentCreateRequest,
+  WorkspaceDocumentMoveRequest,
   WorkspaceArchivedDocument,
   WorkspaceFolderCreateRequest,
+  WorkspaceFolderMoveRequest,
   WorkspaceFolderRenameRequest,
   WorkspaceNavigationSelection,
 } from "@/features/workspace";
@@ -16,6 +18,8 @@ import {
   deleteDocument,
   deleteFolder,
   fetchArchivedDocuments,
+  moveDocument,
+  moveFolder,
   restoreDocument,
   updateFolder,
   type ApiClient,
@@ -38,6 +42,8 @@ type LoadedProductWorkspaceInput = {
   listArchivedProductDocuments: (
     workspaceId: string,
   ) => Promise<readonly WorkspaceArchivedDocument[]>;
+  moveProductDocument: (request: WorkspaceDocumentMoveRequest) => void;
+  moveProductFolder: (request: WorkspaceFolderMoveRequest) => void;
   renameProductFolder: (request: WorkspaceFolderRenameRequest) => void;
   restoreProductDocument: (documentId: string) => void;
   reloadToken: number;
@@ -89,6 +95,8 @@ function useWorkspaceMutations(
   const deleteProductDocument = useProductDocumentDeleter(apiClient, reload, setSelectedDocumentId);
   const deleteProductFolder = useProductFolderDeleter(apiClient, reload, setSelectedDocumentId);
   const listArchivedProductDocuments = useProductArchivedDocumentLister(apiClient);
+  const moveProductDocument = useProductDocumentMover(apiClient, reload, setSelectedDocumentId);
+  const moveProductFolder = useProductFolderMover(apiClient, reload, setSelectedDocumentId);
   const renameProductFolder = useProductFolderRenamer(apiClient, reload);
   const restoreProductDocument = useProductDocumentRestorer(
     apiClient,
@@ -103,6 +111,8 @@ function useWorkspaceMutations(
       deleteProductDocument,
       deleteProductFolder,
       listArchivedProductDocuments,
+      moveProductDocument,
+      moveProductFolder,
       renameProductFolder,
       restoreProductDocument,
     }),
@@ -112,6 +122,8 @@ function useWorkspaceMutations(
       deleteProductDocument,
       deleteProductFolder,
       listArchivedProductDocuments,
+      moveProductDocument,
+      moveProductFolder,
       renameProductFolder,
       restoreProductDocument,
     ],
@@ -221,6 +233,42 @@ function useProductFolderRenamer(apiClient: ApiClient, reload: () => void) {
   );
 }
 
+function useProductDocumentMover(
+  apiClient: ApiClient,
+  reload: () => void,
+  setSelectedDocumentId: (documentId: DocumentId) => void,
+) {
+  return useCallback(
+    (request: WorkspaceDocumentMoveRequest) => {
+      void moveDocument(apiClient, request.documentId as DocumentId, {
+        targetFolderId: request.targetFolderId as FolderId,
+      }).then((response) => {
+        setSelectedDocumentId(response.document.id);
+        reload();
+      });
+    },
+    [apiClient, reload, setSelectedDocumentId],
+  );
+}
+
+function useProductFolderMover(
+  apiClient: ApiClient,
+  reload: () => void,
+  setSelectedDocumentId: (documentId: DocumentId | null) => void,
+) {
+  return useCallback(
+    (request: WorkspaceFolderMoveRequest) => {
+      void moveFolder(apiClient, request.folderId, {
+        targetParentFolderId: request.targetParentFolderId as FolderId,
+      }).then(() => {
+        setSelectedDocumentId(null);
+        reload();
+      });
+    },
+    [apiClient, reload, setSelectedDocumentId],
+  );
+}
+
 function useProductDocumentDeleter(
   apiClient: ApiClient,
   reload: () => void,
@@ -301,6 +349,8 @@ function createLoadedState(
       input.restoreProductDocument,
       input.deleteProductFolder,
       input.renameProductFolder,
+      input.moveProductFolder,
+      input.moveProductDocument,
       input.reload,
     ),
     apiClient: input.apiClient,

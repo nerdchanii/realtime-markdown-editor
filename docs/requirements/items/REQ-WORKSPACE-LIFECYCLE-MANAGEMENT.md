@@ -46,8 +46,7 @@ as product state. `TASK-100` makes account-only sessions possible before a user 
 membership and replaces the no-workspace placeholder with a product form that creates the user's
 first workspace through the existing API.
 
-Folder create/rename/delete, document create/title edit/archive/trash restore, workspace rename,
-workspace create from the no-workspace state, project create, and active project rename have product
-UI coverage. The requirement remains open because workspace delete/archive policy, project
-delete/archive policy, folder/document move UI, and consolidated lifecycle acceptance coverage are not
-complete.
+Folder create/rename/move/delete, document create/title edit/move/archive/trash restore, workspace
+rename, workspace create from the no-workspace state, project create, and active project rename have
+product UI coverage. The requirement remains open because workspace delete/archive policy, project
+delete/archive policy, and consolidated lifecycle acceptance coverage are not complete.

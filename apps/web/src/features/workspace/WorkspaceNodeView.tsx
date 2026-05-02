@@ -1,14 +1,19 @@
 import type { KeyboardEvent, RefObject } from "react";
 import { useEffect, useRef, useState } from "react";
 
+import { DeleteNodeButton } from "./DeleteNodeButton";
+import { MoveNodeSelect } from "./MoveNodeSelect";
 import { panelStyles } from "./styles";
 import { createWorkspaceDocumentSelection, isFolderNode } from "./tree-utils";
 import type {
+  WorkspaceDocumentMoveRequest,
+  WorkspaceFolderMoveRequest,
+  WorkspaceFolderMoveTarget,
   WorkspaceFolderRenameRequest,
   WorkspaceNavigationNode,
   WorkspaceNavigationSelection,
 } from "./types";
-import { ChevronDown, FileText, Folder, Trash2 } from "lucide-react";
+import { ChevronDown, FileText, Folder } from "lucide-react";
 
 type WorkspaceNodeViewProps = Readonly<{
   node: WorkspaceNavigationNode;
@@ -22,6 +27,9 @@ type WorkspaceNodeViewProps = Readonly<{
   onDeleteDocument: (documentId: string) => void;
   onDeleteFolder: (folderId: string) => void;
   onRenameFolder: (request: WorkspaceFolderRenameRequest) => void;
+  onMoveFolder: (request: WorkspaceFolderMoveRequest) => void;
+  onMoveDocument: (request: WorkspaceDocumentMoveRequest) => void;
+  moveTargets: readonly WorkspaceFolderMoveTarget[];
   siblingNames?: readonly string[];
 }>;
 
@@ -54,6 +62,7 @@ function FolderNodeView(props: WorkspaceNodeViewProps) {
   const [draftName, setDraftName] = useState(node.name);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const isSelected = node.id === props.selectedFolderId;
+  const projectId = props.projectId ?? null;
   const toggleFolder = () => {
     props.onSelectFolder(node.id);
     setIsExpanded((current) => !current);
@@ -102,6 +111,19 @@ function FolderNodeView(props: WorkspaceNodeViewProps) {
           label={`Delete ${node.name}`}
           message={`Delete folder "${node.name}" and everything inside it?`}
           onDelete={() => props.onDeleteFolder(node.id)}
+        />
+        <MoveNodeSelect
+          label={`Move ${node.name}`}
+          targets={props.moveTargets.filter(
+            (target) =>
+              target.projectId === projectId &&
+              target.id !== node.id &&
+              target.parentFolderId !== node.id &&
+              !target.ancestorIds.includes(node.id),
+          )}
+          onMove={(targetFolderId) =>
+            props.onMoveFolder({ folderId: node.id, targetParentFolderId: targetFolderId })
+          }
         />
       </div>
       {isExpanded ? <ChildNodes {...props} path={[...props.path, node.name]} /> : null}
@@ -218,6 +240,8 @@ function DocumentNodeView({
   projectId = null,
   onSelectDocument,
   onDeleteDocument,
+  onMoveDocument,
+  moveTargets,
 }: WorkspaceNodeViewProps) {
   const isSelected = node.id === selectedDocumentId;
   const selection = createWorkspaceDocumentSelection(node, workspaceId, projectId, path);
@@ -250,34 +274,15 @@ function DocumentNodeView({
           message={`Delete document "${node.name}"?`}
           onDelete={() => onDeleteDocument(node.id)}
         />
+        <MoveNodeSelect
+          label={`Move ${node.name}`}
+          targets={moveTargets.filter(
+            (target) => target.projectId === projectId && target.id !== node.folderId,
+          )}
+          onMove={(targetFolderId) => onMoveDocument({ documentId: node.id, targetFolderId })}
+        />
       </div>
     </li>
-  );
-}
-
-function DeleteNodeButton({
-  label,
-  message,
-  onDelete,
-}: Readonly<{
-  label: string;
-  message: string;
-  onDelete: () => void;
-}>) {
-  return (
-    <button
-      type="button"
-      className="workspace-node-delete"
-      style={nodeDeleteStyle}
-      aria-label={label}
-      onClick={(event) => {
-        event.stopPropagation();
-        if (!confirmDelete(message)) return;
-        onDelete();
-      }}
-    >
-      <Trash2 size={13} />
-    </button>
   );
 }
 
@@ -331,11 +336,6 @@ const folderToggleStyle = {
   padding: 0,
 };
 
-function confirmDelete(message: string): boolean {
-  if (typeof globalThis.confirm !== "function") return true;
-  return globalThis.confirm(message);
-}
-
 function handleRenameKeyDown(
   event: KeyboardEvent<HTMLInputElement>,
   onFinish: () => void,
@@ -387,20 +387,5 @@ const folderRenameInputStyle = {
   color: "inherit",
   font: "inherit",
   outline: "0",
-  padding: 0,
-};
-
-const nodeDeleteStyle = {
-  display: "inline-flex",
-  width: "22px",
-  height: "22px",
-  flex: "0 0 auto",
-  alignItems: "center",
-  justifyContent: "center",
-  border: 0,
-  borderRadius: "4px",
-  background: "transparent",
-  color: "#90a1b9",
-  cursor: "pointer",
   padding: 0,
 };

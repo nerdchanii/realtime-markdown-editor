@@ -1,13 +1,9 @@
 import type {
-  CollaborationSessionDto,
-  CollaborationSessionResponseDto,
   CreateAccountRequestDto,
   CreateWorkspaceMemberRequestDto,
   CreateProjectRequestDto,
   CreateDocumentRequestDto,
   CreateFolderRequestDto,
-  CreateCheckpointRequestDto,
-  CreateCheckpointResponseDto,
   CreateSessionRequestDto,
   CreateWorkspaceRequestDto,
   DeletedResourceResponseDto,
@@ -20,6 +16,8 @@ import type {
   ListCheckpointsResponseDto,
   ListWorkspaceMembersResponseDto,
   ListWorkspacesResponseDto,
+  MoveDocumentRequestDto,
+  MoveFolderRequestDto,
   ProjectId,
   ProjectResponseDto,
   ReplaceDocumentPropertiesRequestDto,
@@ -40,33 +38,21 @@ import type {
   WorkspaceResponseDto,
 } from "@rme/contracts";
 
+export { createCollaborationCheckpoint, fetchCollaborationSession } from "./collaboration";
+export {
+  apiClientBoundaryId,
+  apiClientMockReplacementPoint,
+  createMockApiClient,
+  createProductApiClient,
+  fetchJson,
+} from "./core";
+export type { ApiClient } from "./core";
 export {
   createMarkdownExport,
   inspectCheckpointSnapshot,
   uploadDocumentImage,
 } from "./document-artifacts";
-
-export type ApiClient = Readonly<{
-  baseUrl: string;
-  providerName: string;
-}>;
-
-export const apiClientBoundaryId = "lib.api-client";
-export const apiClientMockReplacementPoint = "lib.api-client.mock";
-
-export function createMockApiClient(): ApiClient {
-  return {
-    baseUrl: apiBaseUrl(),
-    providerName: apiClientMockReplacementPoint,
-  };
-}
-
-export function createProductApiClient(): ApiClient {
-  return {
-    baseUrl: apiBaseUrl(),
-    providerName: "lib.api-client.product",
-  };
-}
+import { fetchJson, type ApiClient } from "./core";
 
 export async function createAccount(
   client: ApiClient,
@@ -237,6 +223,17 @@ export async function deleteDocument(
   });
 }
 
+export async function moveDocument(
+  client: ApiClient,
+  documentId: DocumentId,
+  request: MoveDocumentRequestDto,
+): Promise<DocumentResponseDto> {
+  return fetchJson(client, `/documents/${encodeURIComponent(documentId)}/move`, {
+    method: "POST",
+    body: JSON.stringify(request),
+  });
+}
+
 export async function fetchArchivedDocuments(
   client: ApiClient,
   workspaceId: WorkspaceId,
@@ -314,6 +311,17 @@ export async function updateFolder(
   });
 }
 
+export async function moveFolder(
+  client: ApiClient,
+  folderId: string,
+  request: MoveFolderRequestDto,
+): Promise<FolderResponseDto> {
+  return fetchJson(client, `/folders/${encodeURIComponent(folderId)}/move`, {
+    method: "POST",
+    body: JSON.stringify(request),
+  });
+}
+
 export async function deleteFolder(
   client: ApiClient,
   folderId: string,
@@ -345,86 +353,4 @@ export async function fetchSeedReviewContext(client: ApiClient): Promise<SeedRev
   }
 
   return (await response.json()) as SeedReviewContextDto;
-}
-
-export async function fetchCollaborationSession(
-  client: ApiClient,
-  documentId: string,
-): Promise<CollaborationSessionDto> {
-  return mapCollaborationSessionResponse(
-    await fetchJson<CollaborationSessionResponseDto>(
-      client,
-      `/documents/${encodeURIComponent(documentId)}/collaboration-sessions`,
-      {
-        method: "POST",
-        body: JSON.stringify({}),
-      },
-    ),
-  );
-}
-
-export async function createCollaborationCheckpoint(
-  client: ApiClient,
-  documentId: string,
-  request: CreateCheckpointRequestDto,
-): Promise<CreateCheckpointResponseDto> {
-  const response = await fetch(
-    `${client.baseUrl}/documents/${encodeURIComponent(documentId)}/checkpoints`,
-    {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(request),
-    },
-  );
-
-  if (!response.ok) {
-    throw new Error(`Checkpoint creation request failed with ${response.status}`);
-  }
-
-  return (await response.json()) as CreateCheckpointResponseDto;
-}
-
-async function fetchJson<T>(client: ApiClient, path: string, init: RequestInit = {}): Promise<T> {
-  const headers = new Headers(init.headers);
-  if (init.body && !headers.has("Content-Type")) {
-    headers.set("Content-Type", "application/json");
-  }
-
-  const response = await fetch(`${client.baseUrl}${path}`, {
-    ...init,
-    headers,
-    credentials: "include",
-  });
-
-  if (!response.ok) {
-    throw new Error(`${init.method ?? "GET"} ${path} failed with ${response.status}`);
-  }
-
-  return (await response.json()) as T;
-}
-
-function apiBaseUrl() {
-  const env = (import.meta as ImportMeta & { env?: Record<string, string | undefined> }).env;
-  const configured = env?.VITE_RME_API_BASE_URL ?? env?.VITE_API_BASE_URL;
-  if (configured) return configured;
-
-  if (typeof window !== "undefined") {
-    return `${window.location.protocol}//${window.location.hostname}:4000`;
-  }
-
-  return "http://127.0.0.1:4000";
-}
-
-function mapCollaborationSessionResponse(
-  response: CollaborationSessionResponseDto,
-): CollaborationSessionDto {
-  return {
-    documentId: response.documentId,
-    documentKey: response.documentKey,
-    realtimeUrl: response.realtimeUrl,
-    currentMemberId: response.currentMember.id,
-    members: response.allowedMembers,
-    sync: response.sync,
-  };
 }

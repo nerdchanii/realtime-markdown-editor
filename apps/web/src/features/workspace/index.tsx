@@ -1,13 +1,18 @@
 import { useState } from "react";
-import { FilePlus2, FolderPlus, RotateCcw, Trash2 } from "lucide-react";
+import { FilePlus2, FolderPlus, Trash2 } from "lucide-react";
 
 import { workspaceFeatureId } from "./events";
 import { WorkspaceProjectSection } from "./WorkspaceProjectSection";
 import { WorkspaceNodeView } from "./WorkspaceNodeView";
+import { createFolderMoveTargets } from "./move-targets";
 import { panelStyles } from "./styles";
 import { normalizeViewModel } from "./tree-utils";
+import { TrashPanel } from "./TrashPanel";
 import type {
   WorkspaceFolderRenameRequest,
+  WorkspaceDocumentMoveRequest,
+  WorkspaceFolderMoveRequest,
+  WorkspaceFolderMoveTarget,
   WorkspaceArchivedDocument,
   WorkspaceNavigationNode,
   WorkspaceNavigationSelection,
@@ -22,7 +27,10 @@ export type {
   WorkspaceNavigationViewModel,
   WorkspaceArchivedDocument,
   WorkspaceDocumentCreateRequest,
+  WorkspaceDocumentMoveRequest,
   WorkspaceFolderCreateRequest,
+  WorkspaceFolderMoveRequest,
+  WorkspaceFolderMoveTarget,
   WorkspaceFolderRenameRequest,
 } from "./types";
 
@@ -45,6 +53,7 @@ export function WorkspaceNavigationSlot({ viewModel }: WorkspaceNavigationSlotPr
     ? (findNodeById(model.root, targetFolderId) ??
       findProjectNodeById(model.projects, targetFolderId))
     : null;
+  const moveTargets = createFolderMoveTargets(model);
   const [isTrashOpen, setIsTrashOpen] = useState(false);
   const [trashState, setTrashState] = useState<
     Readonly<{
@@ -158,6 +167,9 @@ export function WorkspaceNavigationSlot({ viewModel }: WorkspaceNavigationSlotPr
                   onDeleteDocument={(documentId) => model.onDeleteDocument?.(documentId)}
                   onDeleteFolder={(folderId) => model.onDeleteFolder?.(folderId)}
                   onRenameFolder={(request) => model.onRenameFolder?.(request)}
+                  onMoveFolder={(request) => model.onMoveFolder?.(request)}
+                  onMoveDocument={(request) => model.onMoveDocument?.(request)}
+                  moveTargets={moveTargets}
                 />
                 <ProjectList
                   model={model}
@@ -168,6 +180,9 @@ export function WorkspaceNavigationSlot({ viewModel }: WorkspaceNavigationSlotPr
                   onDeleteDocument={(documentId) => model.onDeleteDocument?.(documentId)}
                   onDeleteFolder={(folderId) => model.onDeleteFolder?.(folderId)}
                   onRenameFolder={(request) => model.onRenameFolder?.(request)}
+                  onMoveFolder={(request) => model.onMoveFolder?.(request)}
+                  onMoveDocument={(request) => model.onMoveDocument?.(request)}
+                  moveTargets={moveTargets}
                 />
               </>
             )}
@@ -199,60 +214,6 @@ async function loadTrashDocuments(
   }
 }
 
-function TrashPanel({
-  documents,
-  status,
-  onRefresh,
-  onRestoreDocument,
-}: Readonly<{
-  documents: readonly WorkspaceArchivedDocument[];
-  status: "idle" | "loading" | "error";
-  onRefresh: () => void;
-  onRestoreDocument: (documentId: string) => void;
-}>) {
-  return (
-    <section className="workspace-trash" aria-label="Trash">
-      <header className="workspace-trash__header">
-        <span>Trash</span>
-        <button type="button" className="workspace-trash__refresh" onClick={onRefresh}>
-          Refresh
-        </button>
-      </header>
-      {status === "loading" ? <p className="workspace-trash__message">Loading...</p> : null}
-      {status === "error" ? (
-        <p className="workspace-trash__message">Trash could not be loaded.</p>
-      ) : null}
-      {status === "idle" && documents.length === 0 ? (
-        <p className="workspace-trash__message">Trash is empty.</p>
-      ) : null}
-      <ul className="workspace-trash__list">
-        {documents.map((document) => (
-          <li key={document.id} className="workspace-trash__item">
-            <div className="workspace-trash__copy">
-              <span className="workspace-trash__title">{document.title}</span>
-              <span className="workspace-trash__date">{formatArchivedAt(document.archivedAt)}</span>
-            </div>
-            <button
-              type="button"
-              className="workspace-trash__restore"
-              aria-label={`Restore ${document.title}`}
-              onClick={() => onRestoreDocument(document.id)}
-            >
-              <RotateCcw size={14} />
-            </button>
-          </li>
-        ))}
-      </ul>
-    </section>
-  );
-}
-
-function formatArchivedAt(value: string) {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "Archived";
-  return `Archived ${date.toLocaleDateString()}`;
-}
-
 function WorkspaceRoot({
   model,
   selectedDocumentId,
@@ -262,6 +223,9 @@ function WorkspaceRoot({
   onDeleteDocument,
   onDeleteFolder,
   onRenameFolder,
+  onMoveFolder,
+  onMoveDocument,
+  moveTargets,
 }: Readonly<{
   model: ReturnType<typeof normalizeViewModel>;
   selectedDocumentId: string | null | undefined;
@@ -271,6 +235,9 @@ function WorkspaceRoot({
   onDeleteDocument: (documentId: string) => void;
   onDeleteFolder: (folderId: string) => void;
   onRenameFolder: (request: WorkspaceFolderRenameRequest) => void;
+  onMoveFolder: (request: WorkspaceFolderMoveRequest) => void;
+  onMoveDocument: (request: WorkspaceDocumentMoveRequest) => void;
+  moveTargets: readonly WorkspaceFolderMoveTarget[];
 }>) {
   return (
     <ul style={panelStyles.tree}>
@@ -285,6 +252,9 @@ function WorkspaceRoot({
         onDeleteDocument={onDeleteDocument}
         onDeleteFolder={onDeleteFolder}
         onRenameFolder={onRenameFolder}
+        onMoveFolder={onMoveFolder}
+        onMoveDocument={onMoveDocument}
+        moveTargets={moveTargets}
       />
     </ul>
   );
@@ -299,6 +269,9 @@ function ProjectList({
   onDeleteDocument,
   onDeleteFolder,
   onRenameFolder,
+  onMoveFolder,
+  onMoveDocument,
+  moveTargets,
 }: Readonly<{
   model: ReturnType<typeof normalizeViewModel>;
   selectedDocumentId?: string | null;
@@ -308,6 +281,9 @@ function ProjectList({
   onDeleteDocument: (documentId: string) => void;
   onDeleteFolder: (folderId: string) => void;
   onRenameFolder: (request: WorkspaceFolderRenameRequest) => void;
+  onMoveFolder: (request: WorkspaceFolderMoveRequest) => void;
+  onMoveDocument: (request: WorkspaceDocumentMoveRequest) => void;
+  moveTargets: readonly WorkspaceFolderMoveTarget[];
 }>) {
   return (
     <div style={{ display: "grid", gap: "2px" }}>
@@ -323,6 +299,9 @@ function ProjectList({
           onDeleteDocument={onDeleteDocument}
           onDeleteFolder={onDeleteFolder}
           onRenameFolder={onRenameFolder}
+          onMoveFolder={onMoveFolder}
+          onMoveDocument={onMoveDocument}
+          moveTargets={moveTargets}
         />
       ))}
     </div>

@@ -2,8 +2,10 @@ import type { DocumentSummaryDto, ProjectDto } from "@rme/contracts";
 
 import type {
   WorkspaceDocumentCreateRequest,
+  WorkspaceDocumentMoveRequest,
   WorkspaceArchivedDocument,
   WorkspaceFolderCreateRequest,
+  WorkspaceFolderMoveRequest,
   WorkspaceFolderRenameRequest,
   WorkspaceNavigationNode,
   WorkspaceNavigationSelection,
@@ -21,6 +23,8 @@ export function createWorkspaceNavigation(
   onRestoreDocument: (documentId: string) => void,
   onDeleteFolder: (folderId: string) => void,
   onRenameFolder: (request: WorkspaceFolderRenameRequest) => void,
+  onMoveFolder: (request: WorkspaceFolderMoveRequest) => void,
+  onMoveDocument: (request: WorkspaceDocumentMoveRequest) => void,
 ) {
   const memberships = model.session?.memberships ?? [];
   const currentMember = model.session?.currentMembership ?? null;
@@ -41,6 +45,7 @@ export function createWorkspaceNavigation(
     ...{ onSelectDocument, onCreateDocument, onCreateFolder },
     ...{ onListArchivedDocuments, onRestoreDocument },
     ...{ onDeleteDocument, onDeleteFolder, onRenameFolder },
+    ...{ onMoveFolder, onMoveDocument },
   };
 }
 
