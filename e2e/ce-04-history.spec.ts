@@ -30,6 +30,13 @@ test("CE-04: reviewer can create and inspect a user-visible document revision", 
   await addMarkdownLine(page, revisionText);
 
   await createUserCheckpoint(page, revisionMessage);
+  const checkpointCountAfterSave = await page
+    .getByRole("button", { name: new RegExp(revisionMessage) })
+    .count();
+  await expect(page.getByLabel("Document checkpoint saved")).toBeDisabled();
+  await expect(page.getByRole("button", { name: new RegExp(revisionMessage) })).toHaveCount(
+    checkpointCountAfterSave,
+  );
 
   await expect(await openCheckpointSnapshot(page, revisionMessage)).toContainText(revisionText);
 

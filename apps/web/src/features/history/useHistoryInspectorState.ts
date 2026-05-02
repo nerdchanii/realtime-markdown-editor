@@ -171,9 +171,19 @@ async function publishCheckpoint(
   }>,
 ) {
   const checkpoint = await createApiCheckpoint(viewModel, revisionMessage);
-  setters.setCheckpoints((current) => [checkpoint, ...current]);
+  setters.setCheckpoints((current) => upsertCheckpoint(current, checkpoint));
   setters.setSelectedCheckpointId(checkpoint.id);
   setters.setRevisionMessage("");
+}
+
+function upsertCheckpoint(
+  checkpoints: readonly HistoryCheckpoint[],
+  checkpoint: HistoryCheckpoint,
+): HistoryCheckpoint[] {
+  if (!checkpoints.some((candidate) => candidate.id === checkpoint.id)) {
+    return [checkpoint, ...checkpoints];
+  }
+  return checkpoints.map((candidate) => (candidate.id === checkpoint.id ? checkpoint : candidate));
 }
 
 async function createApiCheckpoint(

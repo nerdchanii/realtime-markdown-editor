@@ -40,6 +40,7 @@ export function EditorToolbar({
   exportTitle,
   isReadOnly = false,
   onSaved,
+  persistedMarkdown,
 }: Readonly<{
   editor: Editor | null;
   markdown: string;
@@ -49,6 +50,7 @@ export function EditorToolbar({
   exportTitle: string;
   isReadOnly?: boolean | undefined;
   onSaved?: (() => void) | undefined;
+  persistedMarkdown: string;
 }>) {
   return (
     <Toolbar
@@ -96,11 +98,13 @@ export function EditorToolbar({
 
       <ToolbarGroup>
         <CheckpointSaveButton
+          key={documentId}
           apiClient={apiClient}
           documentId={documentId}
           isReadOnly={isReadOnly}
           markdown={markdown}
           onSaved={onSaved}
+          persistedMarkdown={persistedMarkdown}
         />
         <ExportMenuButton
           apiClient={apiClient}
@@ -120,15 +124,27 @@ function CheckpointSaveButton({
   isReadOnly,
   markdown,
   onSaved,
+  persistedMarkdown,
 }: Readonly<{
   apiClient?: ApiClient | undefined;
   documentId?: string | undefined;
   isReadOnly: boolean;
   markdown: string;
   onSaved?: (() => void) | undefined;
+  persistedMarkdown: string;
 }>) {
   const [status, setStatus] = useState<"idle" | "saving" | "saved" | "failed">("idle");
-  const canSave = Boolean(apiClient && documentId && status !== "saving");
+  const [savedSnapshot, setSavedSnapshot] = useState(() => ({
+    persistedMarkdown,
+    savedMarkdown: persistedMarkdown,
+  }));
+  const savedMarkdown =
+    savedSnapshot.persistedMarkdown === persistedMarkdown
+      ? savedSnapshot.savedMarkdown
+      : persistedMarkdown;
+  const hasUnsavedChanges = markdown !== savedMarkdown;
+  const canSave = Boolean(apiClient && documentId && status !== "saving" && hasUnsavedChanges);
+  const displayStatus = status === "saved" && hasUnsavedChanges ? "idle" : status;
   const runSave = useCallback(() => {
     if (!apiClient || !documentId || !canSave) return;
 
@@ -136,10 +152,13 @@ function CheckpointSaveButton({
       apiClient,
       documentId,
       markdown,
+      onCheckpointSaved: () => {
+        setSavedSnapshot({ persistedMarkdown, savedMarkdown: markdown });
+      },
       onSaved,
       setStatus,
     });
-  }, [apiClient, canSave, documentId, markdown, onSaved]);
+  }, [apiClient, canSave, documentId, markdown, onSaved, persistedMarkdown]);
 
   useEffect(() => {
     if (!canSave || isReadOnly) return undefined;
@@ -158,7 +177,7 @@ function CheckpointSaveButton({
 
   return (
     <TiptapButton
-      aria-label={saveAriaLabel(status)}
+      aria-label={saveAriaLabel(displayStatus)}
       data-disabled={!canSave}
       disabled={!canSave}
       onClick={runSave}
@@ -167,7 +186,7 @@ function CheckpointSaveButton({
       type="button"
       variant="ghost"
     >
-      <span className="tiptap-button-text">{saveLabel(status)}</span>
+      <span className="tiptap-button-text">{saveLabel(displayStatus)}</span>
     </TiptapButton>
   );
 }
@@ -181,6 +200,7 @@ async function saveCheckpoint(
     apiClient: ApiClient;
     documentId: string;
     markdown: string;
+    onCheckpointSaved: () => void;
     onSaved?: (() => void) | undefined;
     setStatus: (status: "idle" | "saving" | "saved" | "failed") => void;
   }>,
@@ -195,6 +215,7 @@ async function saveCheckpoint(
     await createCollaborationCheckpoint(input.apiClient, input.documentId, {
       message: "Manual checkpoint",
     });
+    input.onCheckpointSaved();
     input.setStatus("saved");
     input.onSaved?.();
   } catch {

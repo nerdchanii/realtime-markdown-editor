@@ -194,6 +194,7 @@ function EditorToolbarSlot({
       isReadOnly={isReadOnly}
       markdown={markdown}
       onSaved={onSaved}
+      persistedMarkdown={viewModel.markdown ?? ""}
       presence={presence}
     />
   );

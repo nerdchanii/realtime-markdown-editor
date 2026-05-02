@@ -1,10 +1,12 @@
 import { strict as assert } from "node:assert";
 import { test } from "node:test";
 
+import type { CheckpointId } from "@/modules/documents/domain/checkpoint.js";
 import type { DocumentId } from "@/modules/documents/domain/document.js";
 import type { WorkspaceMembershipId } from "@/modules/documents/domain/references.js";
 import type {
   CheckpointRepository,
+  CheckpointSnapshot,
   CreateCheckpointInput,
 } from "@/modules/documents/ports/checkpoint-repository.js";
 import type { DocumentContentRepository } from "@/modules/documents/ports/document-content-repository.js";
@@ -60,8 +62,39 @@ test("CreateCheckpointUseCase resolves current content when explicitly required"
   assert.equal(checkpoints.created?.markdownSnapshot, "# Current projection\n\nServer resolved.");
 });
 
+test("CreateCheckpointUseCase returns the latest checkpoint when content is unchanged", async () => {
+  const documentId = "document_unchanged" as DocumentId;
+  const latestCheckpoint: CheckpointSnapshot = {
+    checkpoint: {
+      id: "checkpoint_existing" as never,
+      documentId,
+      revisionId: "revision_existing" as never,
+      authorMembershipId: "member_alice" as WorkspaceMembershipId,
+      message: "Manual checkpoint",
+      createdAt: new Date("2026-04-30T12:00:00.000Z"),
+      snapshotArtifactRef: "checkpoints/checkpoint_existing.md",
+    },
+    markdownBody: "# Current projection\n\nServer resolved.",
+  };
+  const checkpoints = new FakeCheckpointRepository(latestCheckpoint);
+  const content = new FakeDocumentContentRepository(documentId);
+  const useCase = new CreateCheckpointUseCase(checkpoints, content);
+
+  const result = await useCase.execute({
+    documentId,
+    authorMembershipId: "member_alice" as WorkspaceMembershipId,
+    message: "Manual checkpoint",
+    resolveCurrentContent: true,
+  });
+
+  assert.equal(result.checkpoint.id, "checkpoint_existing");
+  assert.equal(checkpoints.created, null);
+});
+
 class FakeCheckpointRepository implements CheckpointRepository {
   created: CreateCheckpointInput | null = null;
+
+  constructor(private readonly latestSnapshot: CheckpointSnapshot | null = null) {}
 
   async createCheckpoint(input: CreateCheckpointInput) {
     this.created = input;
@@ -79,12 +112,14 @@ class FakeCheckpointRepository implements CheckpointRepository {
     };
   }
 
-  async listCheckpoints() {
-    return [];
+  async listCheckpoints(documentId: DocumentId) {
+    if (this.latestSnapshot?.checkpoint.documentId !== documentId) return [];
+    return [this.latestSnapshot.checkpoint];
   }
 
-  async findCheckpointSnapshot() {
-    return null;
+  async findCheckpointSnapshot(checkpointId: CheckpointId) {
+    if (this.latestSnapshot?.checkpoint.id !== checkpointId) return null;
+    return this.latestSnapshot;
   }
 }
 
