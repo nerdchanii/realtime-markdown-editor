@@ -1,12 +1,15 @@
 import { useState, type FormEvent } from "react";
 
-import { createWorkspace } from "@/lib/api-client";
-
-import type { ProductWorkspaceState } from "./product-workspace-types";
+import { Button, Input } from "@/components/ui";
+import { createWorkspace, type ApiClient } from "@/lib/api-client";
 
 export function FirstWorkspaceForm({
-  state,
-}: Readonly<{ state: Extract<ProductWorkspaceState, { status: "no-workspace" }> }>) {
+  apiClient,
+  reload,
+}: Readonly<{
+  apiClient: ApiClient;
+  reload: () => void;
+}>) {
   const [workspaceName, setWorkspaceName] = useState("Product workspace");
   const [isCreating, setIsCreating] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -19,8 +22,8 @@ export function FirstWorkspaceForm({
     setIsCreating(true);
     setErrorMessage(null);
     try {
-      await createWorkspace(state.apiClient, { name });
-      state.reload();
+      await createWorkspace(apiClient, { name });
+      reload();
     } catch (error) {
       console.error(error);
       setErrorMessage("Workspace could not be created. Try again.");
@@ -34,22 +37,24 @@ export function FirstWorkspaceForm({
       <p className="workspace-onboarding__copy">
         Workspaces hold projects, folders, documents, and collaboration membership.
       </p>
-      <label className="auth-field workspace-onboarding__field">
+      <label className="auth-field workspace-onboarding__field" htmlFor="first-workspace-name">
         <span className="auth-field__label">Workspace name</span>
-        <input
-          className="ui-input auth-field__input"
+        <Input
+          id="first-workspace-name"
+          className="auth-field__input"
           value={workspaceName}
           onChange={(event) => setWorkspaceName(event.target.value)}
           disabled={isCreating}
         />
       </label>
-      <button
+      <Button
         type="submit"
-        className="ui-button ui-button--primary workspace-onboarding__submit"
+        className="workspace-onboarding__submit"
+        variant="primary"
         disabled={isCreating || !workspaceName.trim()}
       >
         {isCreating ? "Creating workspace..." : "Create workspace"}
-      </button>
+      </Button>
       {errorMessage ? (
         <p className="auth-card__error workspace-onboarding__error" role="alert">
           {errorMessage}

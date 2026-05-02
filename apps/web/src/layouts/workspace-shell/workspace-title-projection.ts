@@ -4,7 +4,7 @@ import type {
   WorkspaceNavigationViewModel,
 } from "@/features/workspace";
 
-import type { AppFeatureProviders } from "./mock-providers";
+import type { WorkspaceShellFeatureProviders } from "./types";
 
 export function getDisplayedDocumentTitle(
   input: Readonly<{
@@ -24,10 +24,10 @@ export function getDisplayedDocumentTitle(
 }
 
 export function overrideProviderDocumentTitle(
-  providers: AppFeatureProviders,
+  providers: WorkspaceShellFeatureProviders,
   documentId: string | undefined,
   title: string,
-): AppFeatureProviders {
+): WorkspaceShellFeatureProviders {
   if (!documentId) return providers;
 
   return {

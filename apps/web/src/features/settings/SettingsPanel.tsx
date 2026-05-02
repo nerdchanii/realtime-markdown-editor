@@ -1,7 +1,13 @@
 import { useEffect, useState, type FormEvent } from "react";
 
-import type { WorkspaceMemberDto, WorkspaceMembershipId } from "@rme/contracts";
+import type {
+  ProjectId,
+  WorkspaceId,
+  WorkspaceMemberDto,
+  WorkspaceMembershipId,
+} from "@rme/contracts";
 
+import { Button, Input, TabsContent } from "@/components/ui";
 import type { ApiClient } from "@/lib/api-client";
 import {
   createWorkspaceMember,
@@ -16,9 +22,19 @@ import {
   updateWorkspace,
 } from "@/lib/api-client";
 
-import type { ProductAccountSurface } from "./product-workspace-types";
-
 export type SettingsScope = "user" | "workspace" | "project";
+
+export type SettingsAccountSurface = Readonly<{
+  currentMemberColor?: string | undefined;
+  currentMemberDisplayName?: string | undefined;
+  currentMemberId?: WorkspaceMembershipId | null | undefined;
+  projectId?: ProjectId | null | undefined;
+  projectName?: string | undefined;
+  userEmail?: string | undefined;
+  userName?: string | undefined;
+  workspaceId?: WorkspaceId | undefined;
+  workspaceName?: string | undefined;
+}>;
 
 export function SettingsPanel({
   accountSurface,
@@ -26,7 +42,7 @@ export function SettingsPanel({
   reload,
   scope,
 }: Readonly<{
-  accountSurface: ProductAccountSurface | undefined;
+  accountSurface: SettingsAccountSurface | undefined;
   apiClient: ApiClient;
   reload: () => void;
   scope: SettingsScope;
@@ -68,7 +84,7 @@ function UserSettingsPanel({
   apiClient,
   reload,
 }: Readonly<{
-  accountSurface: ProductAccountSurface | undefined;
+  accountSurface: SettingsAccountSurface | undefined;
   apiClient: ApiClient;
   reload: () => void;
 }>) {
@@ -85,12 +101,12 @@ function UserSettingsPanel({
   };
 
   return (
-    <div className="ui-tabs-content top-bar-settings__panel">
+    <TabsContent className="top-bar-settings__panel">
       <form className="top-bar-settings__form" onSubmit={handleUpdateProfile}>
         <EditableSettingsField label="Name" value={userName} onChange={setUserName} />
-        <button className="ui-button ui-button--secondary" type="submit">
+        <Button variant="secondary" type="submit">
           Save account
-        </button>
+        </Button>
       </form>
       <SettingsField label="Email" value={accountSurface?.userEmail ?? "Not available"} />
       <SettingsField
@@ -101,7 +117,7 @@ function UserSettingsPanel({
         Account deactivation follows the retention policy and still needs a dedicated API mutation.
       </p>
       {status ? <p className="top-bar-settings__status">{status}</p> : null}
-    </div>
+    </TabsContent>
   );
 }
 
@@ -110,7 +126,7 @@ function WorkspaceSettingsPanel({
   apiClient,
   reload,
 }: Readonly<{
-  accountSurface: ProductAccountSurface | undefined;
+  accountSurface: SettingsAccountSurface | undefined;
   apiClient: ApiClient;
   reload: () => void;
 }>) {
@@ -199,22 +215,22 @@ function WorkspaceSettingsPanel({
   };
 
   return (
-    <div className="ui-tabs-content top-bar-settings__panel">
+    <TabsContent className="top-bar-settings__panel">
       <form className="top-bar-settings__form" onSubmit={handleRenameWorkspace}>
         <EditableSettingsField
           label="Workspace name"
           value={workspaceName}
           onChange={setWorkspaceName}
         />
-        <button className="ui-button ui-button--secondary" type="submit">
+        <Button variant="secondary" type="submit">
           Save workspace
-        </button>
+        </Button>
       </form>
       <form className="top-bar-settings__form" onSubmit={handleCreateProject}>
         <EditableSettingsField label="New project" value={projectName} onChange={setProjectName} />
-        <button className="ui-button ui-button--secondary" type="submit">
+        <Button variant="secondary" type="submit">
           Create project
-        </button>
+        </Button>
       </form>
       <SettingsField
         label="Current member"
@@ -226,9 +242,9 @@ function WorkspaceSettingsPanel({
           value={memberEmail}
           onChange={setMemberEmail}
         />
-        <button className="ui-button ui-button--secondary" type="submit">
+        <Button variant="secondary" type="submit">
           Add member
-        </button>
+        </Button>
       </form>
       <div className="top-bar-settings__members" aria-label="Workspace members">
         {members.map((member) => (
@@ -249,26 +265,22 @@ function WorkspaceSettingsPanel({
               <option value="owner">Owner</option>
               <option value="editor">Member</option>
             </select>
-            <button
-              className="ui-button ui-button--secondary"
+            <Button
+              variant="secondary"
               disabled={member.id === accountSurface?.currentMemberId}
               type="button"
               onClick={() => void handleRemoveMember(member.id)}
             >
               Remove
-            </button>
+            </Button>
           </div>
         ))}
       </div>
-      <button
-        className="ui-button ui-button--secondary"
-        type="button"
-        onClick={handleArchiveWorkspace}
-      >
+      <Button variant="secondary" type="button" onClick={handleArchiveWorkspace}>
         Archive workspace
-      </button>
+      </Button>
       {status ? <p className="top-bar-settings__status">{status}</p> : null}
-    </div>
+    </TabsContent>
   );
 }
 
@@ -277,7 +289,7 @@ function ProjectSettingsPanel({
   apiClient,
   reload,
 }: Readonly<{
-  accountSurface: ProductAccountSurface | undefined;
+  accountSurface: SettingsAccountSurface | undefined;
   apiClient: ApiClient;
   reload: () => void;
 }>) {
@@ -302,27 +314,23 @@ function ProjectSettingsPanel({
   };
 
   return (
-    <div className="ui-tabs-content top-bar-settings__panel">
+    <TabsContent className="top-bar-settings__panel">
       <form className="top-bar-settings__form" onSubmit={handleRenameProject}>
         <EditableSettingsField label="Project name" value={projectName} onChange={setProjectName} />
-        <button
-          className="ui-button ui-button--secondary"
-          disabled={!accountSurface?.projectId}
-          type="submit"
-        >
+        <Button variant="secondary" disabled={!accountSurface?.projectId} type="submit">
           Save project
-        </button>
+        </Button>
       </form>
-      <button
-        className="ui-button ui-button--secondary"
+      <Button
+        variant="secondary"
         disabled={!accountSurface?.projectId}
         type="button"
         onClick={handleArchiveProject}
       >
         Archive project
-      </button>
+      </Button>
       {status ? <p className="top-bar-settings__status">{status}</p> : null}
-    </div>
+    </TabsContent>
   );
 }
 
@@ -343,7 +351,7 @@ function EditableSettingsField({
   return (
     <label className="top-bar-settings__field">
       <span>{label}</span>
-      <input
+      <Input
         className="top-bar-settings__input"
         value={value}
         onChange={(event) => onChange(event.target.value)}

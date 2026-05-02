@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react";
 
+import { Button, Input } from "@/components/ui";
 import type { ApiClient } from "@/lib/api-client";
 import { createAccount, createAuthSession } from "@/lib/api-client";
 
@@ -116,10 +117,10 @@ function AuthField({
       <label className="auth-field__label" htmlFor={id}>
         {label}
       </label>
-      <input
+      <Input
         id={id}
         type={type}
-        className="ui-input auth-field__input"
+        className="auth-field__input"
         placeholder={placeholderForAuthField(type)}
         value={value}
         onChange={(event) => onChange(event.target.value)}
@@ -278,11 +279,7 @@ function AuthActions({
   const isCreateMode = mode === "create-account";
   return (
     <>
-      <button
-        type="submit"
-        className="ui-button ui-button--primary auth-card__submit"
-        disabled={isLoading}
-      >
+      <Button type="submit" className="auth-card__submit" variant="primary" disabled={isLoading}>
         {isLoading
           ? isCreateMode
             ? "Creating account..."
@@ -290,28 +287,32 @@ function AuthActions({
           : isCreateMode
             ? "Create account"
             : "Sign in"}
-      </button>
+      </Button>
       {errorMessage ? (
         <p className="auth-card__error" role="alert">
           {errorMessage}
         </p>
       ) : null}
-      <button
+      <Button
         type="button"
-        className="ui-button ui-button--ghost ui-button--sm auth-card__secondary"
+        className="auth-card__secondary"
+        size="sm"
+        variant="ghost"
         disabled={isLoading}
         onClick={() => onSwitchMode(isCreateMode ? "sign-in" : "create-account")}
       >
         {isCreateMode ? "Sign in instead" : "Create an account"}
-      </button>
+      </Button>
       {isDevQuickLoginEnabled ? (
         <div className="auth-dev-accounts" aria-label="Development accounts">
           <p className="auth-dev-accounts__label">Local seed accounts</p>
           {devAccounts.map((account) => (
-            <button
+            <Button
               key={account.email}
               type="button"
-              className="ui-button ui-button--ghost ui-button--sm auth-card__secondary"
+              className="auth-card__secondary"
+              size="sm"
+              variant="ghost"
               disabled={isLoading}
               onClick={() => {
                 onEmailChange(account.email);
@@ -320,7 +321,7 @@ function AuthActions({
               }}
             >
               Continue as {account.label}
-            </button>
+            </Button>
           ))}
         </div>
       ) : null}

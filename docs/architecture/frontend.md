@@ -24,11 +24,15 @@ The first usable screen is the collaborative Markdown editor workspace, not a la
 
 ## Feature Boundaries
 
-- `app` owns shell composition and route-level layout.
+- `app` owns product bootstrapping, route-level state selection, and provider wiring.
+- `layouts/workspace-shell` owns the editor-first shell composition, top bar chrome, docked pane
+  layout, resize state, document tabs, and layout-only title/history preview state.
+- `features/auth` owns product sign-in and account creation UI.
 - `features/editor` owns TipTap rich Markdown authoring, presence-aware selection updates, and editor-local UI state.
 - `features/document` owns document title, properties, state display/control, and document-scoped view model mapping.
 - `features/history` owns checkpoint list and read-only snapshot inspection UI.
 - `features/workspace` owns navigation projection UI for workspace/project/folder/document context.
+- `features/settings` owns user, workspace, project settings panels and their API-backed mutations.
 - `lib/api-client` owns calls to provider-neutral API contracts.
 
 Frontend code must not import `apps/api/src/**`. Shared data shapes come from `packages/contracts` or feature-local view models.
@@ -40,7 +44,10 @@ Each feature exposes a public slot from its package root:
 - `EditorWorkspaceSlot` from `features/editor`,
 - `HistoryInspectorSlot` from `features/history`.
 
-`App.tsx` composes those slots and does not reach into feature subpaths. Feature code may use its own internals, but cross-feature imports must go through another feature's public root and must not import another feature's subpath.
+`App.tsx` passes product state to layout entry points and does not reach into feature subpaths.
+Layout code composes feature slots through their public roots. Feature code may use its own internals,
+but cross-feature imports must go through another feature's public root and must not import another
+feature's subpath.
 
 ## Mock Replacement Points
 

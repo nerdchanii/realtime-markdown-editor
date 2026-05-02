@@ -16,10 +16,30 @@ import {
   X,
 } from "lucide-react";
 
+import {
+  Button,
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  Input,
+  Tabs,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui";
+import {
+  SettingsPanel,
+  type SettingsAccountSurface,
+  type SettingsScope,
+} from "@/features/settings";
 import type { ApiClient } from "@/lib/api-client";
 import { deleteAuthSession } from "@/lib/api-client";
-import type { ProductAccountSurface } from "./product-workspace-types";
-import { SettingsPanel, type SettingsScope } from "./TopBarSettingsPanels";
+
+export type TopBarAccountSurface = SettingsAccountSurface;
 
 export function TopBar({
   accountSurface,
@@ -30,7 +50,7 @@ export function TopBar({
   onToggleNavigation,
   onToggleHistory,
 }: Readonly<{
-  accountSurface?: ProductAccountSurface;
+  accountSurface?: TopBarAccountSurface | undefined;
   apiClient: ApiClient;
   reload: () => void;
   isNavigationOpen: boolean;
@@ -99,7 +119,7 @@ function CommandSearch() {
     <form className="top-bar-center" role="search" onSubmit={(event) => event.preventDefault()}>
       <label className="top-bar-search">
         <Search size={14} aria-hidden="true" />
-        <input
+        <Input
           aria-label="Command search"
           placeholder="Search documents or commands"
           value={query}
@@ -153,7 +173,7 @@ function TopBarRight({
   onOpenSettings,
   onSignOut,
 }: Readonly<{
-  accountSurface: ProductAccountSurface | undefined;
+  accountSurface: TopBarAccountSurface | undefined;
   isHistoryOpen: boolean;
   isDropdownOpen: boolean;
   theme: "light" | "dark";
@@ -214,45 +234,45 @@ function ProfileMenu({
   onOpenSettings,
   onSignOut,
 }: Readonly<{
-  accountSurface: ProductAccountSurface | undefined;
+  accountSurface: TopBarAccountSurface | undefined;
   onOpenSettings: (scope: SettingsScope) => void;
   onSignOut: () => void;
 }>) {
   return (
-    <div className="ui-dropdown-content top-bar-menu">
+    <DropdownMenuContent className="top-bar-menu">
       <div className="top-bar-menu__account" role="presentation">
         <strong>{accountSurface?.currentMemberDisplayName ?? "Signed in user"}</strong>
         {accountSurface?.userEmail ? <span>{accountSurface.userEmail}</span> : null}
       </div>
-      <button className="ui-dropdown-item" onClick={() => onOpenSettings("user")}>
+      <DropdownMenuItem onClick={() => onOpenSettings("user")}>
         <UserCircle size={14} />
         Account settings
-      </button>
-      <button className="ui-dropdown-item" onClick={() => onOpenSettings("user")}>
+      </DropdownMenuItem>
+      <DropdownMenuItem onClick={() => onOpenSettings("user")}>
         <Settings2 size={14} />
         Settings
-      </button>
-      <button className="ui-dropdown-item" onClick={() => onOpenSettings("workspace")}>
+      </DropdownMenuItem>
+      <DropdownMenuItem onClick={() => onOpenSettings("workspace")}>
         <Building2 size={14} />
         Workspace settings
-      </button>
-      <button className="ui-dropdown-item" onClick={() => onOpenSettings("project")}>
+      </DropdownMenuItem>
+      <DropdownMenuItem onClick={() => onOpenSettings("project")}>
         <Settings2 size={14} />
         Project settings
-      </button>
-      <button className="ui-dropdown-item" disabled type="button">
+      </DropdownMenuItem>
+      <DropdownMenuItem disabled>
         <Bell size={14} />
         Notifications
-      </button>
-      <button className="ui-dropdown-item" disabled type="button">
+      </DropdownMenuItem>
+      <DropdownMenuItem disabled>
         <Keyboard size={14} />
         Keyboard shortcuts
-      </button>
-      <button className="ui-dropdown-item" onClick={onSignOut}>
+      </DropdownMenuItem>
+      <DropdownMenuItem onClick={onSignOut}>
         <LogOut size={14} />
         Sign out
-      </button>
-    </div>
+      </DropdownMenuItem>
+    </DropdownMenuContent>
   );
 }
 
@@ -264,7 +284,7 @@ function SettingsDialog({
   reload,
   onClose,
 }: Readonly<{
-  accountSurface: ProductAccountSurface | undefined;
+  accountSurface: TopBarAccountSurface | undefined;
   activeScope: SettingsScope;
   onScopeChange: (scope: SettingsScope) => void;
   apiClient: ApiClient;
@@ -279,44 +299,40 @@ function SettingsDialog({
         aria-label="Close settings"
         onClick={onClose}
       />
-      <div className="ui-dialog top-bar-settings-dialog">
-        <div className="ui-dialog-content">
-          <header className="ui-dialog-header">
-            <h2 className="ui-dialog-title">Settings</h2>
-            <button
-              className="ui-button ui-button--ghost ui-button--icon ui-dialog-close"
-              onClick={onClose}
-            >
+      <Dialog className="top-bar-settings-dialog" open>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Settings</DialogTitle>
+            <DialogClose aria-label="Close settings" className="ui-button--icon" onClick={onClose}>
               <X size={14} />
-            </button>
-          </header>
-          <div className="ui-tabs top-bar-settings">
-            <div className="ui-tabs-list" aria-label="Settings scope">
+            </DialogClose>
+          </DialogHeader>
+          <Tabs className="top-bar-settings">
+            <TabsList aria-label="Settings scope">
               {settingsScopes.map((scope) => (
-                <button
+                <TabsTrigger
                   key={scope}
-                  type="button"
-                  className={`ui-tabs-trigger ${scope === activeScope ? "is-active" : ""}`}
+                  active={scope === activeScope}
                   onClick={() => onScopeChange(scope)}
                 >
                   {settingsScopeLabels[scope]}
-                </button>
+                </TabsTrigger>
               ))}
-            </div>
+            </TabsList>
             <SettingsPanel
               accountSurface={accountSurface}
               apiClient={apiClient}
               reload={reload}
               scope={activeScope}
             />
-          </div>
-          <footer className="ui-dialog-footer">
-            <button className="ui-button ui-button--secondary" onClick={onClose}>
+          </Tabs>
+          <DialogFooter>
+            <Button variant="secondary" onClick={onClose}>
               Close
-            </button>
-          </footer>
-        </div>
-      </div>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

@@ -38,6 +38,7 @@ export type {
 } from "./types";
 
 export { workspaceDocumentSelectedEventName, workspaceFeatureId } from "./events";
+export { FirstWorkspaceForm } from "./FirstWorkspaceForm";
 
 export type WorkspaceNavigationSlotProps = Readonly<{
   viewModel: WorkspaceNavigationViewModel;
