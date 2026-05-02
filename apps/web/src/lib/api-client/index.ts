@@ -1,6 +1,7 @@
 import type {
   CollaborationSessionDto,
   CollaborationSessionResponseDto,
+  CreateAccountRequestDto,
   CreateProjectRequestDto,
   CreateDocumentRequestDto,
   CreateFolderRequestDto,
@@ -27,6 +28,7 @@ import type {
   UpdateFolderRequestDto,
   UpdateProjectRequestDto,
   UpdateWorkspaceRequestDto,
+  UserResponseDto,
   WorkspaceId,
   WorkspaceNavigationResponseDto,
   WorkspaceResponseDto,
@@ -58,6 +60,16 @@ export function createProductApiClient(): ApiClient {
     baseUrl: apiBaseUrl(),
     providerName: "lib.api-client.product",
   };
+}
+
+export async function createAccount(
+  client: ApiClient,
+  request: CreateAccountRequestDto,
+): Promise<UserResponseDto> {
+  return fetchJson(client, "/accounts", {
+    method: "POST",
+    body: JSON.stringify(request),
+  });
 }
 
 export async function fetchAuthSession(client: ApiClient): Promise<SessionResponseDto> {

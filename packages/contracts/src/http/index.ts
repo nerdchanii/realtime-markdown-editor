@@ -25,6 +25,16 @@ export type UserDto = Readonly<{
   name: string;
 }>;
 
+export type CreateAccountRequestDto = Readonly<{
+  email: string;
+  name: string;
+  password: string;
+}>;
+
+export type UserResponseDto = Readonly<{
+  user: UserDto;
+}>;
+
 export type WorkspaceMemberDto = Readonly<{
   id: WorkspaceMembershipId;
   userId: UserId;

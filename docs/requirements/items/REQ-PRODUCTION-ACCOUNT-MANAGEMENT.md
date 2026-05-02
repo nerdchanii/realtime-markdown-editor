@@ -12,12 +12,13 @@ depends_on:
   - REQ-IDENTITY-MEMBERSHIP
 blocks:
   - REQ-WORKSPACE-MEMBER-MANAGEMENT
-next_step: account create/profile update/deactivation API contract를 추가하고 현재 read-only settings placeholder를 실제 account management flow로 교체한다.
+next_step: profile update/deactivation API contract를 추가하고 현재 read-only settings placeholder를 실제 account management flow로 교체한다.
 refs:
   - docs/product/workspace/user-membership.md
   - packages/contracts/src/http/routes.ts
   - tasks/archive/TASK-074-auth-session-owner-member-authorization.md
   - tasks/archive/TASK-094-product-account-surface-and-policy.md
+  - tasks/archive/TASK-101-product-account-create.md
 ---
 
 # REQ-PRODUCTION-ACCOUNT-MANAGEMENT
@@ -43,6 +44,8 @@ Acceptance:
 `TASK-094` removed local reviewer language from the primary sign-in UI, moved settings behind the
 profile menu, renders account/workspace/project identity from the authenticated session and
 workspace navigation, and records the account deactivation/delete policy in the product docs.
+`TASK-101` adds a local product account creation contract/API and a normal auth-screen flow that
+creates the account, creates a session, and lands the user in workspace onboarding.
 
-This requirement remains open because account creation/bootstrap and profile/deactivation mutations
-are not yet exposed by the contracts or API.
+This requirement remains open because profile update and deactivation mutations are not yet exposed
+by the contracts or API.

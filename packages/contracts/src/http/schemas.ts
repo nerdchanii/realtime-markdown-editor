@@ -71,6 +71,22 @@ export const httpRuntimeSchemaStrategy = {
 
 export const httpSchemaCatalog = [
   {
+    id: "CreateAccountRequest",
+    dto: "CreateAccountRequestDto",
+    target: "body",
+    fields: [
+      { name: "email", kind: "string", required: true, format: "email" },
+      { name: "name", kind: "string", required: true, minLength: 1 },
+      { name: "password", kind: "string", required: true, minLength: 8 },
+    ],
+  },
+  {
+    id: "UserResponse",
+    dto: "UserResponseDto",
+    target: "response",
+    fields: [{ name: "user", kind: "object", required: true }],
+  },
+  {
     id: "CreateSessionRequest",
     dto: "CreateSessionRequestDto",
     target: "body",

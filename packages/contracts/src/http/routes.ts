@@ -27,6 +27,7 @@ export type SubjectRequirementRef =
   | "REQ-MARKDOWN-PORTABILITY"
   | "REQ-OFFLINE-RECONNECT-MERGE"
   | "REQ-PRESENCE-MEMBER-AWARENESS"
+  | "REQ-PRODUCTION-ACCOUNT-MANAGEMENT"
   | "REQ-PROPERTIES-OUTSIDE-BODY"
   | "REQ-DOCUMENT-TRASH-RESTORE"
   | "REQ-WORKSPACE-DOCUMENT-SCOPE"
@@ -60,6 +61,17 @@ export const canonicalCheckpointCreationRoute = {
 } as const;
 
 export const canonicalProductHttpRoutes = [
+  {
+    id: "accounts.create",
+    method: "POST",
+    path: "/accounts",
+    owner: "IdentityModule",
+    audience: "product",
+    requestDto: "CreateAccountRequestDto",
+    responseDto: "UserResponseDto",
+    schemas: { body: "CreateAccountRequest", response: "UserResponse" },
+    relatedRequirements: ["REQ-PRODUCTION-ACCOUNT-MANAGEMENT", "REQ-IDENTITY-MEMBERSHIP"],
+  },
   {
     id: "auth.createSession",
     method: "POST",
