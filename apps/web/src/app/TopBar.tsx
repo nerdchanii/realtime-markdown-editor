@@ -1,12 +1,17 @@
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import {
+  Bell,
   Building2,
   Folder,
+  Keyboard,
   LogOut,
+  Moon,
   PanelLeftClose,
   PanelLeftOpen,
   PanelRight,
+  Search,
   Settings2,
+  Sun,
   UserCircle,
   X,
 } from "lucide-react";
@@ -36,6 +41,11 @@ export function TopBar({
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [settingsScope, setSettingsScope] = useState<SettingsScope>("user");
+  const [theme, setTheme] = useState<"light" | "dark">("light");
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+  }, [theme]);
 
   const handleSignOut = async () => {
     await deleteAuthSession(apiClient);
@@ -51,12 +61,14 @@ export function TopBar({
           projectName={accountSurface?.projectName}
           onToggleNavigation={onToggleNavigation}
         />
-        <div className="top-bar-center" aria-hidden="true" />
+        <CommandSearch />
         <TopBarRight
           isHistoryOpen={isHistoryOpen}
           isDropdownOpen={isDropdownOpen}
+          theme={theme}
           onToggleDropdown={() => setIsDropdownOpen((current) => !current)}
           onToggleHistory={onToggleHistory}
+          onToggleTheme={() => setTheme((current) => (current === "light" ? "dark" : "light"))}
           accountSurface={accountSurface}
           onOpenSettings={(scope) => {
             setSettingsScope(scope);
@@ -77,6 +89,27 @@ export function TopBar({
         />
       ) : null}
     </>
+  );
+}
+
+function CommandSearch() {
+  const [query, setQuery] = useState("");
+
+  return (
+    <form className="top-bar-center" role="search" onSubmit={(event) => event.preventDefault()}>
+      <label className="top-bar-search">
+        <Search size={14} aria-hidden="true" />
+        <input
+          aria-label="Command search"
+          placeholder="Search documents or commands"
+          value={query}
+          onChange={(event) => setQuery(event.currentTarget.value)}
+        />
+        <span className="top-bar-search__shortcut" aria-label="Search is planned">
+          {query ? "Planned" : <kbd>⌘K</kbd>}
+        </span>
+      </label>
+    </form>
   );
 }
 
@@ -113,16 +146,20 @@ function TopBarRight({
   accountSurface,
   isHistoryOpen,
   isDropdownOpen,
+  theme,
   onToggleDropdown,
   onToggleHistory,
+  onToggleTheme,
   onOpenSettings,
   onSignOut,
 }: Readonly<{
   accountSurface: ProductAccountSurface | undefined;
   isHistoryOpen: boolean;
   isDropdownOpen: boolean;
+  theme: "light" | "dark";
   onToggleDropdown: () => void;
   onToggleHistory: () => void;
+  onToggleTheme: () => void;
   onOpenSettings: (scope: SettingsScope) => void;
   onSignOut: () => void;
 }>) {
@@ -150,6 +187,15 @@ function TopBarRight({
         ) : null}
       </div>
       <span className="top-bar-divider" aria-hidden="true" />
+      <button
+        type="button"
+        className="top-bar-icon-button"
+        aria-label={theme === "light" ? "Switch to dark theme" : "Switch to light theme"}
+        aria-pressed={theme === "dark"}
+        onClick={onToggleTheme}
+      >
+        {theme === "light" ? <Moon size={16} /> : <Sun size={16} />}
+      </button>
       <button
         type="button"
         className="top-bar-icon-button"
@@ -182,6 +228,10 @@ function ProfileMenu({
         <UserCircle size={14} />
         Account settings
       </button>
+      <button className="ui-dropdown-item" onClick={() => onOpenSettings("user")}>
+        <Settings2 size={14} />
+        Settings
+      </button>
       <button className="ui-dropdown-item" onClick={() => onOpenSettings("workspace")}>
         <Building2 size={14} />
         Workspace settings
@@ -189,6 +239,14 @@ function ProfileMenu({
       <button className="ui-dropdown-item" onClick={() => onOpenSettings("project")}>
         <Settings2 size={14} />
         Project settings
+      </button>
+      <button className="ui-dropdown-item" disabled type="button">
+        <Bell size={14} />
+        Notifications
+      </button>
+      <button className="ui-dropdown-item" disabled type="button">
+        <Keyboard size={14} />
+        Keyboard shortcuts
       </button>
       <button className="ui-dropdown-item" onClick={onSignOut}>
         <LogOut size={14} />

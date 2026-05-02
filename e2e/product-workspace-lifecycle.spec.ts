@@ -94,7 +94,9 @@ test("Product: owner can archive the active project from settings", async ({ pag
 
 test("Product: owner can archive the workspace from settings", async ({ page }) => {
   const documentId = uniqueReviewDocumentId("workspace-archive");
+  const title = titleFromDocumentId(documentId);
   await openReviewerSession(page, { member: "alice", documentId });
+  await expect(page.getByTestId("document-title")).toHaveValue(title);
 
   await page.getByLabel("Open profile menu").click();
   await page.getByRole("button", { name: "Workspace settings" }).click();

@@ -1,11 +1,11 @@
 ---
 id: REQ-EDITOR-FIRST-UI-REFRESH
 title: 제품 UI는 DESIGN.md 기준의 editor-first IDE-like workspace로 재정렬되어야 한다.
-status: planned
+status: done
 category: product-extension
 type: ux
 priority: high
-taskability: taskable
+taskability: done
 scope: frontend
 derived_from:
   - DESIGN.md
@@ -17,7 +17,7 @@ depends_on:
   - REQ-HISTORY-CHECKPOINTS
   - REQ-PRESENCE-MEMBER-AWARENESS
 blocks: []
-next_step: DESIGN.md를 source of truth로 삼아 Top Bar, Explorer, Editor, History inspector, Profile/Settings entry의 UI refresh task를 분리하되 deferred UI scope는 포함하지 않는다.
+next_step: done
 refs:
   - DESIGN.md
   - docs/product/README.md
@@ -60,3 +60,25 @@ Explicit non-goals:
 - Global bottom status bar를 추가하지 않는다.
 - Multi-pane document workspace를 추가하지 않는다.
 - Public demo entrypoint, invitation inbox, workspace-wide offline cache는 이 요구사항의 범위가 아니다.
+
+## Completion Evidence
+
+The product workspace now follows the editor-first shell from `DESIGN.md`: compact Top Bar,
+docked Explorer, center TipTap editor, right History inspector, and profile-menu settings. The
+main editor body is not wrapped in a large rounded dashboard card, and the optional status strip is
+scoped to the center editor panel.
+
+Evidence:
+
+- Top Bar shows workspace/project hierarchy, command/search placeholder, theme toggle, history
+  panel toggle, and profile entry.
+- Profile menu opens scoped User, Workspace, and Project settings; standalone settings gear is not
+  present.
+- Settings actions use product APIs for account, workspace, project, member, and lifecycle flows.
+- Right inspector is History-only for the first implementation.
+- Document tabs, compact TipTap toolbar, document title/metadata, and editor-local sync/word-count
+  state appear in the center editor context.
+- Presence remains inside the editor surface through collaborative caret/selection rendering.
+- Placeholder command/search, notifications, and keyboard shortcut entries are visibly non-final
+  and tracked in `docs/product/ui-capability-gap-log.md`.
+- Existing CE/product E2E coverage remains on the same editor-first reviewer path.
