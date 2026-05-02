@@ -33,13 +33,15 @@ CE story acceptance는 `subject.md`의 CE-01부터 CE-05까지와
 
 `commit-msg`는 `pnpm exec commitlint --edit "$1"`을 실행한다.
 
-`pre-commit`은 다음 명령을 순서대로 실행한다.
+`pre-commit`은 `scripts/with-node.sh pnpm precommit:staged`를 실행한다. 이 staged-file gate는
+변경 파일을 기준으로 필요한 검사만 실행한다.
 
-1. `pnpm format:check`
-2. `pnpm lint`
-3. `pnpm typecheck`
-4. `pnpm arch:check`
-5. `pnpm test`
+1. 모든 commit에서 `git diff --cached --check`
+2. Prettier 대상 staged 파일이 있으면 해당 파일만 `prettier --check`
+3. ESLint 대상 staged 파일이 있으면 해당 파일만 `eslint`
+4. TypeScript source, package, tsconfig, lockfile 변경이 있으면 관련 typecheck
+5. Source 또는 architecture 설정 변경이 있으면 `pnpm arch:check`
+6. Source, package, lockfile 변경이 있으면 `pnpm test`
 
 `pnpm check`는 작업 완료 전 최종 게이트다. Root script 기준으로 `typecheck`, `lint`,
 `format:check`, `arch:check`, `test`가 모두 통과해야 한다.
@@ -55,7 +57,7 @@ CE story acceptance는 `subject.md`의 CE-01부터 CE-05까지와
 | TypeScript         | strict type safety                                         |
 | Prettier           | 코드, 설정, script, task Markdown formatting               |
 | Tests              | TDD와 동작 보증                                            |
-| Husky              | 로컬 강제 진입점                                           |
+| Husky              | staged-file 기준 로컬 강제 진입점                          |
 | commitlint         | conventional commit message 검사                           |
 
 Custom architecture script는 저장소 고유 architecture invariant만 맡는다. 예를 들어 금지된 shared
@@ -178,7 +180,6 @@ Prettier 설정은 현재 값을 유지한다.
 
 Walking skeleton 완성 뒤 다음 항목을 별도 task로 승격할 수 있다.
 
-- Staged file 중심 검사 최적화.
 - 더 세밀한 import boundary plugin 설정.
 - Visual regression 또는 screenshot 검증 자동화.
 - CE e2e 검증 job 분리.

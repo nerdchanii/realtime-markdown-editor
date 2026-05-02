@@ -1,5 +1,1 @@
-pnpm format:check
-pnpm lint
-pnpm typecheck
-pnpm arch:check
-pnpm test
+scripts/with-node.sh pnpm precommit:staged
