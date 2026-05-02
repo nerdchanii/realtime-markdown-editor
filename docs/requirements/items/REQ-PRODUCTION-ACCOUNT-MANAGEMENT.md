@@ -12,11 +12,12 @@ depends_on:
   - REQ-IDENTITY-MEMBERSHIP
 blocks:
   - REQ-WORKSPACE-MEMBER-MANAGEMENT
-next_step: 기존 session API를 사용자-facing login/logout/session restore UI와 account create/update/deactivate flow로 연결한다.
+next_step: account create/profile update/deactivation API contract를 추가하고 현재 read-only settings placeholder를 실제 account management flow로 교체한다.
 refs:
   - docs/product/workspace/user-membership.md
   - packages/contracts/src/http/routes.ts
   - tasks/archive/TASK-074-auth-session-owner-member-authorization.md
+  - tasks/archive/TASK-094-product-account-surface-and-policy.md
 ---
 
 # REQ-PRODUCTION-ACCOUNT-MANAGEMENT
@@ -36,3 +37,12 @@ Acceptance:
 - 사용자는 display name 같은 기본 account profile을 수정할 수 있다.
 - 계정 비활성화 또는 삭제 정책이 정의되어 있고 membership, checkpoint authorship, auditability와 충돌하지 않는다.
 - Product reviewer flow는 `?member=alice` 같은 URL member spoofing에 의존하지 않고 session 기반으로 동작한다.
+
+## Current State
+
+`TASK-094` removed local reviewer language from the primary sign-in UI, moved settings behind the
+profile menu, renders account/workspace/project identity from the authenticated session and
+workspace navigation, and records the account deactivation/delete policy in the product docs.
+
+This requirement remains open because account creation/bootstrap and profile/deactivation mutations
+are not yet exposed by the contracts or API.

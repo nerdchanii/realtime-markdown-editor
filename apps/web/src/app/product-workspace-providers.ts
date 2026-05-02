@@ -249,6 +249,26 @@ function createLoadedState(
     apiClient: input.apiClient,
     selectDocumentId: input.selectDocumentId,
     reload: input.reload,
+    accountSurface: createAccountSurface(model),
+  };
+}
+
+function createAccountSurface(
+  model: NonNullable<Awaited<ReturnType<typeof loadProductWorkspace>>>,
+) {
+  const currentMember = model.session?.currentMembership;
+  const folder = model.navigation.folders.find(
+    (candidate) => candidate.id === model.selectedDocument.folderId,
+  );
+  const project = model.navigation.projects.find((candidate) => candidate.id === folder?.projectId);
+
+  return {
+    userName: model.session?.user.name ?? "Signed in user",
+    userEmail: model.session?.user.email ?? "",
+    currentMemberDisplayName: currentMember?.displayName ?? model.session?.user.name ?? "Member",
+    currentMemberColor: currentMember?.color ?? "#8a99ad",
+    workspaceName: model.navigation.workspace.name,
+    projectName: project?.name ?? model.navigation.projects[0]?.name ?? "Workspace root",
   };
 }
 

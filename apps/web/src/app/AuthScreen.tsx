@@ -10,9 +10,11 @@ export function AuthScreen({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const loginWithCredentials = async (nextEmail: string, nextPassword: string) => {
     if (!nextEmail || !nextPassword) return;
+    setErrorMessage(null);
     setEmail(nextEmail);
     setPassword(nextPassword);
     setIsLoading(true);
@@ -21,6 +23,7 @@ export function AuthScreen({
       reload();
     } catch (error) {
       console.error(error);
+      setErrorMessage("The email or password did not match an active product account.");
       setIsLoading(false);
     }
   };
@@ -35,6 +38,7 @@ export function AuthScreen({
       <section className="auth-card">
         <AuthCardBody
           email={email}
+          errorMessage={errorMessage}
           isLoading={isLoading}
           password={password}
           onEmailChange={setEmail}
@@ -82,6 +86,7 @@ function AuthField({
 
 function AuthCardBody({
   email,
+  errorMessage,
   isLoading,
   password,
   onEmailChange,
@@ -90,6 +95,7 @@ function AuthCardBody({
   onPasswordChange,
 }: Readonly<{
   email: string;
+  errorMessage: string | null;
   isLoading: boolean;
   password: string;
   onEmailChange: (value: string) => void;
@@ -101,10 +107,11 @@ function AuthCardBody({
     <>
       <h2 className="auth-card__title">Local session bootstrap</h2>
       <p className="auth-card__copy">
-        Development account sign in. Use this only for local reviewer flows.
+        Sign in with a product account to open your workspace, documents, and collaboration session.
       </p>
       <AuthForm
         email={email}
+        errorMessage={errorMessage}
         isLoading={isLoading}
         onEmailChange={onEmailChange}
         onLogin={onLogin}
@@ -118,6 +125,7 @@ function AuthCardBody({
 
 function AuthForm({
   email,
+  errorMessage,
   isLoading,
   onEmailChange,
   onLogin,
@@ -126,6 +134,7 @@ function AuthForm({
   password,
 }: Readonly<{
   email: string;
+  errorMessage: string | null;
   isLoading: boolean;
   onEmailChange: (value: string) => void;
   onLogin: (event: FormEvent<HTMLFormElement>) => Promise<void>;
@@ -151,6 +160,7 @@ function AuthForm({
         disabled={isLoading}
       />
       <AuthActions
+        errorMessage={errorMessage}
         isLoading={isLoading}
         onEmailChange={onEmailChange}
         onQuickLogin={onQuickLogin}
@@ -161,11 +171,13 @@ function AuthForm({
 }
 
 function AuthActions({
+  errorMessage,
   isLoading,
   onEmailChange,
   onQuickLogin,
   onPasswordChange,
 }: Readonly<{
+  errorMessage: string | null;
   isLoading: boolean;
   onEmailChange: (value: string) => void;
   onQuickLogin: (email: string, password: string) => Promise<void>;
@@ -178,10 +190,16 @@ function AuthActions({
         className="ui-button ui-button--primary auth-card__submit"
         disabled={isLoading}
       >
-        {isLoading ? "Starting session..." : "Start local session"}
+        {isLoading ? "Signing in..." : "Sign in"}
       </button>
+      {errorMessage ? (
+        <p className="auth-card__error" role="alert">
+          {errorMessage}
+        </p>
+      ) : null}
       {isDevQuickLoginEnabled ? (
         <div className="auth-dev-accounts" aria-label="Development accounts">
+          <p className="auth-dev-accounts__label">Local seed accounts</p>
           {devAccounts.map((account) => (
             <button
               key={account.email}

@@ -26,6 +26,7 @@ export type ProductWorkspaceState =
       reload: () => void;
       apiClient: ApiClient;
       selectDocumentId: (documentId: DocumentId) => void;
+      accountSurface: ProductAccountSurface;
     }>
   | Readonly<{
       status: "empty";
@@ -64,4 +65,13 @@ export type ProductWorkspaceModel = Readonly<{
   collaborationSession: CollaborationSessionDto;
   markdownBody: string;
   backlinks: readonly BacklinkDto[];
+}>;
+
+export type ProductAccountSurface = Readonly<{
+  userName: string;
+  userEmail: string;
+  currentMemberDisplayName: string;
+  currentMemberColor: string;
+  workspaceName: string;
+  projectName: string;
 }>;

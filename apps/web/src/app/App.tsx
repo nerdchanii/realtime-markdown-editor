@@ -112,6 +112,7 @@ function ReviewWorkspace({
       style={appShellStyle}
     >
       <TopBar
+        accountSurface={state.accountSurface}
         apiClient={state.apiClient}
         reload={state.reload}
         isNavigationOpen={isNavigationOpen}
