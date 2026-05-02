@@ -81,6 +81,15 @@ export class WorkspaceProductController {
     return { workspace: await this.workspaces.updateWorkspace(workspaceId, body) };
   }
 
+  @Delete("workspaces/:workspaceId")
+  async deleteWorkspace(
+    @Param("workspaceId") workspaceId: string,
+    @Headers("cookie") cookieHeader: string | undefined,
+  ): Promise<DeletedResourceResponseDto> {
+    await this.access.requireWorkspaceOwnerAccess(cookieHeader, workspaceId as WorkspaceId);
+    return this.workspaces.deleteWorkspace(workspaceId);
+  }
+
   @Get("workspaces/:workspaceId/members")
   async listWorkspaceMembers(
     @Param("workspaceId") workspaceId: string,
@@ -173,6 +182,15 @@ export class WorkspaceProductController {
   ): Promise<ProjectResponseDto> {
     await this.access.requireProjectAccess(cookieHeader, projectId as ProjectId);
     return { project: await this.workspaces.updateProject(projectId, body) };
+  }
+
+  @Delete("projects/:projectId")
+  async deleteProject(
+    @Param("projectId") projectId: string,
+    @Headers("cookie") cookieHeader: string | undefined,
+  ): Promise<DeletedResourceResponseDto> {
+    await this.access.requireProjectOwnerAccess(cookieHeader, projectId as ProjectId);
+    return this.workspaces.deleteProject(projectId);
   }
 
   @Get("folders/:folderId/children")

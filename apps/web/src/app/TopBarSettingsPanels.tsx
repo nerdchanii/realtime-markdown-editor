@@ -6,6 +6,8 @@ import type { ApiClient } from "@/lib/api-client";
 import {
   createWorkspaceMember,
   createProject,
+  deleteProject,
+  deleteWorkspace,
   deleteWorkspaceMember,
   fetchWorkspaceMembers,
   updateAccountProfile,
@@ -188,6 +190,14 @@ function WorkspaceSettingsPanel({
     reload();
   };
 
+  const handleArchiveWorkspace = async () => {
+    if (!accountSurface?.workspaceId) return;
+    if (!confirmDestructiveAction(`Archive workspace "${accountSurface.workspaceName}"?`)) return;
+    await deleteWorkspace(apiClient, accountSurface.workspaceId);
+    setStatus("Workspace archived.");
+    reload();
+  };
+
   return (
     <div className="ui-tabs-content top-bar-settings__panel">
       <form className="top-bar-settings__form" onSubmit={handleRenameWorkspace}>
@@ -250,6 +260,13 @@ function WorkspaceSettingsPanel({
           </div>
         ))}
       </div>
+      <button
+        className="ui-button ui-button--secondary"
+        type="button"
+        onClick={handleArchiveWorkspace}
+      >
+        Archive workspace
+      </button>
       {status ? <p className="top-bar-settings__status">{status}</p> : null}
     </div>
   );
@@ -276,6 +293,14 @@ function ProjectSettingsPanel({
     reload();
   };
 
+  const handleArchiveProject = async () => {
+    if (!accountSurface?.projectId) return;
+    if (!confirmDestructiveAction(`Archive project "${accountSurface.projectName}"?`)) return;
+    await deleteProject(apiClient, accountSurface.projectId);
+    setStatus("Project archived.");
+    reload();
+  };
+
   return (
     <div className="ui-tabs-content top-bar-settings__panel">
       <form className="top-bar-settings__form" onSubmit={handleRenameProject}>
@@ -288,6 +313,14 @@ function ProjectSettingsPanel({
           Save project
         </button>
       </form>
+      <button
+        className="ui-button ui-button--secondary"
+        disabled={!accountSurface?.projectId}
+        type="button"
+        onClick={handleArchiveProject}
+      >
+        Archive project
+      </button>
       {status ? <p className="top-bar-settings__status">{status}</p> : null}
     </div>
   );
@@ -326,4 +359,9 @@ function upsertMember(
   const existing = members.find((member) => member.id === updatedMember.id);
   if (!existing) return [...members, updatedMember];
   return members.map((member) => (member.id === updatedMember.id ? updatedMember : member));
+}
+
+function confirmDestructiveAction(message: string): boolean {
+  if (typeof globalThis.confirm !== "function") return true;
+  return globalThis.confirm(message);
 }

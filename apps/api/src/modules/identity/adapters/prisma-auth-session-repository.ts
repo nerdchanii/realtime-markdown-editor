@@ -13,6 +13,10 @@ import type { UserId, WorkspaceMembershipId } from "@rme/contracts";
 import { verifyPasswordCredential } from "@/modules/identity/use-cases/password-credential.js";
 
 const sessionTtlMs = 7 * 24 * 60 * 60 * 1000;
+const activeMembershipWhere = {
+  removedAt: null,
+  workspace: { rootFolderId: { not: null } },
+} as const;
 
 @Injectable()
 export class PrismaAuthSessionRepository implements AuthSessionRepository {
@@ -25,7 +29,7 @@ export class PrismaAuthSessionRepository implements AuthSessionRepository {
   }): Promise<CreatedSession | null> {
     const user = await this.database.user.findUnique({
       where: { email: input.email },
-      include: { memberships: { where: { removedAt: null }, orderBy: { createdAt: "asc" } } },
+      include: { memberships: { where: activeMembershipWhere, orderBy: { createdAt: "asc" } } },
     });
     if (!user) return null;
     if (!isValidPassword(input.password, user)) return null;
@@ -66,7 +70,7 @@ export class PrismaAuthSessionRepository implements AuthSessionRepository {
       where: { tokenHash: hashSessionToken(token) },
       include: {
         user: {
-          include: { memberships: { where: { removedAt: null }, orderBy: { createdAt: "asc" } } },
+          include: { memberships: { where: activeMembershipWhere, orderBy: { createdAt: "asc" } } },
         },
       },
     });

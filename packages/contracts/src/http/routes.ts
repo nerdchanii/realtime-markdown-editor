@@ -163,6 +163,20 @@ export const canonicalProductHttpRoutes = [
     relatedRequirements: ["REQ-WORKSPACE-HIERARCHY", "REQ-WORKSPACE-LIFECYCLE-MANAGEMENT"],
   },
   {
+    id: "workspaces.delete",
+    method: "DELETE",
+    path: "/workspaces/:workspaceId",
+    owner: "WorkspaceModule",
+    audience: "product",
+    responseDto: "DeletedResourceResponseDto",
+    schemas: {
+      params: "WorkspaceIdPathParams",
+      response: "DeletedResourceResponse",
+    },
+    relatedRequirements: ["REQ-WORKSPACE-HIERARCHY", "REQ-WORKSPACE-LIFECYCLE-MANAGEMENT"],
+    notes: ["Workspace archive hides the workspace and archives contained folders/documents."],
+  },
+  {
     id: "workspace-members.list",
     method: "GET",
     path: "/workspaces/:workspaceId/members",
@@ -274,6 +288,20 @@ export const canonicalProductHttpRoutes = [
       response: "ProjectResponse",
     },
     relatedRequirements: ["REQ-WORKSPACE-HIERARCHY", "REQ-WORKSPACE-LIFECYCLE-MANAGEMENT"],
+  },
+  {
+    id: "projects.delete",
+    method: "DELETE",
+    path: "/projects/:projectId",
+    owner: "WorkspaceModule",
+    audience: "product",
+    responseDto: "DeletedResourceResponseDto",
+    schemas: {
+      params: "ProjectIdPathParams",
+      response: "DeletedResourceResponse",
+    },
+    relatedRequirements: ["REQ-WORKSPACE-HIERARCHY", "REQ-WORKSPACE-LIFECYCLE-MANAGEMENT"],
+    notes: ["Project archive hides the project and archives documents below its root folder."],
   },
   {
     id: "folders.listChildren",

@@ -36,6 +36,7 @@ export interface WorkspaceProductRepository {
     workspaceId: string,
     input: UpdateWorkspaceRequestDto,
   ): Promise<WorkspaceDto | null>;
+  deleteWorkspace(workspaceId: string): Promise<DeletedResourceResponseDto | null>;
   listWorkspaceMembers(workspaceId: string): Promise<ListWorkspaceMembersResponseDto | null>;
   addWorkspaceMember(
     workspaceId: string,
@@ -55,6 +56,7 @@ export interface WorkspaceProductRepository {
   createProject(workspaceId: string, input: CreateProjectRequestDto): Promise<ProjectDto | null>;
   findProject(projectId: string): Promise<ProjectDto | null>;
   updateProject(projectId: string, input: UpdateProjectRequestDto): Promise<ProjectDto | null>;
+  deleteProject(projectId: string): Promise<DeletedResourceResponseDto | null>;
   getFolderChildren(folderId: string): Promise<FolderChildrenResponseDto | null>;
   createFolder(input: CreateFolderRequestDto): Promise<FolderDto | null>;
   findFolder(folderId: string): Promise<FolderDto | null>;

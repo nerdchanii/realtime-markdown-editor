@@ -110,6 +110,29 @@ test("workspace product API creates hierarchy and protects root folders", async 
       afterDeleteNavigation.folders.map((item) => item.name).sort(),
       ["Project root", "Workspace root"].sort(),
     );
+
+    const projectDelete = await fetch(`${baseUrl}/projects/${project.id}`, {
+      method: "DELETE",
+      headers: authHeaders(),
+    });
+    assert.equal(projectDelete.status, 200, await projectDelete.text());
+
+    const afterProjectDeleteNavigation = await getJson<WorkspaceNavigationResponseDto>(
+      baseUrl,
+      `/workspaces/${workspace.id}/navigation`,
+    );
+    assert.deepEqual(afterProjectDeleteNavigation.projects, []);
+
+    const workspaceDelete = await fetch(`${baseUrl}/workspaces/${workspace.id}`, {
+      method: "DELETE",
+      headers: authHeaders(),
+    });
+    assert.equal(workspaceDelete.status, 200, await workspaceDelete.text());
+
+    const workspaceAfterDelete = await fetch(`${baseUrl}/workspaces/${workspace.id}`, {
+      headers: authHeaders(),
+    });
+    assert.equal(workspaceAfterDelete.status, 404, await workspaceAfterDelete.text());
   } finally {
     await app.close();
   }
@@ -160,6 +183,20 @@ class InMemoryWorkspaceProductRepository implements WorkspaceProductRepository {
     const updated = { ...workspace, name: input.name ?? workspace.name };
     this.workspaces.set(workspaceId, updated);
     return updated;
+  }
+
+  async deleteWorkspace(workspaceId: string): Promise<DeletedResourceResponseDto | null> {
+    const workspace = this.workspaces.get(workspaceId);
+    if (!workspace?.rootFolderId) return null;
+    const deletedAt = new Date("2026-04-30T00:00:00.000Z").toISOString();
+    this.workspaces.delete(workspaceId);
+    for (const project of this.projects.values()) {
+      if (project.workspaceId === workspaceId) this.projects.delete(project.id);
+    }
+    for (const folder of this.folders.values()) {
+      if (folder.workspaceId === workspaceId) this.folders.set(folder.id, { ...folder, deletedAt });
+    }
+    return { id: workspaceId, deletedAt };
   }
 
   async listWorkspaceMembers(workspaceId: string): Promise<ListWorkspaceMembersResponseDto | null> {
@@ -269,6 +306,18 @@ class InMemoryWorkspaceProductRepository implements WorkspaceProductRepository {
     const updated = { ...project, name: input.name ?? project.name };
     this.projects.set(projectId, updated);
     return updated;
+  }
+
+  async deleteProject(projectId: string): Promise<DeletedResourceResponseDto | null> {
+    const project = this.projects.get(projectId);
+    if (!project?.rootFolderId) return null;
+    const deletedAt = new Date("2026-04-30T00:00:00.000Z").toISOString();
+    this.projects.delete(projectId);
+    for (const folderId of this.collectFolderTreeIds(project.rootFolderId)) {
+      const folder = this.folders.get(folderId);
+      if (folder) this.folders.set(folderId, { ...folder, deletedAt });
+    }
+    return { id: projectId, deletedAt };
   }
 
   async getFolderChildren(folderId: string) {
@@ -397,6 +446,11 @@ class AllowAllProductApiAccessService {
     };
   }
   async requireProjectAccess(): Promise<void> {}
+  async requireProjectOwnerAccess() {
+    return {
+      membership: { id: "member_alice", workspaceId: "workspace_1", role: "owner" },
+    };
+  }
   async requireFolderAccess(): Promise<void> {}
 }
 

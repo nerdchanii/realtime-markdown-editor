@@ -1,17 +1,17 @@
 ---
 id: REQ-WORKSPACE-LIFECYCLE-MANAGEMENT
 title: Workspace와 하위 project/folder/document lifecycle을 제품 UI에서 추가, 수정, 삭제할 수 있어야 한다.
-status: planned
+status: done
 category: product-foundation
 type: functional
 priority: high
-taskability: taskable
+taskability: done
 scope: workspace
 derived_from: REQ-WORKSPACE-HIERARCHY
 depends_on:
   - REQ-WORKSPACE-HIERARCHY
 blocks: []
-next_step: workspace delete/archive policy, project delete/archive policy, folder/document move UI, and full lifecycle e2e coverage를 후속 task로 나눈다.
+next_step: done
 refs:
   - docs/product/workspace/workspace-hierarchy.md
   - packages/contracts/src/http/routes.ts
@@ -37,7 +37,7 @@ Acceptance:
 - 삭제 또는 archive 같은 destructive action은 사용자가 의도적으로 확인해야 한다.
 - 생성, 수정, 삭제 결과는 creator-only local state가 아니라 product state로 반영된다.
 
-## Current State
+## Completion Evidence
 
 `TASK-098` exposes the existing workspace/project product APIs through normal settings flows:
 workspace rename, project creation, and active project rename are available from the profile-menu
@@ -47,6 +47,22 @@ membership and replaces the no-workspace placeholder with a product form that cr
 first workspace through the existing API.
 
 Folder create/rename/move/delete, document create/title edit/move/archive/trash restore, workspace
-rename, workspace create from the no-workspace state, project create, and active project rename have
-product UI coverage. The requirement remains open because workspace delete/archive policy, project
-delete/archive policy, and consolidated lifecycle acceptance coverage are not complete.
+rename, workspace create from the no-workspace state, project create, active project rename, project
+archive, and workspace archive have product UI coverage.
+
+The destructive policy is soft archive. Workspace archive clears the workspace root pointer, hides
+the workspace from product sessions and workspace lists, archives contained documents, and marks
+contained folders inactive. Project archive clears the project root pointer, hides the project from
+workspace navigation, archives contained documents, and marks contained folders inactive. Folder
+delete keeps the existing folder-tree soft-delete behavior and archives contained documents. Root
+folder move/delete remains rejected by the API.
+
+Evidence:
+
+- `DELETE /workspaces/:workspaceId` archives a workspace through owner authorization.
+- `DELETE /projects/:projectId` archives a project through workspace owner authorization.
+- Explorer row controls move documents and folders through the canonical move APIs.
+- Settings destructive actions use explicit browser confirmation before archive requests.
+- `e2e/product-workspace-lifecycle.spec.ts` covers workspace/project rename/create, document and
+  folder move, folder delete into Trash, project archive, and workspace archive.
+- `e2e/product-trash-restore.spec.ts` covers document archive listing and restore.

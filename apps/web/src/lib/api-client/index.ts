@@ -119,6 +119,15 @@ export async function updateWorkspace(
   });
 }
 
+export async function deleteWorkspace(
+  client: ApiClient,
+  workspaceId: WorkspaceId,
+): Promise<DeletedResourceResponseDto> {
+  return fetchJson(client, `/workspaces/${encodeURIComponent(workspaceId)}`, {
+    method: "DELETE",
+  });
+}
+
 export async function fetchWorkspaceMembers(
   client: ApiClient,
   workspaceId: WorkspaceId,
@@ -193,6 +202,15 @@ export async function updateProject(
   return fetchJson(client, `/projects/${encodeURIComponent(projectId)}`, {
     method: "PATCH",
     body: JSON.stringify(request),
+  });
+}
+
+export async function deleteProject(
+  client: ApiClient,
+  projectId: ProjectId,
+): Promise<DeletedResourceResponseDto> {
+  return fetchJson(client, `/projects/${encodeURIComponent(projectId)}`, {
+    method: "DELETE",
   });
 }
 

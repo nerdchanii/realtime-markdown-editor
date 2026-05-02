@@ -67,6 +67,10 @@ export class WorkspaceProductService {
     );
   }
 
+  async deleteWorkspace(workspaceId: string): Promise<DeletedResourceResponseDto> {
+    return required(await this.repository.deleteWorkspace(workspaceId), "Workspace not found.");
+  }
+
   async listWorkspaceMembers(workspaceId: string): Promise<ListWorkspaceMembersResponseDto> {
     return required(
       await this.repository.listWorkspaceMembers(workspaceId),
@@ -152,6 +156,10 @@ export class WorkspaceProductService {
 
   async updateProject(projectId: string, input: UpdateProjectRequestDto): Promise<ProjectDto> {
     return required(await this.repository.updateProject(projectId, input), "Project not found.");
+  }
+
+  async deleteProject(projectId: string): Promise<DeletedResourceResponseDto> {
+    return required(await this.repository.deleteProject(projectId), "Project not found.");
   }
 
   async getFolderChildren(folderId: string): Promise<FolderChildrenResponseDto> {

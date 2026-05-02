@@ -67,6 +67,41 @@ test("Product: explorer moves documents and folders from normal navigation contr
   await expect(
     folderItem(page, targetFolder).getByTestId(`workspace-document-${documentId}`),
   ).toBeVisible();
+
+  await folderItem(page, targetFolder)
+    .getByRole("button", { name: targetFolder, exact: true })
+    .hover();
+  page.once("dialog", (dialog) => dialog.accept());
+  await page.getByLabel(`Delete ${targetFolder}`).click();
+  await expect(page.getByRole("button", { name: targetFolder, exact: true })).toBeHidden();
+  await page.getByLabel("Open Trash").click();
+  await expect(page.getByRole("region", { name: "Trash" })).toContainText(title);
+});
+
+test("Product: owner can archive the active project from settings", async ({ page }) => {
+  const documentId = uniqueReviewDocumentId("project-archive");
+  const title = titleFromDocumentId(documentId);
+  await openReviewerSession(page, { member: "alice", documentId });
+  await expect(page.getByTestId("document-title")).toHaveValue(title);
+
+  await page.getByLabel("Open profile menu").click();
+  await page.getByRole("button", { name: "Project settings" }).click();
+  page.once("dialog", (dialog) => dialog.accept());
+  await page.getByRole("button", { name: "Archive project" }).click();
+
+  await expect(page.getByText("No workspace documents available.")).toBeVisible();
+});
+
+test("Product: owner can archive the workspace from settings", async ({ page }) => {
+  const documentId = uniqueReviewDocumentId("workspace-archive");
+  await openReviewerSession(page, { member: "alice", documentId });
+
+  await page.getByLabel("Open profile menu").click();
+  await page.getByRole("button", { name: "Workspace settings" }).click();
+  page.once("dialog", (dialog) => dialog.accept());
+  await page.getByRole("button", { name: "Archive workspace" }).click();
+
+  await expect(page.getByRole("heading", { name: "Create your first workspace" })).toBeVisible();
 });
 
 function titleFromDocumentId(documentId: string) {

@@ -74,6 +74,19 @@ export class ProductApiAccessService {
     return this.requireWorkspaceAccess(cookieHeader, project.workspaceId as WorkspaceId);
   }
 
+  async requireProjectOwnerAccess(
+    cookieHeader: string | undefined,
+    projectId: ProjectId,
+  ): Promise<ProductApiSessionAccess> {
+    const project = await this.database.project.findUnique({
+      where: { id: projectId },
+      select: { workspaceId: true, rootFolderId: true },
+    });
+    if (!project?.rootFolderId) throw new NotFoundException("Project not found.");
+
+    return this.requireWorkspaceOwnerAccess(cookieHeader, project.workspaceId as WorkspaceId);
+  }
+
   async requireFolderAccess(
     cookieHeader: string | undefined,
     folderId: FolderId,

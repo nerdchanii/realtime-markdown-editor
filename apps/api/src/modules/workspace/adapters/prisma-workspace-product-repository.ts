@@ -124,7 +124,7 @@ export type PrismaWorkspaceProductPersistenceClient = Readonly<{
     }): Promise<WorkspaceRecord>;
     update(args: {
       where: { id: string };
-      data: { name?: string; rootFolderId?: string };
+      data: { name?: string; rootFolderId?: string | null };
       select: WorkspaceSelect;
     }): Promise<WorkspaceRecord>;
   };
@@ -144,9 +144,13 @@ export type PrismaWorkspaceProductPersistenceClient = Readonly<{
     }): Promise<ProjectRecord>;
     update(args: {
       where: { id: string };
-      data: { name?: string; rootFolderId?: string };
+      data: { name?: string; rootFolderId?: string | null };
       select: ProjectSelect;
     }): Promise<ProjectRecord>;
+    updateMany(args: {
+      where: { workspaceId: string; rootFolderId: { not: null } };
+      data: { rootFolderId: null };
+    }): Promise<unknown>;
   };
   folder: {
     findMany(args: {
@@ -300,6 +304,34 @@ export class PrismaWorkspaceProductRepository implements WorkspaceProductReposit
         select: workspaceSelect,
       }),
     );
+  }
+
+  async deleteWorkspace(workspaceId: string): Promise<DeletedResourceResponseDto | null> {
+    const current = await this.findWorkspace(workspaceId);
+    if (!current) return null;
+    const deletedAt = new Date();
+
+    await this.client.$transaction(async (transaction) => {
+      const folders = await transaction.folder.findMany({
+        where: { workspaceId, deletedAt: null },
+        select: folderSelect,
+        orderBy: { name: "asc" },
+      });
+      const folderIds = folders.map((folder) => folder.id);
+      await transaction.workspace.update({
+        where: { id: workspaceId },
+        data: { rootFolderId: null },
+        select: workspaceSelect,
+      });
+      await transaction.project.updateMany({
+        where: { workspaceId, rootFolderId: { not: null } },
+        data: { rootFolderId: null },
+      });
+      await archiveFolderDocuments(transaction, folderIds, deletedAt);
+      await markFoldersDeleted(transaction, folderIds, deletedAt);
+    });
+
+    return { id: workspaceId, deletedAt: deletedAt.toISOString() };
   }
 
   async listWorkspaceMembers(workspaceId: string): Promise<ListWorkspaceMembersResponseDto | null> {
@@ -469,6 +501,25 @@ export class PrismaWorkspaceProductRepository implements WorkspaceProductReposit
     );
   }
 
+  async deleteProject(projectId: string): Promise<DeletedResourceResponseDto | null> {
+    const current = await this.findProject(projectId);
+    if (!current) return null;
+    const deletedAt = new Date();
+
+    await this.client.$transaction(async (transaction) => {
+      const folderIds = await collectFolderTreeIds(transaction, current.rootFolderId);
+      await transaction.project.update({
+        where: { id: projectId },
+        data: { rootFolderId: null },
+        select: projectSelect,
+      });
+      await archiveFolderDocuments(transaction, folderIds, deletedAt);
+      await markFoldersDeleted(transaction, folderIds, deletedAt);
+    });
+
+    return { id: projectId, deletedAt: deletedAt.toISOString() };
+  }
+
   async getFolderChildren(folderId: string): Promise<FolderChildrenResponseDto | null> {
     const folder = await this.findFolder(folderId);
     if (!folder) return null;
@@ -561,14 +612,8 @@ export class PrismaWorkspaceProductRepository implements WorkspaceProductReposit
     const deletedAt = new Date();
     await this.client.$transaction(async (transaction) => {
       const folderIds = await collectFolderTreeIds(transaction, folderId);
-      await transaction.document.updateMany({
-        where: { folderId: { in: folderIds }, archivedAt: null },
-        data: { archivedAt: deletedAt },
-      });
-      await transaction.folder.updateMany({
-        where: { id: { in: folderIds }, deletedAt: null },
-        data: { deletedAt },
-      });
+      await archiveFolderDocuments(transaction, folderIds, deletedAt);
+      await markFoldersDeleted(transaction, folderIds, deletedAt);
     });
     return { id: folderId, deletedAt: deletedAt.toISOString() };
   }
@@ -658,6 +703,30 @@ async function collectFolderTreeIds(
     folderIds.push(...children.map((child) => child.id));
   }
   return folderIds;
+}
+
+async function archiveFolderDocuments(
+  transaction: PrismaWorkspaceProductPersistenceClient,
+  folderIds: readonly string[],
+  archivedAt: Date,
+): Promise<void> {
+  if (folderIds.length === 0) return;
+  await transaction.document.updateMany({
+    where: { folderId: { in: folderIds }, archivedAt: null },
+    data: { archivedAt },
+  });
+}
+
+async function markFoldersDeleted(
+  transaction: PrismaWorkspaceProductPersistenceClient,
+  folderIds: readonly string[],
+  deletedAt: Date,
+): Promise<void> {
+  if (folderIds.length === 0) return;
+  await transaction.folder.updateMany({
+    where: { id: { in: folderIds }, deletedAt: null },
+    data: { deletedAt },
+  });
 }
 
 async function createOwnerMembership(
