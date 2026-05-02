@@ -5,20 +5,21 @@ status: done
 category: product-extension
 type: functional
 priority: high
-taskability: taskable
+taskability: done
 scope: collaboration
 derived_from: CE-03-OFFLINE-MERGE
 depends_on:
   - REQ-OFFLINE-LOCAL-PERSISTENCE
   - REQ-OFFLINE-RECONNECT-MERGE
 blocks: []
-next_step: Browser-local recovery scope를 workspace-wide offline cache로 넓히지 않고 CE-03 evidence로 유지한다.
+completed_by:
+  - tasks/archive/TASK-084-indexeddb-offline-draft-recovery.md
+  - tasks/archive/TASK-097-indexeddb-offline-draft-recovery-closeout.md
 refs:
   - docs/product/editor/offline-merge.md
   - docs/adr/0003-storage-strategy.md
   - docs/domain/rules/collaboration-boundaries.md
   - docs/research/poc-001-collaboration-engine/prototypes/tiptap-yjs-hocuspocus/README.md
-  - tasks/archive/TASK-084-indexeddb-offline-draft-recovery.md
 ---
 
 # REQ-OFFLINE-INDEXEDDB-DRAFT-RECOVERY
@@ -36,10 +37,11 @@ Implementation:
 - IndexedDB store 이름과 record shape는 adapter 내부 구현이며 product/domain API, server contract,
   shared package boundary로 노출하지 않는다.
 
-Evidence:
+Completion Evidence:
 
 - `scripts/with-node.sh pnpm --filter @rme/web typecheck`
 - `set -a; source .env; set +a; scripts/with-node.sh pnpm test:e2e -- e2e/ce-03-offline-merge.spec.ts`
+- `scripts/with-node.sh pnpm requirements:index`
 
 Acceptance:
 

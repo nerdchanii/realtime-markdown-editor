@@ -15,7 +15,7 @@ completed_by:
 refs:
   - docs/compliance/subject-matrix.md
   - docs/product/editor/offline-merge.md
-  - docs/requirements/items/REQ-OFFLINE-INDEXEDDB-DRAFT-RECOVERY.md
+  - docs/requirements/completed/REQ-OFFLINE-INDEXEDDB-DRAFT-RECOVERY.md
 ---
 
 # CE-03-OFFLINE-MERGE
