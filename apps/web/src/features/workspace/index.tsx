@@ -5,6 +5,7 @@ import { workspaceFeatureId } from "./events";
 import { WorkspaceProjectSection } from "./WorkspaceProjectSection";
 import { WorkspaceNodeView } from "./WorkspaceNodeView";
 import { createFolderMoveTargets } from "./move-targets";
+import type { WorkspaceDragItem } from "./drag-utils";
 import { panelStyles } from "./styles";
 import { normalizeViewModel } from "./tree-utils";
 import { TrashPanel } from "./TrashPanel";
@@ -54,6 +55,7 @@ export function WorkspaceNavigationSlot({ viewModel }: WorkspaceNavigationSlotPr
       findProjectNodeById(model.projects, targetFolderId))
     : null;
   const moveTargets = createFolderMoveTargets(model);
+  const [dragItem, setDragItem] = useState<WorkspaceDragItem | null>(null);
   const [isTrashOpen, setIsTrashOpen] = useState(false);
   const [trashState, setTrashState] = useState<
     Readonly<{
@@ -170,6 +172,9 @@ export function WorkspaceNavigationSlot({ viewModel }: WorkspaceNavigationSlotPr
                   onMoveFolder={(request) => model.onMoveFolder?.(request)}
                   onMoveDocument={(request) => model.onMoveDocument?.(request)}
                   moveTargets={moveTargets}
+                  dragItem={dragItem}
+                  onDragStart={setDragItem}
+                  onDragEnd={() => setDragItem(null)}
                 />
                 <ProjectList
                   model={model}
@@ -183,6 +188,9 @@ export function WorkspaceNavigationSlot({ viewModel }: WorkspaceNavigationSlotPr
                   onMoveFolder={(request) => model.onMoveFolder?.(request)}
                   onMoveDocument={(request) => model.onMoveDocument?.(request)}
                   moveTargets={moveTargets}
+                  dragItem={dragItem}
+                  onDragStart={setDragItem}
+                  onDragEnd={() => setDragItem(null)}
                 />
               </>
             )}
@@ -226,6 +234,9 @@ function WorkspaceRoot({
   onMoveFolder,
   onMoveDocument,
   moveTargets,
+  dragItem,
+  onDragStart,
+  onDragEnd,
 }: Readonly<{
   model: ReturnType<typeof normalizeViewModel>;
   selectedDocumentId: string | null | undefined;
@@ -238,6 +249,9 @@ function WorkspaceRoot({
   onMoveFolder: (request: WorkspaceFolderMoveRequest) => void;
   onMoveDocument: (request: WorkspaceDocumentMoveRequest) => void;
   moveTargets: readonly WorkspaceFolderMoveTarget[];
+  dragItem: WorkspaceDragItem | null;
+  onDragStart: (item: WorkspaceDragItem) => void;
+  onDragEnd: () => void;
 }>) {
   return (
     <ul style={panelStyles.tree}>
@@ -255,6 +269,9 @@ function WorkspaceRoot({
         onMoveFolder={onMoveFolder}
         onMoveDocument={onMoveDocument}
         moveTargets={moveTargets}
+        dragItem={dragItem}
+        onDragStart={onDragStart}
+        onDragEnd={onDragEnd}
       />
     </ul>
   );
@@ -272,6 +289,9 @@ function ProjectList({
   onMoveFolder,
   onMoveDocument,
   moveTargets,
+  dragItem,
+  onDragStart,
+  onDragEnd,
 }: Readonly<{
   model: ReturnType<typeof normalizeViewModel>;
   selectedDocumentId?: string | null;
@@ -284,6 +304,9 @@ function ProjectList({
   onMoveFolder: (request: WorkspaceFolderMoveRequest) => void;
   onMoveDocument: (request: WorkspaceDocumentMoveRequest) => void;
   moveTargets: readonly WorkspaceFolderMoveTarget[];
+  dragItem: WorkspaceDragItem | null;
+  onDragStart: (item: WorkspaceDragItem) => void;
+  onDragEnd: () => void;
 }>) {
   return (
     <div style={{ display: "grid", gap: "2px" }}>
@@ -302,6 +325,9 @@ function ProjectList({
           onMoveFolder={onMoveFolder}
           onMoveDocument={onMoveDocument}
           moveTargets={moveTargets}
+          dragItem={dragItem}
+          onDragStart={onDragStart}
+          onDragEnd={onDragEnd}
         />
       ))}
     </div>

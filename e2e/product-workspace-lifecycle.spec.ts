@@ -38,16 +38,12 @@ test("Product: workspace settings rename workspace/project and create a project"
   await expect(page.getByRole("region", { name: renamedProjectName })).toBeVisible();
 });
 
-test("Product: explorer moves documents and folders from normal navigation controls", async ({
-  page,
-}) => {
+test("Product: explorer moves documents and folders with drag and drop", async ({ page }) => {
   const documentId = uniqueReviewDocumentId("workspace-move");
   const title = titleFromDocumentId(documentId);
   const timestamp = Date.now();
   const sourceFolder = `Move Source ${timestamp}`;
   const targetFolder = `Move Target ${timestamp}`;
-  const sourceLabel = folderTargetLabel(sourceFolder);
-  const targetLabel = folderTargetLabel(targetFolder);
 
   await openReviewerSession(page, { member: "alice", documentId });
   await expect(page.getByTestId("document-title")).toHaveValue(title);
@@ -56,11 +52,13 @@ test("Product: explorer moves documents and folders from normal navigation contr
   await page.getByTestId(`workspace-document-${documentId}`).click();
   await createExplorerFolder(page, targetFolder);
 
-  await page.getByLabel(`Move ${title}`).selectOption({ label: sourceLabel });
+  await page
+    .getByTestId(`workspace-document-row-${documentId}`)
+    .dragTo(folderRow(page, sourceFolder));
   const sourceFolderItem = folderItem(page, sourceFolder);
   await expect(sourceFolderItem.getByTestId(`workspace-document-${documentId}`)).toBeVisible();
 
-  await page.getByLabel(`Move ${sourceFolder}`).selectOption({ label: targetLabel });
+  await folderRow(page, sourceFolder).dragTo(folderRow(page, targetFolder));
   await expect(
     folderItem(page, targetFolder).getByRole("button", { name: sourceFolder, exact: true }),
   ).toBeVisible();
@@ -128,6 +126,6 @@ function folderItem(page: Page, name: string) {
   });
 }
 
-function folderTargetLabel(folderName: string) {
-  return `Atlas Knowledge Workspace / Product Architecture / Project root / ${folderName}`;
+function folderRow(page: Page, name: string) {
+  return folderItem(page, name).locator('[data-testid^="workspace-folder-row-"]').first();
 }

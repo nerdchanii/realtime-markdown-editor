@@ -1,4 +1,5 @@
 import { WorkspaceNodeView } from "./WorkspaceNodeView";
+import type { WorkspaceDragItem } from "./drag-utils";
 import { panelStyles } from "./styles";
 import type {
   NormalizedWorkspaceNavigationViewModel,
@@ -23,6 +24,9 @@ export function WorkspaceProjectSection({
   onMoveFolder,
   onMoveDocument,
   moveTargets,
+  dragItem,
+  onDragStart,
+  onDragEnd,
 }: Readonly<{
   model: NormalizedWorkspaceNavigationViewModel;
   project: WorkspaceNavigationProject;
@@ -36,6 +40,9 @@ export function WorkspaceProjectSection({
   onMoveFolder: (request: WorkspaceFolderMoveRequest) => void;
   onMoveDocument: (request: WorkspaceDocumentMoveRequest) => void;
   moveTargets: readonly WorkspaceFolderMoveTarget[];
+  dragItem: WorkspaceDragItem | null;
+  onDragStart: (item: WorkspaceDragItem) => void;
+  onDragEnd: () => void;
 }>) {
   return (
     <section className="workspace-project-section" aria-label={project.name}>
@@ -59,6 +66,9 @@ export function WorkspaceProjectSection({
           onMoveFolder={onMoveFolder}
           onMoveDocument={onMoveDocument}
           moveTargets={moveTargets}
+          dragItem={dragItem}
+          onDragStart={onDragStart}
+          onDragEnd={onDragEnd}
         />
       </ul>
     </section>
