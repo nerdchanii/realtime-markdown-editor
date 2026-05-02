@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FilePlus2, FolderPlus } from "lucide-react";
+import { FilePlus2, FolderPlus, RotateCcw, Trash2 } from "lucide-react";
 
 import { workspaceFeatureId } from "./events";
 import { WorkspaceNodeView } from "./WorkspaceNodeView";
@@ -7,6 +7,7 @@ import { panelStyles } from "./styles";
 import { normalizeViewModel } from "./tree-utils";
 import type {
   WorkspaceFolderRenameRequest,
+  WorkspaceArchivedDocument,
   WorkspaceNavigationNode,
   WorkspaceNavigationSelection,
   WorkspaceNavigationViewModel,
@@ -18,6 +19,7 @@ export type {
   WorkspaceNavigationProject,
   WorkspaceNavigationSelection,
   WorkspaceNavigationViewModel,
+  WorkspaceArchivedDocument,
   WorkspaceDocumentCreateRequest,
   WorkspaceFolderCreateRequest,
   WorkspaceFolderRenameRequest,
@@ -42,6 +44,13 @@ export function WorkspaceNavigationSlot({ viewModel }: WorkspaceNavigationSlotPr
     ? (findNodeById(model.root, targetFolderId) ??
       findProjectNodeById(model.projects, targetFolderId))
     : null;
+  const [isTrashOpen, setIsTrashOpen] = useState(false);
+  const [trashState, setTrashState] = useState<
+    Readonly<{
+      documents: readonly WorkspaceArchivedDocument[];
+      status: "idle" | "loading" | "error";
+    }>
+  >({ documents: [], status: "idle" });
 
   const handleSelectDocument = (selection: Parameters<typeof selectDocument>[0]) => {
     setSelectedFolder({
@@ -55,6 +64,18 @@ export function WorkspaceNavigationSlot({ viewModel }: WorkspaceNavigationSlotPr
       documentId: selectedDocumentId,
       folderId,
     });
+  };
+  const handleOpenTrash = () => {
+    const nextOpen = !isTrashOpen;
+    setIsTrashOpen(nextOpen);
+    if (nextOpen) void loadTrashDocuments(model, setTrashState);
+  };
+  const handleRestoreDocument = (documentId: string) => {
+    model.onRestoreDocument?.(documentId);
+    setTrashState((current) => ({
+      ...current,
+      documents: current.documents.filter((document) => document.id !== documentId),
+    }));
   };
 
   return (
@@ -70,6 +91,16 @@ export function WorkspaceNavigationSlot({ viewModel }: WorkspaceNavigationSlotPr
           <div className="workspace-navigation__tabs">
             <span className="workspace-navigation__tab">Explorer</span>
             <div className="workspace-navigation__actions">
+              <button
+                type="button"
+                className="workspace-navigation__action"
+                aria-label={isTrashOpen ? "Close Trash" : "Open Trash"}
+                aria-pressed={isTrashOpen}
+                disabled={!model.onListArchivedDocuments}
+                onClick={handleOpenTrash}
+              >
+                <Trash2 size={14} />
+              </button>
               <button
                 type="button"
                 className="workspace-navigation__action"
@@ -108,31 +139,117 @@ export function WorkspaceNavigationSlot({ viewModel }: WorkspaceNavigationSlotPr
           </div>
 
           <div className="workspace-navigation__tree">
-            <WorkspaceRoot
-              model={model}
-              selectedDocumentId={selectedDocumentId}
-              selectedFolderId={selectedFolderId}
-              onSelectFolder={handleSelectFolder}
-              onSelectDocument={handleSelectDocument}
-              onDeleteDocument={(documentId) => model.onDeleteDocument?.(documentId)}
-              onDeleteFolder={(folderId) => model.onDeleteFolder?.(folderId)}
-              onRenameFolder={(request) => model.onRenameFolder?.(request)}
-            />
-            <ProjectList
-              model={model}
-              selectedDocumentId={selectedDocumentId}
-              selectedFolderId={selectedFolderId}
-              onSelectFolder={handleSelectFolder}
-              onSelectDocument={handleSelectDocument}
-              onDeleteDocument={(documentId) => model.onDeleteDocument?.(documentId)}
-              onDeleteFolder={(folderId) => model.onDeleteFolder?.(folderId)}
-              onRenameFolder={(request) => model.onRenameFolder?.(request)}
-            />
+            {isTrashOpen ? (
+              <TrashPanel
+                documents={trashState.documents}
+                status={trashState.status}
+                onRefresh={() => void loadTrashDocuments(model, setTrashState)}
+                onRestoreDocument={handleRestoreDocument}
+              />
+            ) : (
+              <>
+                <WorkspaceRoot
+                  model={model}
+                  selectedDocumentId={selectedDocumentId}
+                  selectedFolderId={selectedFolderId}
+                  onSelectFolder={handleSelectFolder}
+                  onSelectDocument={handleSelectDocument}
+                  onDeleteDocument={(documentId) => model.onDeleteDocument?.(documentId)}
+                  onDeleteFolder={(folderId) => model.onDeleteFolder?.(folderId)}
+                  onRenameFolder={(request) => model.onRenameFolder?.(request)}
+                />
+                <ProjectList
+                  model={model}
+                  selectedDocumentId={selectedDocumentId}
+                  selectedFolderId={selectedFolderId}
+                  onSelectFolder={handleSelectFolder}
+                  onSelectDocument={handleSelectDocument}
+                  onDeleteDocument={(documentId) => model.onDeleteDocument?.(documentId)}
+                  onDeleteFolder={(folderId) => model.onDeleteFolder?.(folderId)}
+                  onRenameFolder={(request) => model.onRenameFolder?.(request)}
+                />
+              </>
+            )}
           </div>
         </div>
       </div>
     </aside>
   );
+}
+
+async function loadTrashDocuments(
+  model: ReturnType<typeof normalizeViewModel>,
+  setTrashState: (
+    state: Readonly<{
+      documents: readonly WorkspaceArchivedDocument[];
+      status: "idle" | "loading" | "error";
+    }>,
+  ) => void,
+) {
+  if (!model.onListArchivedDocuments) return;
+  setTrashState({ documents: [], status: "loading" });
+  try {
+    setTrashState({
+      documents: await model.onListArchivedDocuments(),
+      status: "idle",
+    });
+  } catch {
+    setTrashState({ documents: [], status: "error" });
+  }
+}
+
+function TrashPanel({
+  documents,
+  status,
+  onRefresh,
+  onRestoreDocument,
+}: Readonly<{
+  documents: readonly WorkspaceArchivedDocument[];
+  status: "idle" | "loading" | "error";
+  onRefresh: () => void;
+  onRestoreDocument: (documentId: string) => void;
+}>) {
+  return (
+    <section className="workspace-trash" aria-label="Trash">
+      <header className="workspace-trash__header">
+        <span>Trash</span>
+        <button type="button" className="workspace-trash__refresh" onClick={onRefresh}>
+          Refresh
+        </button>
+      </header>
+      {status === "loading" ? <p className="workspace-trash__message">Loading...</p> : null}
+      {status === "error" ? (
+        <p className="workspace-trash__message">Trash could not be loaded.</p>
+      ) : null}
+      {status === "idle" && documents.length === 0 ? (
+        <p className="workspace-trash__message">Trash is empty.</p>
+      ) : null}
+      <ul className="workspace-trash__list">
+        {documents.map((document) => (
+          <li key={document.id} className="workspace-trash__item">
+            <div className="workspace-trash__copy">
+              <span className="workspace-trash__title">{document.title}</span>
+              <span className="workspace-trash__date">{formatArchivedAt(document.archivedAt)}</span>
+            </div>
+            <button
+              type="button"
+              className="workspace-trash__restore"
+              aria-label={`Restore ${document.title}`}
+              onClick={() => onRestoreDocument(document.id)}
+            >
+              <RotateCcw size={14} />
+            </button>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+function formatArchivedAt(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Archived";
+  return `Archived ${date.toLocaleDateString()}`;
 }
 
 function WorkspaceRoot({

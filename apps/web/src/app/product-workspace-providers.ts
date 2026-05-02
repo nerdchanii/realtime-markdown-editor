@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import type { DocumentId, FolderId } from "@rme/contracts";
+import type { DocumentId, FolderId, WorkspaceId } from "@rme/contracts";
 
 import type {
   WorkspaceDocumentCreateRequest,
+  WorkspaceArchivedDocument,
   WorkspaceFolderCreateRequest,
   WorkspaceFolderRenameRequest,
   WorkspaceNavigationSelection,
@@ -14,6 +15,8 @@ import {
   createProductApiClient,
   deleteDocument,
   deleteFolder,
+  fetchArchivedDocuments,
+  restoreDocument,
   updateFolder,
   type ApiClient,
 } from "@/lib/api-client";
@@ -32,7 +35,11 @@ type LoadedProductWorkspaceInput = {
   createProductFolder: (request: WorkspaceFolderCreateRequest) => void;
   deleteProductDocument: (documentId: string) => void;
   deleteProductFolder: (folderId: string) => void;
+  listArchivedProductDocuments: (
+    workspaceId: string,
+  ) => Promise<readonly WorkspaceArchivedDocument[]>;
   renameProductFolder: (request: WorkspaceFolderRenameRequest) => void;
+  restoreProductDocument: (documentId: string) => void;
   reloadToken: number;
   selectDocument: (selection: WorkspaceNavigationSelection) => void;
   selectedDocumentId: DocumentId | null;
@@ -81,7 +88,13 @@ function useWorkspaceMutations(
   const createProductFolder = useProductFolderCreator(apiClient, reload);
   const deleteProductDocument = useProductDocumentDeleter(apiClient, reload, setSelectedDocumentId);
   const deleteProductFolder = useProductFolderDeleter(apiClient, reload, setSelectedDocumentId);
+  const listArchivedProductDocuments = useProductArchivedDocumentLister(apiClient);
   const renameProductFolder = useProductFolderRenamer(apiClient, reload);
+  const restoreProductDocument = useProductDocumentRestorer(
+    apiClient,
+    reload,
+    setSelectedDocumentId,
+  );
 
   return useMemo(
     () => ({
@@ -89,14 +102,18 @@ function useWorkspaceMutations(
       createProductFolder,
       deleteProductDocument,
       deleteProductFolder,
+      listArchivedProductDocuments,
       renameProductFolder,
+      restoreProductDocument,
     }),
     [
       createProductDocument,
       createProductFolder,
       deleteProductDocument,
       deleteProductFolder,
+      listArchivedProductDocuments,
       renameProductFolder,
+      restoreProductDocument,
     ],
   );
 }
@@ -228,6 +245,36 @@ function useProductFolderDeleter(
   );
 }
 
+function useProductArchivedDocumentLister(apiClient: ApiClient) {
+  return useCallback(
+    async (workspaceId: string): Promise<readonly WorkspaceArchivedDocument[]> => {
+      const response = await fetchArchivedDocuments(apiClient, workspaceId as WorkspaceId);
+      return response.documents.map((document) => ({
+        id: document.id,
+        title: document.title,
+        archivedAt: document.archivedAt,
+      }));
+    },
+    [apiClient],
+  );
+}
+
+function useProductDocumentRestorer(
+  apiClient: ApiClient,
+  reload: () => void,
+  setSelectedDocumentId: (documentId: DocumentId | null) => void,
+) {
+  return useCallback(
+    (documentId: string) => {
+      void restoreDocument(apiClient, documentId as DocumentId).then((response) => {
+        setSelectedDocumentId(response.document.id);
+        reload();
+      });
+    },
+    [apiClient, reload, setSelectedDocumentId],
+  );
+}
+
 function createLoadedState(
   model: Awaited<ReturnType<typeof loadProductWorkspace>>,
   input: Omit<LoadedProductWorkspaceInput, "reloadToken" | "selectedDocumentId">,
@@ -242,6 +289,8 @@ function createLoadedState(
       input.createProductDocument,
       input.createProductFolder,
       input.deleteProductDocument,
+      () => input.listArchivedProductDocuments(model.navigation.workspace.id),
+      input.restoreProductDocument,
       input.deleteProductFolder,
       input.renameProductFolder,
       input.reload,

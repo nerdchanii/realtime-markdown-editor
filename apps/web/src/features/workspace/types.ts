@@ -33,6 +33,12 @@ export type WorkspaceNavigationSelection = Readonly<{
   path: readonly string[];
 }>;
 
+export type WorkspaceArchivedDocument = Readonly<{
+  id: string;
+  title: string;
+  archivedAt: string;
+}>;
+
 export type WorkspaceDocumentCreateRequest = Readonly<{
   title: string;
   folderId?: string | null;
@@ -66,6 +72,8 @@ export type WorkspaceNavigationViewModel = Readonly<{
   onCreateDocument?: (request: WorkspaceDocumentCreateRequest) => void;
   onCreateFolder?: (request: WorkspaceFolderCreateRequest) => void;
   onDeleteDocument?: (documentId: string) => void;
+  onListArchivedDocuments?: () => Promise<readonly WorkspaceArchivedDocument[]>;
+  onRestoreDocument?: (documentId: string) => void;
   onDeleteFolder?: (folderId: string) => void;
   onRenameFolder?: (request: WorkspaceFolderRenameRequest) => void;
 }>;
@@ -77,6 +85,8 @@ export type NormalizedWorkspaceNavigationViewModel = Required<
     | "onCreateDocument"
     | "onCreateFolder"
     | "onDeleteDocument"
+    | "onListArchivedDocuments"
+    | "onRestoreDocument"
     | "onDeleteFolder"
     | "onRenameFolder"
   >
@@ -87,6 +97,8 @@ export type NormalizedWorkspaceNavigationViewModel = Required<
     | "onCreateDocument"
     | "onCreateFolder"
     | "onDeleteDocument"
+    | "onListArchivedDocuments"
+    | "onRestoreDocument"
     | "onDeleteFolder"
     | "onRenameFolder"
   >;

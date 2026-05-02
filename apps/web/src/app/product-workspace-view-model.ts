@@ -11,6 +11,7 @@ import type { DocumentBacklink, DocumentProperty } from "@/features/document";
 import { createTiptapYjsCollaborationAdapter } from "@/features/editor";
 import type {
   WorkspaceDocumentCreateRequest,
+  WorkspaceArchivedDocument,
   WorkspaceFolderCreateRequest,
   WorkspaceFolderRenameRequest,
   WorkspaceNavigationSelection,
@@ -26,6 +27,8 @@ export function createProductProviders(
   onCreateDocument: (request: WorkspaceDocumentCreateRequest) => void,
   onCreateFolder: (request: WorkspaceFolderCreateRequest) => void,
   onDeleteDocument: (documentId: string) => void,
+  onListArchivedDocuments: () => Promise<readonly WorkspaceArchivedDocument[]>,
+  onRestoreDocument: (documentId: string) => void,
   onDeleteFolder: (folderId: string) => void,
   onRenameFolder: (request: WorkspaceFolderRenameRequest) => void,
   onDocumentPropertiesUpdated: () => void,
@@ -39,6 +42,8 @@ export function createProductProviders(
       onCreateDocument,
       onCreateFolder,
       onDeleteDocument,
+      onListArchivedDocuments,
+      onRestoreDocument,
       onDeleteFolder,
       onRenameFolder,
     ),

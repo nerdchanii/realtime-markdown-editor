@@ -1,11 +1,11 @@
 ---
 id: REQ-DOCUMENT-TRASH-RESTORE
 title: Archived documents must be listable from Trash and restorable through product APIs.
-status: planned
+status: done
 category: product-foundation
 type: functional
 priority: high
-taskability: taskable
+taskability: done
 scope: documents
 derived_from: REQ-WORKSPACE-LIFECYCLE-MANAGEMENT
 depends_on:
@@ -13,13 +13,16 @@ depends_on:
   - REQ-WORKSPACE-DOCUMENT-SCOPE
 blocks:
   - UI-GAP-008
-next_step: Wire the canonical Trash list/restore API into the product UI and add product e2e evidence for delete, Trash listing, and restore.
+completed_by:
+  - tasks/archive/TASK-095-document-trash-restore-api.md
+  - tasks/archive/TASK-096-document-trash-restore-ui.md
 refs:
   - docs/product/ui-capability-gap-log.md
   - docs/domain/rules/document-lifecycle.md
   - packages/contracts/src/http/routes.ts
   - apps/api/prisma/schema.prisma
   - tasks/archive/TASK-095-document-trash-restore-api.md
+  - tasks/archive/TASK-096-document-trash-restore-ui.md
 ---
 
 # REQ-DOCUMENT-TRASH-RESTORE
@@ -43,12 +46,13 @@ Acceptance:
 - Restore failure states are explicit: missing document, unauthorized access, deleted parent folder,
   or unsupported restore target must not silently succeed.
 
-## Current State
+## Completion Evidence
 
 `TASK-095` added canonical product HTTP contracts and API behavior for workspace Trash document
 listing and document restore. Archived documents remain excluded from normal navigation and folder
 children APIs. Restore clears only `archivedAt` and fails when the original folder path is no longer
 active.
 
-This requirement remains open until the product UI exposes the Trash list/restore workflow and
-product e2e evidence covers the user-facing path.
+`TASK-096` wired the product workspace navigation Trash panel to those APIs. Product e2e evidence
+deletes a document, confirms it disappears from active navigation, opens Trash, restores the
+document, and confirms it returns to the active navigation and editor with content preserved.

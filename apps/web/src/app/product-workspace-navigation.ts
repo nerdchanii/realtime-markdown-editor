@@ -2,6 +2,7 @@ import type { DocumentSummaryDto, ProjectDto } from "@rme/contracts";
 
 import type {
   WorkspaceDocumentCreateRequest,
+  WorkspaceArchivedDocument,
   WorkspaceFolderCreateRequest,
   WorkspaceFolderRenameRequest,
   WorkspaceNavigationNode,
@@ -16,6 +17,8 @@ export function createWorkspaceNavigation(
   onCreateDocument: (request: WorkspaceDocumentCreateRequest) => void,
   onCreateFolder: (request: WorkspaceFolderCreateRequest) => void,
   onDeleteDocument: (documentId: string) => void,
+  onListArchivedDocuments: () => Promise<readonly WorkspaceArchivedDocument[]>,
+  onRestoreDocument: (documentId: string) => void,
   onDeleteFolder: (folderId: string) => void,
   onRenameFolder: (request: WorkspaceFolderRenameRequest) => void,
 ) {
@@ -36,6 +39,7 @@ export function createWorkspaceNavigation(
     ...createSelectionFields(model),
     defaultFolderId: navigation.projects[0]?.rootFolderId ?? navigation.workspace.rootFolderId,
     ...{ onSelectDocument, onCreateDocument, onCreateFolder },
+    ...{ onListArchivedDocuments, onRestoreDocument },
     ...{ onDeleteDocument, onDeleteFolder, onRenameFolder },
   };
 }
