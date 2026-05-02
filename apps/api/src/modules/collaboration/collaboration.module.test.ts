@@ -7,45 +7,13 @@ import { NestFactory } from "@nestjs/core";
 import { DatabaseModule } from "@/database/database.module.js";
 import { PrismaDatabaseService } from "@/database/database.service.js";
 import { InternalCollaborationRuntimeController } from "@/modules/collaboration/interfaces/internal-collaboration-runtime.controller.js";
-import {
-  type CollaborationDocumentId,
-  type CollaborationMembershipId,
-  type CollaborationSession,
-  type CollaborationSessionRepository,
-} from "@/modules/collaboration/ports/collaboration-session-repository.js";
-import {
-  CollaborationModule,
-  createRuntimeSessionRepository,
-} from "@/modules/collaboration/collaboration.module.js";
+import { CollaborationModule } from "@/modules/collaboration/collaboration.module.js";
 
 const documentKey = "workspace_task077/document_task077_yjs";
 const encodedDocumentKey = Buffer.from(documentKey, "utf8").toString("base64url");
 
 @Module({ imports: [DatabaseModule, CollaborationModule] })
 class CollaborationModuleSmokeTestModule {}
-
-test("runtime session repository does not fall back to seed sessions in product mode", async () => {
-  const product = new FailingRuntimeSessionRepository();
-  const seed = new StaticRuntimeSessionRepository();
-  const repository = createRuntimeSessionRepository(product, seed, false);
-
-  await assert.rejects(
-    repository.findRuntimeSession({ documentKey: "workspace_review/document_review_plan" }),
-    /product session unavailable/,
-  );
-});
-
-test("runtime session repository uses seed fallback only when explicitly enabled", async () => {
-  const product = new FailingRuntimeSessionRepository();
-  const seed = new StaticRuntimeSessionRepository();
-  const repository = createRuntimeSessionRepository(product, seed, true);
-
-  const session = await repository.findRuntimeSession({
-    documentKey: "workspace_review/document_review_plan",
-  });
-
-  assert.equal(session?.documentKey, "workspace_review/document_review_plan");
-});
 
 test("collaboration module injects Prisma-backed repositories for internal runtime store/load", async () => {
   const app = await NestFactory.createApplicationContext(CollaborationModuleSmokeTestModule, {
@@ -68,51 +36,6 @@ test("collaboration module injects Prisma-backed repositories for internal runti
     await app.close();
   }
 });
-
-class FailingRuntimeSessionRepository implements CollaborationSessionRepository {
-  async findSession(): Promise<CollaborationSession | null> {
-    return null;
-  }
-
-  async findSeedSession(): Promise<CollaborationSession | null> {
-    return null;
-  }
-
-  async findRuntimeSession(): Promise<CollaborationSession | null> {
-    throw new Error("product session unavailable");
-  }
-}
-
-class StaticRuntimeSessionRepository implements CollaborationSessionRepository {
-  async findSession(): Promise<CollaborationSession | null> {
-    return null;
-  }
-
-  async findSeedSession(): Promise<CollaborationSession | null> {
-    return null;
-  }
-
-  async findRuntimeSession(): Promise<CollaborationSession | null> {
-    return {
-      documentId: "document_review_plan" as CollaborationDocumentId,
-      documentKey: "workspace_review/document_review_plan",
-      realtimeUrl: "ws://127.0.0.1:1234",
-      currentMember: {
-        id: "member_alice" as CollaborationMembershipId,
-        userId: "user_alice" as CollaborationSession["currentMember"]["userId"],
-        workspaceId: "workspace_review" as CollaborationSession["currentMember"]["workspaceId"],
-        displayName: "Alice",
-        color: "#0969da",
-      },
-      allowedMembers: [],
-      sync: {
-        status: "synced",
-        pendingLocalEdits: 0,
-        lastSyncedAt: null,
-      },
-    };
-  }
-}
 
 function installFakeCollaborationDatabase(database: PrismaDatabaseService): void {
   let stateBase64: string | null = null;

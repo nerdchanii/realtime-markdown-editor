@@ -62,10 +62,6 @@ export class PrismaCollaborationSessionRepository implements CollaborationSessio
       sync: syncStateFromRecord(document),
     };
   }
-
-  async findSeedSession(): Promise<CollaborationSession | null> {
-    return null;
-  }
 }
 
 async function findDocumentForCollaboration(

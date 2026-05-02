@@ -18,7 +18,6 @@ import type {
   PublicationId,
   RevisionDto,
   RevisionId,
-  SeedReviewContextDto,
   UserDto,
   UserId,
   WorkspaceDto,
@@ -162,24 +161,16 @@ const collaboration = {
   sync,
 } satisfies CollaborationSessionDto;
 
-const seed = {
-  currentMemberId: membershipId,
-  users: [user],
-  workspace,
-  project,
-  folder,
-  folders: [folder],
-  document,
-  documents: [document],
-  members: [member],
-  backlinks: [backlink],
-  collaboration,
-  revisions: [revision],
-  checkpoints: [checkpoint],
-  publications: [publication],
-  autosaves: [autosave],
-} satisfies SeedReviewContextDto;
-
-void seed;
+void user;
+void workspace;
+void project;
+void folder;
+void document;
+void backlink;
+void collaboration;
+void revision;
+void checkpoint;
+void publication;
+void autosave;
 void inspectSnapshot;
 void checkpointList;

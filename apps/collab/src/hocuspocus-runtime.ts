@@ -8,13 +8,12 @@ import {
 } from "./document-content-projection-client.js";
 import { createProductCollaborationSessionClient } from "./session/product-collaboration-session-client.js";
 import type { CollaborationSessionClient } from "./session/session-client.js";
-import { createSeedCollaborationSessionClient } from "./seed/seed-collaboration-session-client.js";
 import {
+  BootstrapYjsDocumentStore,
   FallbackLiveYjsPersistenceAdapter,
   FileSystemLiveYjsPersistenceAdapter,
   HttpLiveYjsPersistenceAdapter,
   InMemoryLiveYjsPersistenceAdapter,
-  SeededYjsDocumentStore,
   type LiveYjsPersistenceAdapter,
   type YjsDocumentStore,
 } from "./yjs-document-store.js";
@@ -95,28 +94,12 @@ function createDefaultRuntimeDependencies(
   config: CollabRuntimeConfig,
 ): HocuspocusRuntimeDependencies {
   return {
-    sessionClient: createDefaultCollaborationSessionClient(config),
-    documentStore: new SeededYjsDocumentStore({
-      seed: {
-        documentKey: config.seedDocumentKey,
-        markdown: "# Review Plan\n\nSeeded collaborative Markdown document.\n",
-      },
+    sessionClient: createProductCollaborationSessionClient(config.apiBaseUrl),
+    documentStore: new BootstrapYjsDocumentStore({
       persistence: createLiveYjsPersistenceAdapter(config),
     }),
     projectionClient: createHttpDocumentContentProjectionClient(config.apiBaseUrl),
   };
-}
-
-function createDefaultCollaborationSessionClient(
-  config: CollabRuntimeConfig,
-): CollaborationSessionClient {
-  const productClient = createProductCollaborationSessionClient(config.apiBaseUrl);
-  if (!config.enableSeedSessionFallback) return productClient;
-
-  return createFallbackCollaborationSessionClient([
-    productClient,
-    createSeedCollaborationSessionClient(config),
-  ]);
 }
 
 async function loadFallbackMarkdown(
@@ -159,22 +142,4 @@ function createLiveYjsPersistenceAdapter(
   if (config.provider === "memory") return new InMemoryLiveYjsPersistenceAdapter();
 
   return new FileSystemLiveYjsPersistenceAdapter(config.directory);
-}
-
-function createFallbackCollaborationSessionClient(
-  clients: readonly CollaborationSessionClient[],
-): CollaborationSessionClient {
-  return {
-    async loadSession(documentKey) {
-      let lastError: unknown = null;
-      for (const client of clients) {
-        try {
-          return await client.loadSession(documentKey);
-        } catch (error) {
-          lastError = error;
-        }
-      }
-      throw lastError instanceof Error ? lastError : new Error("Collaboration session not found.");
-    },
-  };
 }

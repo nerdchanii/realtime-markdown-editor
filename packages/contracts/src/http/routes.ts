@@ -8,10 +8,9 @@ export type HttpRouteOwner =
   | "CollaborationModule"
   | "DocumentsModule"
   | "IdentityModule"
-  | "ReviewContextModule"
   | "WorkspaceModule";
 
-export type HttpRouteAudience = "product" | "dev-only" | "retired";
+export type HttpRouteAudience = "product";
 
 export type SubjectRequirementRef =
   | "CE-01"
@@ -631,54 +630,6 @@ export const canonicalProductHttpRoutes = [
   },
 ] as const satisfies readonly HttpRouteContract[];
 
-export const devOnlyHttpRoutes = [
-  {
-    id: "dev.getSeedReviewContext",
-    method: "GET",
-    path: "/review-context/seed",
-    owner: "ReviewContextModule",
-    audience: "dev-only",
-    responseDto: "SeedReviewContextDto",
-    schemas: { response: "SeedReviewContextResponse" },
-    relatedRequirements: ["CE-01", "CE-02", "CE-03", "CE-04", "CE-05"],
-    notes: ["Local reviewer bootstrap only; not a normal product runtime dependency."],
-  },
-  {
-    id: "dev.getSeedCollaborationSession",
-    method: "GET",
-    path: "/collaboration/sessions/seed",
-    owner: "CollaborationModule",
-    audience: "dev-only",
-    responseDto: "CollaborationSessionResponseDto",
-    schemas: { query: "CollaborationSessionQuery", response: "CollaborationSessionResponse" },
-    relatedRequirements: ["CE-01", "CE-02", "CE-03"],
-    notes: ["Local reviewer bootstrap only; replaced by document collaboration sessions."],
-  },
-] as const satisfies readonly HttpRouteContract[];
-
-export const retiredHttpRoutes = [
-  {
-    id: "retired.collaborationGetDocumentSession",
-    method: "GET",
-    path: "/collaboration/documents/:documentId/session",
-    owner: "CollaborationModule",
-    audience: "retired",
-    responseDto: "CollaborationSessionResponseDto",
-    schemas: {
-      params: "DocumentIdPathParams",
-      query: "CollaborationSessionQuery",
-      response: "CollaborationSessionResponse",
-    },
-    relatedRequirements: ["CE-01", "CE-02", "CE-03"],
-    replaces: "POST /documents/:documentId/collaboration-sessions",
-    notes: [
-      "Existing seed-backed route; product runtime should use the canonical documents route.",
-    ],
-  },
-] as const satisfies readonly HttpRouteContract[];
-
 export const httpRouteInventory = [
   ...canonicalProductHttpRoutes,
-  ...devOnlyHttpRoutes,
-  ...retiredHttpRoutes,
 ] as const satisfies readonly HttpRouteContract[];

@@ -22,22 +22,14 @@ export type LiveYjsPersistenceAdapter = {
   storeDocumentState(documentKey: string, state: Uint8Array): Promise<void>;
 };
 
-export type SeededYjsDocument = Readonly<{
-  documentKey: string;
-  markdown: string;
-}>;
-
-export type SeededYjsDocumentStoreOptions = Readonly<{
-  seed: SeededYjsDocument;
+export type BootstrapYjsDocumentStoreOptions = Readonly<{
   persistence: LiveYjsPersistenceAdapter;
 }>;
 
-export class SeededYjsDocumentStore implements YjsDocumentStore {
-  private readonly seed: SeededYjsDocument;
+export class BootstrapYjsDocumentStore implements YjsDocumentStore {
   private readonly persistence: LiveYjsPersistenceAdapter;
 
-  constructor(options: SeededYjsDocumentStoreOptions) {
-    this.seed = options.seed;
+  constructor(options: BootstrapYjsDocumentStoreOptions) {
     this.persistence = options.persistence;
   }
 
@@ -53,24 +45,14 @@ export class SeededYjsDocumentStore implements YjsDocumentStore {
     const snapshot = await this.persistence.loadDocumentState(documentKey);
     if (snapshot) return applySnapshot(document, snapshot);
 
-    const bootstrapMarkdown = this.resolveBootstrapMarkdown(documentKey, fallbackMarkdown);
-    if (bootstrapMarkdown === null) return;
+    if (fallbackMarkdown === undefined || fallbackMarkdown === null) return;
 
-    insertBootstrapMarkdown(document, bootstrapMarkdown);
+    insertBootstrapMarkdown(document, fallbackMarkdown);
     await this.storeDocument(documentKey, document);
   }
 
   async storeDocument(documentKey: string, document: Y.Doc): Promise<void> {
     await this.persistence.storeDocumentState(documentKey, Y.encodeStateAsUpdate(document));
-  }
-
-  private resolveBootstrapMarkdown(
-    documentKey: string,
-    fallbackMarkdown: string | null | undefined,
-  ): string | null {
-    if (fallbackMarkdown !== undefined && fallbackMarkdown !== null) return fallbackMarkdown;
-    if (documentKey === this.seed.documentKey) return this.seed.markdown;
-    return null;
   }
 }
 

@@ -65,21 +65,6 @@ test("HTTP boundary returns validation envelopes for invalid params, query, and 
   });
 });
 
-test("HTTP boundary hides dev-only seed routes before validating them", async () => {
-  await withEnv({ NODE_ENV: "production", RME_API_ENABLE_DEV_SEED_ROUTES: "true" }, async () => {
-    await withApp(AppModule, async (baseUrl) => {
-      await assertError(`${baseUrl}/collaboration/sessions/seed?memberId=!`, {
-        status: 404,
-        code: "not_found",
-      });
-      await assertError(`${baseUrl}/review-context/seed`, {
-        status: 404,
-        code: "not_found",
-      });
-    });
-  });
-});
-
 test("HTTP boundary envelopes authz and missing resource errors", async () => {
   await withApp(BoundaryErrorsModule, async (baseUrl) => {
     await assertError(`${baseUrl}/boundary-errors/unauthenticated`, {
@@ -153,24 +138,4 @@ function baseUrlForApp(app: Awaited<ReturnType<typeof NestFactory.create>>): str
   const address = app.getHttpServer().address();
   assertAddressInfo(address);
   return `http://127.0.0.1:${address.port}`;
-}
-
-async function withEnv(
-  values: Readonly<Record<string, string>>,
-  callback: () => Promise<void>,
-): Promise<void> {
-  const previous = new Map(Object.keys(values).map((key) => [key, process.env[key]]));
-  for (const [key, value] of Object.entries(values)) process.env[key] = value;
-
-  try {
-    await callback();
-  } finally {
-    for (const [key, value] of previous) {
-      if (value === undefined) {
-        delete process.env[key];
-      } else {
-        process.env[key] = value;
-      }
-    }
-  }
 }

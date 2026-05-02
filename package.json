@@ -29,7 +29,6 @@
     "check": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm arch:check && pnpm test",
     "precommit:staged": "node scripts/pre-commit-staged.mjs",
     "prepare": "husky",
-    "reviewer:observe": "node scripts/open-reviewer-grid.mjs",
     "requirements:index": "node scripts/requirements-index.mjs",
     "with-node": "bash scripts/with-node.sh",
     "worktree:create": "node scripts/worktree-create.mjs",

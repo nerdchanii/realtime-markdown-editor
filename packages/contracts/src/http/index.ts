@@ -11,11 +11,7 @@ import type {
   WorkspaceId,
   WorkspaceMembershipId,
 } from "../ids.js";
-import type {
-  CollaborationSessionDto,
-  DocumentSyncStateDto,
-  IssuedCollaborationSessionDto,
-} from "../realtime/index.js";
+import type { DocumentSyncStateDto, IssuedCollaborationSessionDto } from "../realtime/index.js";
 
 export type WorkspaceMemberRoleDto = "owner" | "editor" | "viewer";
 
@@ -379,24 +375,6 @@ export type AutosaveSnapshotDto = Readonly<{
   status: AutosaveStatusDto;
 }>;
 
-export type SeedReviewContextDto = Readonly<{
-  currentMemberId: WorkspaceMembershipId;
-  users: readonly UserDto[];
-  workspace: WorkspaceDto;
-  project: ProjectDto;
-  folder: FolderDto;
-  folders: readonly FolderDto[];
-  document: DocumentDetailDto;
-  documents: readonly DocumentDetailDto[];
-  members: readonly WorkspaceMemberDto[];
-  backlinks: readonly BacklinkDto[];
-  collaboration: CollaborationSessionDto;
-  revisions: readonly RevisionDto[];
-  checkpoints: readonly CheckpointDto[];
-  publications: readonly PublicationDto[];
-  autosaves: readonly AutosaveSnapshotDto[];
-}>;
-
 export type CheckpointSnapshotInspectDto = Readonly<{
   checkpointId: CheckpointId;
   documentId: DocumentId;
@@ -430,10 +408,6 @@ export type DocumentReviewStateDto = Readonly<{
 
 export type CreateCollaborationSessionRequestDto = Readonly<{
   clientId?: string;
-}>;
-
-export type CollaborationSessionQueryDto = Readonly<{
-  memberId?: WorkspaceMembershipId;
 }>;
 
 export type CollaborationSessionResponseDto = IssuedCollaborationSessionDto;

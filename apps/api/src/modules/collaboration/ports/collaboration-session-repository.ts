@@ -50,5 +50,4 @@ export interface CollaborationSessionRepository {
   findRuntimeSession(
     lookup: RuntimeCollaborationSessionLookup,
   ): Promise<CollaborationSession | null>;
-  findSeedSession(memberId: CollaborationMembershipId | null): Promise<CollaborationSession | null>;
 }

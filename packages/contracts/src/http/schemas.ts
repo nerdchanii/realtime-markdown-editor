@@ -133,12 +133,6 @@ export const httpSchemaCatalog = [
     fields: [{ name: "checkpointId", kind: "string", required: true, format: "resource-id" }],
   },
   {
-    id: "CollaborationSessionQuery",
-    dto: "CollaborationSessionQueryDto",
-    target: "query",
-    fields: [{ name: "memberId", kind: "string", required: false, format: "resource-id" }],
-  },
-  {
     id: "CreateWorkspaceRequest",
     dto: "CreateWorkspaceRequestDto",
     target: "body",
@@ -510,21 +504,6 @@ export const httpSchemaCatalog = [
       { name: "currentMember", kind: "object", required: true },
       { name: "allowedMembers", kind: "array", required: true, itemSchema: "RealtimeMemberDto" },
       { name: "sync", kind: "object", required: true },
-    ],
-  },
-  {
-    id: "SeedReviewContextResponse",
-    dto: "SeedReviewContextDto",
-    target: "response",
-    fields: [
-      { name: "currentMemberId", kind: "string", required: true },
-      { name: "users", kind: "array", required: true, itemSchema: "UserDto" },
-      { name: "workspace", kind: "object", required: true },
-      { name: "project", kind: "object", required: true },
-      { name: "folder", kind: "object", required: true },
-      { name: "document", kind: "object", required: true },
-      { name: "members", kind: "array", required: true, itemSchema: "WorkspaceMemberDto" },
-      { name: "collaboration", kind: "object", required: true },
     ],
   },
 ] as const satisfies readonly HttpSchemaDescriptor[];

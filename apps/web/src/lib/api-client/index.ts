@@ -21,7 +21,6 @@ import type {
   ProjectId,
   ProjectResponseDto,
   ReplaceDocumentPropertiesRequestDto,
-  SeedReviewContextDto,
   SessionResponseDto,
   UpdateDocumentContentRequestDto,
   UpdateDocumentRequestDto,
@@ -361,14 +360,4 @@ export async function fetchDocumentCheckpoints(
   documentId: DocumentId,
 ): Promise<ListCheckpointsResponseDto> {
   return fetchJson(client, `/documents/${encodeURIComponent(documentId)}/checkpoints`);
-}
-
-export async function fetchSeedReviewContext(client: ApiClient): Promise<SeedReviewContextDto> {
-  const response = await fetch(`${client.baseUrl}/review-context/seed`);
-
-  if (!response.ok) {
-    throw new Error(`Seed review context request failed with ${response.status}`);
-  }
-
-  return (await response.json()) as SeedReviewContextDto;
 }
