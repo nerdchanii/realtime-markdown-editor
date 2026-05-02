@@ -5,6 +5,7 @@ import type {
   DocumentConnectionsResponseDto,
   DocumentContentResponseDto,
   DocumentResponseDto,
+  ListArchivedDocumentsResponseDto,
   ListDocumentsResponseDto,
   MoveDocumentRequestDto,
   ReplaceDocumentPropertiesRequestDto,
@@ -27,6 +28,15 @@ export class DocumentProductService {
   async listByFolder(folderId: string): Promise<ListDocumentsResponseDto> {
     return {
       documents: required(await this.repository.listByFolder(folderId), "Folder not found."),
+    };
+  }
+
+  async listArchivedByWorkspace(workspaceId: string): Promise<ListArchivedDocumentsResponseDto> {
+    return {
+      documents: required(
+        await this.repository.listArchivedByWorkspace(workspaceId),
+        "Workspace not found.",
+      ),
     };
   }
 
@@ -89,6 +99,15 @@ export class DocumentProductService {
 
   async deleteDocument(documentId: string): Promise<DeletedResourceResponseDto> {
     return required(await this.repository.deleteDocument(documentId), "Document not found.");
+  }
+
+  async restoreDocument(documentId: string): Promise<DocumentResponseDto> {
+    return {
+      document: required(
+        await this.repository.restoreDocument(documentId),
+        "Archived document or restore target not found.",
+      ),
+    };
   }
 
   async getContent(documentId: string): Promise<DocumentContentResponseDto> {

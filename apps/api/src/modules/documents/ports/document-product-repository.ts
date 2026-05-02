@@ -1,4 +1,5 @@
 import type {
+  ArchivedDocumentDto,
   BacklinkDto,
   CreateDocumentRequestDto,
   DeletedResourceResponseDto,
@@ -24,6 +25,7 @@ export type DocumentConnections = Readonly<{
 
 export interface DocumentProductRepository {
   listByFolder(folderId: string): Promise<readonly DocumentSummaryDto[] | null>;
+  listArchivedByWorkspace(workspaceId: string): Promise<readonly ArchivedDocumentDto[] | null>;
   createInFolder(
     folderId: string,
     input: CreateDocumentRequestDto,
@@ -38,6 +40,7 @@ export interface DocumentProductRepository {
     targetFolderId: MoveDocumentRequestDto["targetFolderId"],
   ): Promise<DocumentDetailDto | null>;
   deleteDocument(documentId: string): Promise<DeletedResourceResponseDto | null>;
+  restoreDocument(documentId: string): Promise<DocumentDetailDto | null>;
   findContent(documentId: string): Promise<DocumentContentDto | null>;
   updateContent(
     documentId: string,

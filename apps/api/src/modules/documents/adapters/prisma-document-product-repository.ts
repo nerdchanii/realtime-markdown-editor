@@ -3,6 +3,7 @@
 import { randomUUID } from "node:crypto";
 
 import type {
+  ArchivedDocumentDto,
   BacklinkDto,
   CreateDocumentRequestDto,
   DeletedResourceResponseDto,
@@ -96,9 +97,13 @@ export type PrismaDocumentProductPersistenceClient = Readonly<{
   };
   document: {
     findMany(args: {
-      where: { folderId: string; archivedAt: null };
-      select: Omit<DocumentSelect, "markdownBody" | "markdownBodyUpdatedAt" | "archivedAt">;
-      orderBy: { title: "asc" };
+      where:
+        | { folderId: string; archivedAt: null }
+        | { archivedAt: { not: null }; folder: { workspaceId: string } };
+      select:
+        | Omit<DocumentSelect, "markdownBody" | "markdownBodyUpdatedAt" | "archivedAt">
+        | Omit<DocumentSelect, "markdownBody" | "markdownBodyUpdatedAt">;
+      orderBy: { title: "asc" } | { archivedAt: "desc" };
     }): Promise<DocumentRecord[]>;
     findUnique(args: {
       where: { id: string };
@@ -125,7 +130,7 @@ export type PrismaDocumentProductPersistenceClient = Readonly<{
         folderId?: string;
         markdownBody?: string;
         contentSource?: "collaborationProjection" | "manualImport";
-        archivedAt?: Date;
+        archivedAt?: Date | null;
       };
       select: DocumentSelect;
     }): Promise<DocumentRecord>;
@@ -172,6 +177,15 @@ export class PrismaDocumentProductRepository implements DocumentProductRepositor
       orderBy: { title: "asc" },
     });
     return records.map(toDocumentSummaryDto);
+  }
+
+  async listArchivedByWorkspace(workspaceId: string): Promise<readonly ArchivedDocumentDto[]> {
+    const records = await this.client.document.findMany({
+      where: { archivedAt: { not: null }, folder: { workspaceId } },
+      select: documentArchivedSummarySelect,
+      orderBy: { archivedAt: "desc" },
+    });
+    return records.map(toArchivedDocumentDto);
   }
 
   async createInFolder(
@@ -242,6 +256,21 @@ export class PrismaDocumentProductRepository implements DocumentProductRepositor
       select: documentSelect,
     });
     return { id: documentId, deletedAt: deletedAt.toISOString() };
+  }
+
+  async restoreDocument(documentId: string): Promise<DocumentDetailDto | null> {
+    const record = await this.client.document.findUnique({
+      where: { id: documentId },
+      select: documentSelect,
+    });
+    if (!record?.archivedAt || !(await this.folderExists(record.folderId))) return null;
+
+    await this.client.document.update({
+      where: { id: documentId },
+      data: { archivedAt: null },
+      select: documentSelect,
+    });
+    return this.findDetail(documentId);
   }
 
   async findContent(documentId: string): Promise<DocumentContentDto | null> {
@@ -360,6 +389,10 @@ const documentSelect = {
   markdownBodyUpdatedAt: true,
   archivedAt: true,
 } as const;
+const documentArchivedSummarySelect = {
+  ...documentSummarySelect,
+  archivedAt: true,
+} as const;
 
 async function findDocumentDetail(
   client: PrismaDocumentProductPersistenceClient,
@@ -409,6 +442,13 @@ function toDocumentSummaryDto(record: DocumentSummaryRecord): DocumentSummaryDto
     latestRevisionId: record.latestRevisionId as DocumentSummaryDto["latestRevisionId"],
     publishedRevisionId: record.publishedRevisionId as DocumentSummaryDto["publishedRevisionId"],
   };
+}
+
+function toArchivedDocumentDto(record: DocumentSummaryRecord & { archivedAt?: Date | null }) {
+  return {
+    ...toDocumentSummaryDto(record),
+    archivedAt: (record.archivedAt ?? new Date(0)).toISOString(),
+  } satisfies ArchivedDocumentDto;
 }
 
 function toDocumentDetailDto(record: DocumentRecord): DocumentDetailDto {

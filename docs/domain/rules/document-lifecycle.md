@@ -13,6 +13,13 @@ status: active
 - `saved`는 document workflow state이며 모든 client에 pending local edits가 없다는 증거가 아니다.
 - `review`는 현재 제품 범위에서 저장 전 필수 gate가 아니다.
 - 현재 제품 범위에서는 `draft`, `review`, `saved` 사이의 direct state change를 허용한다.
+- Document delete는 현재 제품 범위에서 hard delete가 아니라 `archivedAt`을 설정하는 soft delete다.
+- Archived document는 normal workspace navigation과 folder children 결과에서 제외한다.
+- Workspace Trash는 archived documents를 별도 API에서 조회한다.
+- Restore는 원래 folder path가 active일 때만 `archivedAt`을 지운다. Parent folder가 삭제된 document
+  restore는 folder restore/target selection requirement가 생기기 전까지 실패해야 한다.
+- Restore는 Markdown body, properties, revisions, checkpoints, artifacts, links/backlinks metadata를
+  변경하지 않는다.
 - Future workflow hooks는 raw editor keystrokes가 아니라 명시적인 `DocumentState` change에 붙는다.
 - 현재 제품 범위에서 `DocumentState`는 `Document`가 가진 value/state로 구현하고 별도 aggregate로 키우지 않는다.
 

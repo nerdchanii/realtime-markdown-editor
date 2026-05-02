@@ -7,6 +7,7 @@ import { test } from "node:test";
 import { Module } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 import type {
+  ArchivedDocumentDto,
   CreateDocumentRequestDto,
   DeletedResourceResponseDto,
   DocumentConnectionsResponseDto,
@@ -15,6 +16,7 @@ import type {
   DocumentPropertyDto,
   DocumentResponseDto,
   DocumentSummaryDto,
+  ListArchivedDocumentsResponseDto,
   ListDocumentsResponseDto,
 } from "@rme/contracts";
 
@@ -97,28 +99,81 @@ test("document product API keeps one folder location and stores properties outsi
       links: [],
       backlinks: [],
     });
+
+    const deleted = await deleteJson<DeletedResourceResponseDto>(
+      baseUrl,
+      `/documents/${created.document.id}`,
+    );
+    assert.equal(deleted.id, created.document.id);
+    assert.equal(deleted.deletedAt, "2026-04-30T00:00:00.000Z");
+
+    const folderBAfterDelete = await getJson<ListDocumentsResponseDto>(
+      baseUrl,
+      "/folders/folder_b/documents",
+    );
+    assert.deepEqual(folderBAfterDelete.documents, []);
+
+    const trash = await getJson<ListArchivedDocumentsResponseDto>(
+      baseUrl,
+      "/workspaces/workspace_a/trash/documents",
+    );
+    assert.deepEqual(trash.documents, [
+      {
+        ...toSummary(moved.document),
+        archivedAt: "2026-04-30T00:00:00.000Z",
+      },
+    ]);
+
+    const restored = await postJson<DocumentResponseDto>(
+      baseUrl,
+      `/documents/${created.document.id}/restore`,
+      {},
+    );
+    assert.equal(restored.document.id, created.document.id);
+    assert.equal(restored.document.folderId, "folder_b");
+    assert.equal(restored.document.markdownBody, "# Launch checklist\n\n- Ship API");
+
+    const folderBAfterRestore = await getJson<ListDocumentsResponseDto>(
+      baseUrl,
+      "/folders/folder_b/documents",
+    );
+    assert.deepEqual(
+      folderBAfterRestore.documents.map((document) => document.id),
+      [created.document.id],
+    );
   } finally {
     await app.close();
   }
 });
 
 class InMemoryDocumentProductRepository implements DocumentProductRepository {
-  private readonly folderIds = new Set(["folder_a", "folder_b"]);
+  private readonly folders = new Map([
+    ["folder_a", "workspace_a"],
+    ["folder_b", "workspace_a"],
+  ]);
   private readonly documents = new Map<string, DocumentDetailDto & { archivedAt?: string }>();
   private next = 1;
 
   async listByFolder(folderId: string): Promise<readonly DocumentSummaryDto[] | null> {
-    if (!this.folderIds.has(folderId)) return null;
+    if (!this.folders.has(folderId)) return null;
     return [...this.documents.values()]
       .filter((document) => document.folderId === folderId && !document.archivedAt)
       .map(toSummary);
+  }
+
+  async listArchivedByWorkspace(workspaceId: string): Promise<readonly ArchivedDocumentDto[]> {
+    return [...this.documents.values()]
+      .filter(
+        (document) => document.archivedAt && this.folders.get(document.folderId) === workspaceId,
+      )
+      .map((document) => ({ ...toSummary(document), archivedAt: document.archivedAt ?? "" }));
   }
 
   async createInFolder(
     folderId: string,
     input: CreateDocumentRequestDto,
   ): Promise<DocumentDetailDto | null> {
-    if (!this.folderIds.has(folderId)) return null;
+    if (!this.folders.has(folderId)) return null;
     const id = `document_${this.next++}`;
     const document = {
       id,
@@ -159,7 +214,7 @@ class InMemoryDocumentProductRepository implements DocumentProductRepository {
     targetFolderId: string,
   ): Promise<DocumentDetailDto | null> {
     const document = await this.findDetail(documentId);
-    if (!document || !this.folderIds.has(targetFolderId)) return null;
+    if (!document || !this.folders.has(targetFolderId)) return null;
     const updated = { ...document, folderId: targetFolderId as DocumentDetailDto["folderId"] };
     this.documents.set(documentId, updated);
     return updated;
@@ -171,6 +226,15 @@ class InMemoryDocumentProductRepository implements DocumentProductRepository {
     const deletedAt = new Date("2026-04-30T00:00:00.000Z").toISOString();
     this.documents.set(documentId, { ...document, archivedAt: deletedAt });
     return { id: documentId, deletedAt };
+  }
+
+  async restoreDocument(documentId: string): Promise<DocumentDetailDto | null> {
+    const document = this.documents.get(documentId);
+    if (!document?.archivedAt || !this.folders.has(document.folderId)) return null;
+    const restored = { ...document };
+    delete restored.archivedAt;
+    this.documents.set(documentId, restored);
+    return restored;
   }
 
   async findContent(documentId: string): Promise<DocumentContentResponseDto["content"] | null> {
@@ -252,6 +316,16 @@ async function putJson<T>(baseUrl: string, path: string, body: object): Promise<
   return JSON.parse(responseText) as T;
 }
 
+async function deleteJson<T>(baseUrl: string, path: string): Promise<T> {
+  const response = await fetch(`${baseUrl}${path}`, {
+    method: "DELETE",
+    headers: authHeaders(),
+  });
+  const responseText = await response.text();
+  assert.equal(response.status, 200, responseText);
+  return JSON.parse(responseText) as T;
+}
+
 async function getJson<T>(baseUrl: string, path: string): Promise<T> {
   const response = await fetch(`${baseUrl}${path}`, { headers: authHeaders() });
   const responseText = await response.text();
@@ -260,6 +334,7 @@ async function getJson<T>(baseUrl: string, path: string): Promise<T> {
 }
 
 class AllowAllProductApiAccessService {
+  async requireWorkspaceAccess(): Promise<void> {}
   async requireFolderAccess(): Promise<void> {}
   async requireDocumentAccess(): Promise<void> {}
 }

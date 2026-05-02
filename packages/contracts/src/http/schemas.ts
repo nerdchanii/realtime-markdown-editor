@@ -360,6 +360,14 @@ export const httpSchemaCatalog = [
     ],
   },
   {
+    id: "ListArchivedDocumentsResponse",
+    dto: "ListArchivedDocumentsResponseDto",
+    target: "response",
+    fields: [
+      { name: "documents", kind: "array", required: true, itemSchema: "ArchivedDocumentDto" },
+    ],
+  },
+  {
     id: "DocumentContentResponse",
     dto: "DocumentContentResponseDto",
     target: "response",

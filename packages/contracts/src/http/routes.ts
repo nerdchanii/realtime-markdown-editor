@@ -28,6 +28,7 @@ export type SubjectRequirementRef =
   | "REQ-OFFLINE-RECONNECT-MERGE"
   | "REQ-PRESENCE-MEMBER-AWARENESS"
   | "REQ-PROPERTIES-OUTSIDE-BODY"
+  | "REQ-DOCUMENT-TRASH-RESTORE"
   | "REQ-WORKSPACE-DOCUMENT-SCOPE"
   | "REQ-WORKSPACE-HIERARCHY";
 
@@ -336,7 +337,29 @@ export const canonicalProductHttpRoutes = [
     audience: "product",
     responseDto: "DeletedResourceResponseDto",
     schemas: { params: "DocumentIdPathParams", response: "DeletedResourceResponse" },
-    relatedRequirements: ["REQ-WORKSPACE-HIERARCHY"],
+    relatedRequirements: ["REQ-WORKSPACE-HIERARCHY", "REQ-DOCUMENT-TRASH-RESTORE"],
+  },
+  {
+    id: "documents.listArchivedByWorkspace",
+    method: "GET",
+    path: "/workspaces/:workspaceId/trash/documents",
+    owner: "DocumentsModule",
+    audience: "product",
+    responseDto: "ListArchivedDocumentsResponseDto",
+    schemas: { params: "WorkspaceIdPathParams", response: "ListArchivedDocumentsResponse" },
+    relatedRequirements: ["REQ-DOCUMENT-TRASH-RESTORE", "REQ-WORKSPACE-DOCUMENT-SCOPE"],
+    notes: ["Archived documents are excluded from normal workspace navigation."],
+  },
+  {
+    id: "documents.restore",
+    method: "POST",
+    path: "/documents/:documentId/restore",
+    owner: "DocumentsModule",
+    audience: "product",
+    responseDto: "DocumentResponseDto",
+    schemas: { params: "DocumentIdPathParams", response: "DocumentResponse" },
+    relatedRequirements: ["REQ-DOCUMENT-TRASH-RESTORE", "REQ-WORKSPACE-DOCUMENT-SCOPE"],
+    notes: ["Restore clears archive state only when the original folder path is still active."],
   },
   {
     id: "documents.getContent",

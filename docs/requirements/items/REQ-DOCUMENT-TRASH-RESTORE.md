@@ -13,12 +13,13 @@ depends_on:
   - REQ-WORKSPACE-DOCUMENT-SCOPE
 blocks:
   - UI-GAP-008
-next_step: Add canonical document trash list and restore API contracts, then implement authorization-backed repository/service/controller behavior and UI wiring.
+next_step: Wire the canonical Trash list/restore API into the product UI and add product e2e evidence for delete, Trash listing, and restore.
 refs:
   - docs/product/ui-capability-gap-log.md
   - docs/domain/rules/document-lifecycle.md
   - packages/contracts/src/http/routes.ts
   - apps/api/prisma/schema.prisma
+  - tasks/archive/TASK-095-document-trash-restore-api.md
 ---
 
 # REQ-DOCUMENT-TRASH-RESTORE
@@ -41,3 +42,13 @@ Acceptance:
   not by trusting client-supplied membership or workspace identity.
 - Restore failure states are explicit: missing document, unauthorized access, deleted parent folder,
   or unsupported restore target must not silently succeed.
+
+## Current State
+
+`TASK-095` added canonical product HTTP contracts and API behavior for workspace Trash document
+listing and document restore. Archived documents remain excluded from normal navigation and folder
+children APIs. Restore clears only `archivedAt` and fails when the original folder path is no longer
+active.
+
+This requirement remains open until the product UI exposes the Trash list/restore workflow and
+product e2e evidence covers the user-facing path.

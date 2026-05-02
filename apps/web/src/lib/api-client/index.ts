@@ -12,6 +12,7 @@ import type {
   DocumentId,
   DocumentResponseDto,
   FolderResponseDto,
+  ListArchivedDocumentsResponseDto,
   ListCheckpointsResponseDto,
   ListWorkspacesResponseDto,
   ReplaceDocumentPropertiesRequestDto,
@@ -107,6 +108,22 @@ export async function deleteDocument(
 ): Promise<DeletedResourceResponseDto> {
   return fetchJson(client, `/documents/${encodeURIComponent(documentId)}`, {
     method: "DELETE",
+  });
+}
+
+export async function fetchArchivedDocuments(
+  client: ApiClient,
+  workspaceId: WorkspaceId,
+): Promise<ListArchivedDocumentsResponseDto> {
+  return fetchJson(client, `/workspaces/${encodeURIComponent(workspaceId)}/trash/documents`);
+}
+
+export async function restoreDocument(
+  client: ApiClient,
+  documentId: DocumentId,
+): Promise<DocumentResponseDto> {
+  return fetchJson(client, `/documents/${encodeURIComponent(documentId)}/restore`, {
+    method: "POST",
   });
 }
 

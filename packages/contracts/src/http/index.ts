@@ -171,6 +171,11 @@ export type DocumentSummaryDto = Readonly<{
   publishedRevisionId: RevisionId | null;
 }>;
 
+export type ArchivedDocumentDto = DocumentSummaryDto &
+  Readonly<{
+    archivedAt: string;
+  }>;
+
 export type DocumentDetailDto = DocumentSummaryDto &
   Readonly<{
     markdownBody: string;
@@ -222,6 +227,10 @@ export type DocumentContentResponseDto = Readonly<{
 
 export type ListDocumentsResponseDto = Readonly<{
   documents: readonly DocumentSummaryDto[];
+}>;
+
+export type ListArchivedDocumentsResponseDto = Readonly<{
+  documents: readonly ArchivedDocumentDto[];
 }>;
 
 export type WorkspaceNavigationResponseDto = Readonly<{
