@@ -13,6 +13,15 @@ const reactFiles = ["apps/web/src/**/*.{ts,tsx}"];
 const adapterFiles = ["apps/**/adapters/**/*.{ts,tsx}"];
 const useCaseFiles = ["apps/**/use-cases/**/*.{ts,tsx}"];
 const apiDomainFiles = ["apps/api/src/modules/**/domain/**/*.ts"];
+const largeCatalogFiles = [
+  "packages/contracts/src/http/index.ts",
+  "packages/contracts/src/http/routes.ts",
+  "packages/contracts/src/http/schemas.ts",
+];
+const legacyLargeAdapterFiles = [
+  "apps/api/src/modules/documents/adapters/prisma-document-product-repository.ts",
+  "apps/api/src/modules/workspace/adapters/prisma-workspace-product-repository.ts",
+];
 
 const frameworkAndProviderImports = [
   "@nestjs",
@@ -149,6 +158,18 @@ export default [
       "max-depth": "off",
       "max-lines": "off",
       "max-lines-per-function": "off",
+    },
+  },
+  {
+    files: largeCatalogFiles,
+    rules: {
+      "max-lines": ["error", { max: 750, skipBlankLines: true, skipComments: true }],
+    },
+  },
+  {
+    files: legacyLargeAdapterFiles,
+    rules: {
+      "max-lines": ["error", { max: 900, skipBlankLines: true, skipComments: true }],
     },
   },
   {

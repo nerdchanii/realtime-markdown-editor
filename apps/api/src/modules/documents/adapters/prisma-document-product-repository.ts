@@ -1,5 +1,3 @@
-/* eslint-disable max-lines */
-
 import { randomUUID } from "node:crypto";
 
 import type {
@@ -7,14 +5,12 @@ import type {
   BacklinkDto,
   CreateDocumentRequestDto,
   DeletedResourceResponseDto,
-  DocumentContentDto,
   DocumentDetailDto,
   DocumentLinkDto,
   DocumentPropertyDto,
   DocumentPropertyValueDto,
   DocumentStateDto,
   DocumentSummaryDto,
-  UpdateDocumentContentRequestDto,
   UpdateDocumentRequestDto,
 } from "@rme/contracts";
 
@@ -22,11 +18,6 @@ import type {
   DocumentConnections,
   DocumentProductRepository,
 } from "@/modules/documents/ports/document-product-repository.js";
-import {
-  findLocalCurrentMarkdownProjection,
-  isLocalReviewDocumentId,
-  saveLocalCurrentMarkdownProjection,
-} from "@/modules/documents/adapters/local-current-markdown-projection.js";
 
 type JsonValue =
   | string
@@ -273,56 +264,6 @@ export class PrismaDocumentProductRepository implements DocumentProductRepositor
     return this.findDetail(documentId);
   }
 
-  async findContent(documentId: string): Promise<DocumentContentDto | null> {
-    if (isLocalReviewDocumentId(documentId)) {
-      const projection = findLocalCurrentMarkdownProjection(documentId);
-      if (!projection) return null;
-      return {
-        documentId: projection.documentId,
-        markdownBody: projection.markdownBody,
-        latestRevisionId: projection.latestRevisionId,
-        updatedAt: projection.updatedAt.toISOString(),
-      };
-    }
-
-    const record = await this.client.document.findUnique({
-      where: { id: documentId },
-      select: documentSelect,
-    });
-    if (!record || record.archivedAt) return null;
-    return toDocumentContentDto(record);
-  }
-
-  async updateContent(
-    documentId: string,
-    input: UpdateDocumentContentRequestDto,
-  ): Promise<DocumentContentDto | null> {
-    if (isLocalReviewDocumentId(documentId)) {
-      const projection = saveLocalCurrentMarkdownProjection({
-        documentId,
-        markdownBody: input.markdownBody,
-      });
-      return {
-        documentId: projection.documentId,
-        markdownBody: projection.markdownBody,
-        latestRevisionId: projection.latestRevisionId,
-        updatedAt: projection.updatedAt.toISOString(),
-      };
-    }
-
-    if (!(await this.findDetail(documentId))) return null;
-    const record = await this.client.document.update({
-      where: { id: documentId },
-      data: {
-        markdownBody: input.markdownBody,
-        contentSource:
-          input.source === "collaboration-projection" ? "collaborationProjection" : "manualImport",
-      },
-      select: documentSelect,
-    });
-    return toDocumentContentDto(record);
-  }
-
   async replaceProperties(
     documentId: string,
     properties: readonly DocumentPropertyDto[],
@@ -456,15 +397,6 @@ function toDocumentDetailDto(record: DocumentRecord): DocumentDetailDto {
     ...toDocumentSummaryDto(record),
     markdownBody: record.markdownBody,
     properties: (record.properties ?? []).map(toDocumentPropertyDto),
-  };
-}
-
-function toDocumentContentDto(record: DocumentRecord): DocumentContentDto {
-  return {
-    documentId: record.id as DocumentContentDto["documentId"],
-    markdownBody: record.markdownBody,
-    latestRevisionId: record.latestRevisionId as DocumentContentDto["latestRevisionId"],
-    updatedAt: record.markdownBodyUpdatedAt.toISOString(),
   };
 }
 

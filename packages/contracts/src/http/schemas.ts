@@ -1,5 +1,3 @@
-/* eslint-disable max-lines */
-
 export type HttpSchemaTarget = "params" | "query" | "body" | "multipart" | "response";
 
 export type HttpSchemaFieldKind =

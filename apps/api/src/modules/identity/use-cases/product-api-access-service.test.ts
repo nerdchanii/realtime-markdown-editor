@@ -2,7 +2,7 @@ import { strict as assert } from "node:assert";
 import { test } from "node:test";
 
 import { ForbiddenException, NotFoundException, UnauthorizedException } from "@nestjs/common";
-import type { DocumentId, WorkspaceId } from "@rme/contracts";
+import type { CheckpointId, DocumentId, FolderId, ProjectId, WorkspaceId } from "@rme/contracts";
 
 import { ProductApiAccessService } from "@/modules/identity/use-cases/product-api-access-service.js";
 import type {
@@ -10,7 +10,10 @@ import type {
   SessionContext,
 } from "@/modules/identity/use-cases/auth-session-service.js";
 import { AuthSessionService } from "@/modules/identity/use-cases/auth-session-service.js";
-import type { PrismaDatabaseService } from "@/database/database.service.js";
+import type {
+  ProductResourceAccessRepository,
+  ProjectAccessMode,
+} from "@/modules/identity/ports/product-resource-access-repository.js";
 
 test("product API access requires a valid session cookie", async () => {
   const service = createAccessService({ session: null });
@@ -68,7 +71,7 @@ function createAccessService(input: {
 }): ProductApiAccessService {
   return new ProductApiAccessService(
     new AuthSessionService(new FakeAuthSessionRepository(input.session)),
-    new FakePrismaDatabaseService(input.database) as unknown as PrismaDatabaseService,
+    new FakeProductResourceAccessRepository(input.database),
   );
 }
 
@@ -95,7 +98,7 @@ type FakeDatabaseState = Readonly<{
   checkpointDocumentIds: ReadonlyMap<string, string>;
 }>;
 
-class FakePrismaDatabaseService {
+class FakeProductResourceAccessRepository implements ProductResourceAccessRepository {
   private readonly state: FakeDatabaseState;
 
   constructor(input: Partial<FakeDatabaseState> = {}) {
@@ -107,33 +110,25 @@ class FakePrismaDatabaseService {
     };
   }
 
-  readonly project = {
-    findUnique: async ({ where }: { where: { id: string } }) => {
-      const workspaceId = this.state.projectWorkspaceIds.get(where.id);
-      return workspaceId ? { workspaceId } : null;
-    },
-  };
+  async findWorkspaceIdForProject(
+    projectId: ProjectId,
+    mode: ProjectAccessMode,
+  ): Promise<WorkspaceId | null> {
+    void mode;
+    return (this.state.projectWorkspaceIds.get(projectId) as WorkspaceId | undefined) ?? null;
+  }
 
-  readonly folder = {
-    findUnique: async ({ where }: { where: { id: string } }) => {
-      const workspaceId = this.state.folderWorkspaceIds.get(where.id);
-      return workspaceId ? { workspaceId, deletedAt: null } : null;
-    },
-  };
+  async findWorkspaceIdForFolder(folderId: FolderId): Promise<WorkspaceId | null> {
+    return (this.state.folderWorkspaceIds.get(folderId) as WorkspaceId | undefined) ?? null;
+  }
 
-  readonly document = {
-    findUnique: async ({ where }: { where: { id: string } }) => {
-      const workspaceId = this.state.documentWorkspaceIds.get(where.id);
-      return workspaceId ? { folder: { workspaceId } } : null;
-    },
-  };
+  async findWorkspaceIdForDocument(documentId: DocumentId): Promise<WorkspaceId | null> {
+    return (this.state.documentWorkspaceIds.get(documentId) as WorkspaceId | undefined) ?? null;
+  }
 
-  readonly checkpoint = {
-    findUnique: async ({ where }: { where: { id: string } }) => {
-      const documentId = this.state.checkpointDocumentIds.get(where.id);
-      return documentId ? { documentId } : null;
-    },
-  };
+  async findDocumentIdForCheckpoint(checkpointId: CheckpointId): Promise<DocumentId | null> {
+    return (this.state.checkpointDocumentIds.get(checkpointId) as DocumentId | undefined) ?? null;
+  }
 }
 
 function sessionForWorkspace(workspaceId: string): SessionContext {

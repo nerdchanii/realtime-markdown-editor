@@ -14,11 +14,14 @@ import type {
   WorkspaceMemberDto,
 } from "@rme/contracts";
 
-import { PrismaDatabaseService } from "@/database/database.service.js";
 import {
   AuthSessionService,
   type SessionContext,
 } from "@/modules/identity/use-cases/auth-session-service.js";
+import {
+  PRODUCT_RESOURCE_ACCESS_REPOSITORY,
+  type ProductResourceAccessRepository,
+} from "@/modules/identity/ports/product-resource-access-repository.js";
 
 export type ProductApiSessionAccess = Readonly<{
   session: SessionContext;
@@ -30,8 +33,8 @@ export class ProductApiAccessService {
   constructor(
     @Inject(AuthSessionService)
     private readonly authSessions: AuthSessionService,
-    @Inject(PrismaDatabaseService)
-    private readonly database: PrismaDatabaseService,
+    @Inject(PRODUCT_RESOURCE_ACCESS_REPOSITORY)
+    private readonly resources: ProductResourceAccessRepository,
   ) {}
 
   async requireSession(cookieHeader: string | undefined): Promise<SessionContext> {
@@ -65,39 +68,30 @@ export class ProductApiAccessService {
     cookieHeader: string | undefined,
     projectId: ProjectId,
   ): Promise<ProductApiSessionAccess> {
-    const project = await this.database.project.findUnique({
-      where: { id: projectId },
-      select: { workspaceId: true },
-    });
-    if (!project) throw new NotFoundException("Project not found.");
+    const workspaceId = await this.resources.findWorkspaceIdForProject(projectId, "existing");
+    if (!workspaceId) throw new NotFoundException("Project not found.");
 
-    return this.requireWorkspaceAccess(cookieHeader, project.workspaceId as WorkspaceId);
+    return this.requireWorkspaceAccess(cookieHeader, workspaceId);
   }
 
   async requireProjectOwnerAccess(
     cookieHeader: string | undefined,
     projectId: ProjectId,
   ): Promise<ProductApiSessionAccess> {
-    const project = await this.database.project.findUnique({
-      where: { id: projectId },
-      select: { workspaceId: true, rootFolderId: true },
-    });
-    if (!project?.rootFolderId) throw new NotFoundException("Project not found.");
+    const workspaceId = await this.resources.findWorkspaceIdForProject(projectId, "active");
+    if (!workspaceId) throw new NotFoundException("Project not found.");
 
-    return this.requireWorkspaceOwnerAccess(cookieHeader, project.workspaceId as WorkspaceId);
+    return this.requireWorkspaceOwnerAccess(cookieHeader, workspaceId);
   }
 
   async requireFolderAccess(
     cookieHeader: string | undefined,
     folderId: FolderId,
   ): Promise<ProductApiSessionAccess> {
-    const folder = await this.database.folder.findUnique({
-      where: { id: folderId },
-      select: { workspaceId: true, deletedAt: true },
-    });
-    if (!folder || folder.deletedAt) throw new NotFoundException("Folder not found.");
+    const workspaceId = await this.resources.findWorkspaceIdForFolder(folderId);
+    if (!workspaceId) throw new NotFoundException("Folder not found.");
 
-    return this.requireWorkspaceAccess(cookieHeader, folder.workspaceId as WorkspaceId);
+    return this.requireWorkspaceAccess(cookieHeader, workspaceId);
   }
 
   async requireDocumentAccess(
@@ -112,13 +106,10 @@ export class ProductApiAccessService {
     cookieHeader: string | undefined,
     checkpointId: CheckpointId,
   ): Promise<ProductApiSessionAccess> {
-    const checkpoint = await this.database.checkpoint.findUnique({
-      where: { id: checkpointId },
-      select: { documentId: true },
-    });
-    if (!checkpoint) throw new NotFoundException("Checkpoint not found.");
+    const documentId = await this.resources.findDocumentIdForCheckpoint(checkpointId);
+    if (!documentId) throw new NotFoundException("Checkpoint not found.");
 
-    return this.requireDocumentAccess(cookieHeader, checkpoint.documentId as DocumentId);
+    return this.requireDocumentAccess(cookieHeader, documentId);
   }
 
   async requireCurrentMembershipForDocument(
@@ -137,13 +128,10 @@ export class ProductApiAccessService {
   }
 
   private async workspaceIdForDocument(documentId: DocumentId): Promise<WorkspaceId> {
-    const document = await this.database.document.findUnique({
-      where: { id: documentId },
-      select: { folder: { select: { workspaceId: true } } },
-    });
-    if (!document) throw new NotFoundException("Document not found.");
+    const workspaceId = await this.resources.findWorkspaceIdForDocument(documentId);
+    if (!workspaceId) throw new NotFoundException("Document not found.");
 
-    return document.folder.workspaceId as WorkspaceId;
+    return workspaceId;
   }
 }
 

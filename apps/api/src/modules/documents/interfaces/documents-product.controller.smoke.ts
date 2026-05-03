@@ -23,6 +23,11 @@ import type {
 import { configureHttpBoundary } from "@/interfaces/http/http-boundary.js";
 import { DocumentsProductController } from "@/modules/documents/interfaces/documents-product.controller.js";
 import {
+  DOCUMENT_CONTENT_REPOSITORY,
+  type DocumentContentRepository,
+  type SaveDocumentContentInput,
+} from "@/modules/documents/ports/document-content-repository.js";
+import {
   DOCUMENT_PRODUCT_REPOSITORY,
   type DocumentProductRepository,
 } from "@/modules/documents/ports/document-product-repository.js";
@@ -31,12 +36,14 @@ import { DocumentProductService } from "@/modules/documents/use-cases/document-p
 
 test("document product API keeps one folder location and stores properties outside Markdown", async () => {
   const repository = new InMemoryDocumentProductRepository();
+  const content = new InMemoryDocumentContentRepository(repository);
 
   @Module({
     controllers: [DocumentsProductController],
     providers: [
       DocumentProductService,
       { provide: DOCUMENT_PRODUCT_REPOSITORY, useValue: repository },
+      { provide: DOCUMENT_CONTENT_REPOSITORY, useValue: content },
       { provide: ProductApiAccessService, useValue: new AllowAllProductApiAccessService() },
     ],
   })
@@ -280,6 +287,25 @@ class InMemoryDocumentProductRepository implements DocumentProductRepository {
     const document = await this.findDetail(documentId);
     if (!document) return null;
     return { documentId: document.id, links: [], backlinks: [] };
+  }
+}
+
+class InMemoryDocumentContentRepository implements DocumentContentRepository {
+  constructor(private readonly documents: InMemoryDocumentProductRepository) {}
+
+  async findCurrentContent(documentId: DocumentDetailDto["id"]) {
+    const content = await this.documents.findContent(documentId);
+    if (!content) return null;
+    return { ...content, updatedAt: new Date(content.updatedAt) };
+  }
+
+  async saveCurrentContent(input: SaveDocumentContentInput) {
+    const content = await this.documents.updateContent(input.documentId, {
+      markdownBody: input.markdownBody,
+      ...(input.latestRevisionId == null ? {} : { baseRevisionId: input.latestRevisionId }),
+    });
+    if (!content) throw new Error("Document content not found.");
+    return { ...content, updatedAt: new Date(content.updatedAt) };
   }
 }
 

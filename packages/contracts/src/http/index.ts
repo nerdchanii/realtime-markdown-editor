@@ -1,5 +1,3 @@
-/* eslint-disable max-lines */
-
 import type {
   CheckpointId,
   DocumentId,

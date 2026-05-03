@@ -11,6 +11,7 @@ const forbiddenPackageDirs = [
 ];
 
 const deferredModuleDirs = [["apps", "api", "src", "modules", "history"].join("/")];
+const eslintDisableMaxLinesPattern = /eslint-disable(?:-next-line|-line)?[^\n]*\bmax-lines\b/;
 
 const domainImportPattern =
   /^(@nestjs(?:\/|$)|react(?:\/|$)|@tiptap(?:\/|$)|prosemirror-|yjs$|y-|@hocuspocus(?:\/|$)|yorkie-js-sdk(?:\/|$)|@prisma(?:\/|$)|prisma$|aws-sdk(?:\/|$)|@aws-sdk(?:\/|$)|ioredis$|redis$)/;
@@ -39,6 +40,15 @@ function walk(dir) {
 for (const dir of deferredModuleDirs) {
   if (walk(dir).length > 0) {
     failures.push(`Deferred backend module has source before promotion criteria are met: ${dir}`);
+  }
+}
+
+for (const dir of ["apps", "packages", "scripts", "e2e"]) {
+  for (const file of walk(dir)) {
+    const content = readFileSync(file, "utf8");
+    if (eslintDisableMaxLinesPattern.test(content)) {
+      failures.push(`Do not disable ESLint max-lines; split the file or update config: ${file}`);
+    }
   }
 }
 

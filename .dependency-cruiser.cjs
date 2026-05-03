@@ -45,6 +45,16 @@ module.exports = {
       },
     },
     {
+      name: "api-use-cases-do-not-import-database",
+      severity: "error",
+      from: {
+        path: "^apps/api/src/modules/[^/]+/use-cases/",
+      },
+      to: {
+        path: "^apps/api/src/database/",
+      },
+    },
+    {
       name: "web-does-not-import-api-source",
       severity: "error",
       from: {

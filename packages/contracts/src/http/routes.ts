@@ -1,5 +1,3 @@
-/* eslint-disable max-lines */
-
 import type { HttpSchemaRef } from "./schemas.js";
 
 export type HttpMethod = "DELETE" | "GET" | "PATCH" | "POST" | "PUT";

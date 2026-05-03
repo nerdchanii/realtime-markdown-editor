@@ -3,7 +3,6 @@ import type {
   BacklinkDto,
   CreateDocumentRequestDto,
   DeletedResourceResponseDto,
-  DocumentContentDto,
   DocumentDetailDto,
   DocumentLinkDto,
   DocumentPropertyDto,
@@ -11,7 +10,6 @@ import type {
   DocumentSummaryDto,
   MoveDocumentRequestDto,
   ReplaceDocumentPropertiesRequestDto,
-  UpdateDocumentContentRequestDto,
   UpdateDocumentRequestDto,
 } from "@rme/contracts";
 
@@ -41,11 +39,6 @@ export interface DocumentProductRepository {
   ): Promise<DocumentDetailDto | null>;
   deleteDocument(documentId: string): Promise<DeletedResourceResponseDto | null>;
   restoreDocument(documentId: string): Promise<DocumentDetailDto | null>;
-  findContent(documentId: string): Promise<DocumentContentDto | null>;
-  updateContent(
-    documentId: string,
-    input: UpdateDocumentContentRequestDto,
-  ): Promise<DocumentContentDto | null>;
   replaceProperties(
     documentId: string,
     properties: ReplaceDocumentPropertiesRequestDto["properties"] | readonly DocumentPropertyDto[],

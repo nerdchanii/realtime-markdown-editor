@@ -148,8 +148,9 @@ import { UploadDocumentImageUseCase } from "@/modules/documents/use-cases/upload
     },
     {
       provide: DocumentProductService,
-      useFactory: (repository: DocumentProductRepository) => new DocumentProductService(repository),
-      inject: [DOCUMENT_PRODUCT_REPOSITORY],
+      useFactory: (repository: DocumentProductRepository, content: DocumentContentRepository) =>
+        new DocumentProductService(repository, content),
+      inject: [DOCUMENT_PRODUCT_REPOSITORY, DOCUMENT_CONTENT_REPOSITORY],
     },
     {
       provide: UploadDocumentImageUseCase,
