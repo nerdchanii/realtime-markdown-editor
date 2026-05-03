@@ -135,7 +135,7 @@ function CommandSearch() {
 
 function TopBarLeft({
   isNavigationOpen,
-  workspaceName = "Product workspace",
+  workspaceName = "Team workspace",
   projectName = "Project",
   onToggleNavigation,
 }: Readonly<{

@@ -10,7 +10,7 @@ export function FirstWorkspaceForm({
   apiClient: ApiClient;
   reload: () => void;
 }>) {
-  const [workspaceName, setWorkspaceName] = useState("Product workspace");
+  const [workspaceName, setWorkspaceName] = useState("Team workspace");
   const [isCreating, setIsCreating] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 

@@ -28,7 +28,7 @@ export function AuthScreen({
       reload();
     } catch (error) {
       console.error(error);
-      setErrorMessage("The email or password did not match an active product account.");
+      setErrorMessage("The email or password did not match an active account.");
       setIsLoading(false);
     }
   };
@@ -162,13 +162,11 @@ function AuthCardBody({
   const isCreateMode = mode === "create-account";
   return (
     <>
-      <h2 className="auth-card__title">
-        {isCreateMode ? "Create product account" : "Product sign in"}
-      </h2>
+      <h2 className="auth-card__title">{isCreateMode ? "Create account" : "Sign in"}</h2>
       <p className="auth-card__copy">
         {isCreateMode
-          ? "Create a local product account, then set up or join a workspace."
-          : "Sign in with a product account to open your workspace, documents, and collaboration session."}
+          ? "Create an account, then set up or join a workspace."
+          : "Sign in to open your workspace, documents, and collaboration session."}
       </p>
       <AuthForm
         email={email}

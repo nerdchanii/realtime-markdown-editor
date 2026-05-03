@@ -1,6 +1,6 @@
 ---
 id: REQ-RESEARCH-REDIS-SUPPORT
-title: Redis는 durable document storage가 아니라 support infrastructure로만 평가한다.
+title: Redis는 durable document storage가 아니라 support infrastructure로 분류한다.
 status: planned
 category: research
 type: research

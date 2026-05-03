@@ -1,21 +1,20 @@
 ---
-title: CE Acceptance Testing Policy
+title: Feature Acceptance Testing Policy
 status: active
 ---
 
-# CE Acceptance Testing Policy
+# Feature Acceptance Testing Policy
 
-CE tests protect the five `subject.md` product stories. They should describe user-visible outcomes,
-not the initial reviewer UI implementation.
+Feature tests protect user-visible outcomes without freezing incidental layout or copy.
 
 ## Policy
 
-- CE e2e specs verify the behavior named by CE-01 through CE-05: convergence, presence,
-  reconnect merge, history inspection, and rich Markdown authoring/export preservation.
-- CE specs should call acceptance helpers from `e2e/support/ce-acceptance.ts` for product setup,
+- Feature e2e specs verify convergence, presence, reconnect merge, history inspection, and rich
+  Markdown authoring/export preservation.
+- Specs should call acceptance helpers from `e2e/support/ce-acceptance.ts` for product setup,
   editor actions, checkpoint actions, and export actions.
-- CE specs should not directly preserve layout, toolbar placement, button copy, seed document names,
-  route structure, or adapter wiring as CE contract.
+- Feature specs should not directly preserve layout, toolbar placement, button copy, seed document
+  names, route structure, or adapter wiring as product contract.
 - Product UI details that are worth preserving, such as toolbar controls or accessibility labels,
   belong in product smoke specs or API/use-case tests.
 - Auth, membership, document scope, checkpoint permission, and export permission stay covered by
@@ -24,7 +23,7 @@ not the initial reviewer UI implementation.
 
 ## Current Split
 
-- `e2e/ce-*.spec.ts` contains CE acceptance behavior only.
-- `e2e/product-editor-toolbar.spec.ts` keeps toolbar-specific product smoke coverage outside CE.
-- `e2e/support/ce-acceptance.ts` is the selector boundary for CE tests. UI refresh work should
-  update this helper when the product interaction changes, without rewriting CE story assertions.
+- `e2e/ce-*.spec.ts` contains legacy-named feature acceptance behavior.
+- `e2e/product-editor-toolbar.spec.ts` keeps toolbar-specific product smoke coverage separate.
+- `e2e/support/ce-acceptance.ts` is the selector boundary for feature tests. UI refresh work should
+  update this helper when the product interaction changes, without rewriting feature assertions.

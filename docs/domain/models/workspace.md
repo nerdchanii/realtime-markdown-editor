@@ -17,7 +17,7 @@ status: active
 - Membership과 member identity를 scope한다.
 - Workspace-level folder/document tree의 root를 제공한다.
 - Project를 직접 소유한다.
-- Workspace/project/root-folder/document path가 CE-01부터 CE-05까지의 product acceptance path가 되게 한다.
+- Workspace/project/root-folder/document path가 협업 편집 기능의 product acceptance path가 되게 한다.
 
 ## 책임이 아닌 것
 

@@ -16,7 +16,7 @@ completed_by:
   - tasks/archive/TASK-093-presence-caret-label-legibility-closeout.md
 refs:
   - docs/product/editor/presence.md
-  - docs/compliance/subject-matrix.md
+  - docs/compliance/feature-acceptance-map.md
   - e2e/ce-02-presence.spec.ts
 ---
 

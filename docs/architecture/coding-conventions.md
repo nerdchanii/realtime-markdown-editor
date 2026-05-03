@@ -12,10 +12,8 @@ approved_at: 2026-04-29
 이 문서는 이 저장소의 현재 coding convention이다. 컨벤션은 취향보다 자동 강제 가능한 규칙을
 우선하며, `pre-commit`, `commit-msg`, `pnpm check`가 같은 기준을 보게 한다.
 
-CE story acceptance는 `subject.md`의 CE-01부터 CE-05까지와
-`docs/compliance/subject-matrix.md`에서 추적한다. 제품 완료 판단은
-`docs/product/product-quality-gates.md`를 함께 따른다. 이 문서는 CE 요구사항을 재정의하지 않고,
-제품 품질을 낮추는 코드 품질 저하와 architecture boundary drift를 막는다.
+제품 기능의 사용자 행동 지도는 `docs/compliance/feature-acceptance-map.md`에서 추적한다. 이 문서는
+기능을 재정의하지 않고, 코드 품질 저하와 architecture boundary drift를 막는다.
 
 ## 적용 범위
 
@@ -27,7 +25,7 @@ CE story acceptance는 `subject.md`의 CE-01부터 CE-05까지와
 - 작업 완료 전에는 `pnpm check` 또는 해당 변경 범위의 더 좁은 명시적 검증 명령을 실행한다.
 - CSS, spacing, color, typography, layout polish 같은 순수 시각 변경을 제외한 동작 변경은 TDD를
   따른다.
-- Product-facing 변경은 관련 product quality gate를 약화하지 않는지 확인한다.
+- Product-facing 변경은 `docs/product/product-principles.md`의 기능 설명 원칙과 충돌하지 않는지 확인한다.
 
 ## 로컬 게이트
 

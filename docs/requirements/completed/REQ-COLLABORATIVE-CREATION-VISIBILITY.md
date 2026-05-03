@@ -16,7 +16,7 @@ completed_by:
 refs:
   - docs/product/workspace/workspace-hierarchy.md
   - docs/product/editor/history.md
-  - docs/compliance/subject-matrix.md
+  - docs/compliance/feature-acceptance-map.md
   - tasks/archive/TASK-099-collaborative-creation-visibility.md
 ---
 

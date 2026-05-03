@@ -43,7 +43,7 @@ Acceptance:
 - Right inspector는 first implementation에서 History 중심으로 유지되고 Document Details, Comments, Outline tab을 기본 노출하지 않는다.
 - Document tabs, compact toolbar, document header metadata, saved/sync/offline state는 editor context 안에서 보인다.
 - Presence는 editor surface 안에서만 보이고 remote caret/member label legibility requirement와 충돌하지 않는다.
-- UI refresh는 existing CE-01 through CE-05 reviewer path를 숨기거나 대체하지 않는다.
+- UI refresh는 existing editor-first collaboration path를 숨기거나 대체하지 않는다.
 - UI refresh는 existing product API와 client-side state contract를 사용하며 server/API/domain code를 수정하지 않는다.
 - UI 구현 중 server capability gap이 발견되면 이 요구사항 안에서 고치지 않고 별도 backend requirement 또는 task로 분리한다.
 - Backend/API/domain 기능이 아직 없더라도 제품 구조상 필요한 UI surface는 placeholder로 먼저 노출할 수 있다.
@@ -81,4 +81,4 @@ Evidence:
 - Presence remains inside the editor surface through collaborative caret/selection rendering.
 - Placeholder command/search, notifications, and keyboard shortcut entries are visibly non-final
   and tracked in `docs/product/ui-capability-gap-log.md`.
-- Existing CE/product E2E coverage remains on the same editor-first reviewer path.
+- Existing feature/product E2E coverage remains on the same editor-first path.

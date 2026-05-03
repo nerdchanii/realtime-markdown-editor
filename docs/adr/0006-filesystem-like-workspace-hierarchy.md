@@ -37,9 +37,9 @@ superseded_by: null
 
 ## 맥락
 
-기존 요구사항과 제품 문서는 `Workspace > Project > Folder > Document`를 첫 hierarchy 언어로 사용했다. 이 표현은 reviewer가 anonymous scratch editor가 아니라 workspace context 안의 document를 검증해야 한다는 의도를 잘 보존한다.
+기존 요구사항과 제품 문서는 `Workspace > Project > Folder > Document`를 첫 hierarchy 언어로 사용했다. 이 표현은 사용자가 anonymous scratch editor가 아니라 workspace context 안의 document를 편집한다는 의도를 잘 보존한다.
 
-그러나 실제 제품 모델을 strict chain으로 고정하면 다음 문제가 생긴다.
+그러나 제품 모델을 strict chain으로 고정하면 다음 문제가 생긴다.
 
 - Project 바로 아래 document를 표현하려면 `Document.folderId`가 optional이 되거나 별도 location union이 필요하다.
 - Workspace root에 아직 project로 묶이지 않은 folder/document를 둘 수 없다.
@@ -168,7 +168,7 @@ Project를 folder tree child로 넣지 않고 Workspace-owned grouping entity로
 - `Workspace > Project > Folder > Document`가 strict storage hierarchy가 아니라 user-facing navigation 표현으로 정리되어 있는지 확인한다.
 - Root folder가 move/delete 대상이 아님을 domain rule로 검증할 수 있는지 확인한다.
 - Folder와 Document가 subclass 관계나 동일 entity로 합쳐지지 않았는지 확인한다.
-- CE-01부터 CE-05까지 reviewer path가 seeded workspace/project/root-folder/document에서 계속 설명되는지 확인한다.
+- 협업 편집, presence, history, rich authoring path가 seeded workspace/project/root-folder/document에서 계속 설명되는지 확인한다.
 - Markdown export가 folder/project metadata를 Markdown body에 섞지 않고, standard Markdown body와 frontmatter policy를 유지하는지 확인한다.
 - 구현 후 seeded workspace/project/root-folder/document fixture에서 모든 Document가 non-null `folderId`를 가지는지 테스트한다.
 - 구현 후 root folder move/delete, folder를 자기 descendant 아래로 이동, Project를 folder처럼 이동하는 요청이 거부되는지 테스트한다.

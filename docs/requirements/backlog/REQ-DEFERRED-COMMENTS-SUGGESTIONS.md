@@ -13,7 +13,7 @@ blocks: []
 next_step: stale anchor policy와 communication surface 범위를 별도 설계한다.
 refs:
   - docs/requirements/registry.md
-  - docs/compliance/subject-matrix.md
+  - docs/compliance/feature-acceptance-map.md
 ---
 
 # REQ-DEFERRED-COMMENTS-SUGGESTIONS

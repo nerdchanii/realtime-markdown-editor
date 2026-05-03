@@ -7,13 +7,12 @@ status: active
 
 ## 목적
 
-Frontend architecture는 editor-first product experience를 유지한다. CE-01부터 CE-05까지의 stories는
-사용자가 이해할 수 있는 제품 흐름 안에서 완료되어야 하며, CE 검증 편의를 위해 UX 일관성이나 account
-flow를 낮추지 않는다.
+Frontend architecture는 editor-first product experience를 유지한다. 사용자는 첫 화면에서 현재
+워크스페이스, 문서, 계정, 협업 상태를 이해하고 곧바로 작성 흐름에 들어갈 수 있어야 한다.
 
 ## First Screen Rule
 
-The first usable screen is the collaborative Markdown editor workspace, not a landing page or workflow dashboard. It must keep these surfaces discoverable in the same review flow:
+The first usable screen is the collaborative Markdown editor workspace, not a landing page or workflow dashboard. It keeps these surfaces discoverable in the same editor flow:
 
 - shared Markdown editor,
 - remote cursor and selection presence,
@@ -61,7 +60,7 @@ points without moving UI ownership:
 - `features.editor.provider.mock` feeds editor mode, sync status, presence, source, and preview placeholders.
 - `features.history.provider.mock` feeds checkpoint history.
 
-## Product Quality Rule
+## Product Experience Rule
 
 Properties, links/backlinks, `DocumentState`, workspace navigation, account controls, and future
 workflow controls support the editor-first flow. They are not decorative extensions when they make the
@@ -71,6 +70,6 @@ product understandable, trustworthy, or recoverable.
 Transition policy, publish/draft visibility, ownership-based visibility, and external workflow
 execution are deferred until workflow capability promotion.
 
-Frontend work is not complete when an e2e selector can click through a path. The UI must make the
-current workspace/document/member context visible enough for a user to understand where edits,
-presence, history, export, and recovery belong.
+Frontend work should preserve the product context around the editor. The UI must make the current
+workspace/document/member context visible enough for a user to understand where edits, presence,
+history, export, and recovery belong.

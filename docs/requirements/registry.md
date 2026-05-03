@@ -11,10 +11,9 @@ schema_version: 0.1.0
 
 ## 분류 원칙
 
-CE 요구사항은 과제 요구사항을 사용자 행동 단위로 묶은 product stories다. 제품으로서 자연스럽게
-필요한 auth, membership, workspace lifecycle, data integrity, UX clarity는 각 story를 제품으로
-성립시키는 세부 요구사항이며, "확장"이라는 이유로 낮은 우선순위가 되지 않는다.
-요구사항 category는 구현 순서를 돕는 metadata이며, 제품 품질 gate를 우회하는 근거가 될 수 없다.
+요구사항은 제품 기능과 사용자 흐름을 추적하기 위한 내부 지도다. auth, membership, workspace
+lifecycle, data integrity, UX clarity는 협업 Markdown 제품을 구성하는 기능 영역이며, "확장"이라는
+이유로 사용자 흐름에서 분리하지 않는다. 요구사항 category는 구현 순서를 돕는 metadata다.
 
 상태/범위/타입별 조회는 스크립트를 사용한다.
 
@@ -70,8 +69,8 @@ node scripts/requirements-index.mjs --scope frontend
 - `REQ-WORKSPACE-MEMBER-MANAGEMENT`
 
 이 중 `REQ-PRODUCTION-ACCOUNT-MANAGEMENT`, `REQ-WORKSPACE-MEMBER-MANAGEMENT`,
-`REQ-WORKSPACE-LIFECYCLE-MANAGEMENT`는 CE stories가 실제 사용자에게 성립하기 위한 세부 제품
-요구사항이다. 이 요구사항 없이 CE 동작만 보인다면 제품 완료가 아니라 미완성 story path로 기록한다.
+`REQ-WORKSPACE-LIFECYCLE-MANAGEMENT`는 계정과 워크스페이스를 사용자 흐름으로 연결하는 제품
+요구사항이다. 이 요구사항이 없으면 협업 편집 기능은 문서 작업 흐름과 분리된다.
 
 ## 백로그 요구사항
 

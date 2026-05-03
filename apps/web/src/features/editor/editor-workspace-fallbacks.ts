@@ -1,15 +1,15 @@
 import type { PresenceMember, SyncStatusViewModel } from "./ports/collaboration-adapter";
 
-export const fallbackMarkdown = `# Collaborative editor review plan
+export const fallbackMarkdown = `# Architecture collaboration notes
 
-This Markdown body is the portable CE evidence path.
+This workspace keeps team documentation close to the people editing it.
 
-- CE-01 keeps concurrent edits in the central editor.
-- CE-04 exposes checkpoints in the history slot.
-- CE-05 uses the rich authoring surface as the rendered Markdown view.
+- Capture architecture decisions while the team is editing.
+- Use checkpoints before major document changes.
+- Keep links and backlinks visible beside the writing surface.
 
 \`\`\`ts
-const editorSurface = "mock-backed";
+const workspace = "atlas";
 \`\`\`
 
 | Surface | Status |

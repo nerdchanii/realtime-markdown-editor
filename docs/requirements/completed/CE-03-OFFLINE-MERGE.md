@@ -13,7 +13,7 @@ completed_by:
   - tasks/archive/TASK-026-open-page-offline-merge.md
   - tasks/archive/TASK-077-db-backed-collaboration-session-live-yjs-persistence.md
 refs:
-  - docs/compliance/subject-matrix.md
+  - docs/compliance/feature-acceptance-map.md
   - docs/product/editor/offline-merge.md
   - docs/requirements/completed/REQ-OFFLINE-INDEXEDDB-DRAFT-RECOVERY.md
 ---

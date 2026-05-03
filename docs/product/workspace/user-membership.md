@@ -44,7 +44,7 @@ foundation이다. Account management의 상세 운영 범위는 별도 requireme
 
 ## 계정 비활성화/삭제 정책
 
-초기 product account management는 hard delete를 제공하지 않는다. 계정 비활성화가 구현되면 다음
+초기 account management는 hard delete를 제공하지 않는다. 계정 비활성화가 구현되면 다음
 정책을 따른다.
 
 - User record는 checkpoint authorship, document auditability, workspace membership 이력을 보존하기

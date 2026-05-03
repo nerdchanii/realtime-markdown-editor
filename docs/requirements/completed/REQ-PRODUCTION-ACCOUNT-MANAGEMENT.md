@@ -23,13 +23,12 @@ refs:
 
 # REQ-PRODUCTION-ACCOUNT-MANAGEMENT
 
-Backend session boundary가 있어도 사용자가 normal product path에서 로그인할 방법이 없으면 제품
-요구사항을 충족했다고 보기 어렵다. Product surface는 reviewer/dev seed 선택이 아니라 실제 사용자가
-이해할 수 있는 login, logout, session restore, account management flow를 제공해야 한다.
+Backend session boundary가 있어도 사용자가 normal product path에서 로그인할 방법이 없으면 계정
+기능이 제품 흐름과 연결되지 않는다. Product surface는 사용자가 이해할 수 있는 login, logout,
+session restore, account management flow를 제공해야 한다.
 
-이 요구사항은 CE stories가 실제 사용자에게 성립하기 위한 세부 제품 요구사항이다. Presence identity,
-checkpoint authorship, workspace access, collaboration session 발급은 신뢰 가능한 account/session
-경계 위에서만 완료된다.
+Presence identity, checkpoint authorship, workspace access, collaboration session 발급은 신뢰 가능한
+account/session 경계 위에서 동작한다.
 
 Acceptance:
 
@@ -37,18 +36,18 @@ Acceptance:
 - 새 user account 생성 또는 local product 계정 bootstrap flow가 명확하다.
 - 사용자는 display name 같은 기본 account profile을 수정할 수 있다.
 - 계정 비활성화 또는 삭제 정책이 정의되어 있고 membership, checkpoint authorship, auditability와 충돌하지 않는다.
-- Product reviewer flow는 `?member=alice` 같은 URL member spoofing에 의존하지 않고 session 기반으로 동작한다.
+- Product flow는 `?member=alice` 같은 URL member spoofing에 의존하지 않고 session 기반으로 동작한다.
 
 ## Current State
 
-`TASK-094` removed local reviewer language from the primary sign-in UI, moved settings behind the
+`TASK-094` removed local sample-account language from the primary sign-in UI, moved settings behind the
 profile menu, renders account/workspace/project identity from the authenticated session and
 workspace navigation, and records the account deactivation/delete policy in the product docs.
-`TASK-101` adds a local product account creation contract/API and a normal auth-screen flow that
+`TASK-101` adds a local account creation contract/API and a normal auth-screen flow that
 creates the account, creates a session, and lands the user in workspace onboarding. `TASK-102`
 adds an authenticated profile name update contract/API and replaces the read-only User settings
 name placeholder with an editable account form.
 
 The account deactivation/delete acceptance is satisfied as a policy boundary rather than an
-executable mutation: initial product account management does not provide hard delete, and the
+executable mutation: initial account management does not provide hard delete, and the
 documented policy preserves `User`, `WorkspaceMembership`, checkpoint authorship, and auditability.

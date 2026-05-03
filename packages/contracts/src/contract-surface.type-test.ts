@@ -85,7 +85,7 @@ const revision = {
   documentId,
   authorMembershipId: membershipId,
   source: "checkpoint",
-  message: "Capture review plan",
+  message: "Capture architecture notes",
   createdAt: "2026-04-30T00:00:00.000Z",
   snapshotArtifact: artifact,
 } satisfies RevisionDto;
@@ -95,7 +95,7 @@ const checkpoint = {
   documentId,
   revisionId,
   authorMembershipId: membershipId,
-  message: "Capture review plan",
+  message: "Capture architecture notes",
   createdAt: "2026-04-30T00:00:00.000Z",
   snapshotArtifact: artifact,
 } satisfies CheckpointDto;
@@ -104,7 +104,7 @@ const inspectSnapshot = {
   checkpointId,
   documentId,
   revisionId,
-  markdownBody: "# Review Plan",
+  markdownBody: "# Architecture Notes",
   artifact,
 } satisfies CheckpointSnapshotInspectDto;
 
@@ -130,7 +130,7 @@ const autosave = {
 const document = {
   id: documentId,
   folderId,
-  title: "Review Plan",
+  title: "Architecture Notes",
   state: "draft",
   markdownBody: "# Review Plan",
   properties: [{ key: "status", value: { type: "status", value: "Draft" } }],
@@ -141,9 +141,9 @@ const document = {
 const backlink = {
   sourceDocumentId: documentId,
   targetDocumentId: documentId,
-  markdownHref: "./review-plan.md",
-  sourceTitle: "Review Plan",
-  preview: "Linked from the seeded review context.",
+  markdownHref: "./architecture-notes.md",
+  sourceTitle: "Architecture Notes",
+  preview: "Linked from the seeded workspace context.",
 } satisfies BacklinkDto;
 
 const sync = {

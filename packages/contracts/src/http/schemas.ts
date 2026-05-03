@@ -65,7 +65,7 @@ export const httpRuntimeSchemaStrategy = {
     "Return ApiErrorResponseDto through the centralized TASK-073 error envelope for validation, auth, authorization, and resource errors.",
     "Do not place class-validator decorators, Zod objects, Prisma models, Yjs/Hocuspocus types, or storage provider types inside domain files.",
     "Public product routes derive current user and membership from the httpOnly session; request DTOs must not trust memberId or authorMembershipId for product actions.",
-    "Dev-only seed/review routes may expose local reviewer bootstrap data but must stay out of the normal product runtime path.",
+    "Dev-only seed routes may expose local sample workspace bootstrap data but must stay out of the normal product runtime path.",
   ],
 } as const satisfies HttpRuntimeSchemaStrategy;
 
