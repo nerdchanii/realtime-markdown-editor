@@ -5,6 +5,12 @@ purpose: AI agent용 저장소 안내
 
 # AGENTS.md
 
+> **제품 정의 재정립 중 (2026-09-24).** 과제(`subject.md`)와 CE framing 은 더 이상 제품 정의의
+> 기준이 아니다. 제품은 "동시편집 에디터"에서 출발해 Realtime editor(ADE 표면)로 진화한다.
+> 작업 전 `docs/direction/2026-09-24-product-direction-interview.md` 와 `docs/direction/roadmap.md` 를
+> 먼저 읽는다. 아래 내용 중 이 기록과 충돌하는 부분은 기록을 따르고, `[open]` 항목은 확정 사실로
+> 쓰지 않는다. 이 파일의 전면 재작성은 로드맵 단계 1 에서 한다.
+
 이 저장소는 실시간 협업 Markdown 에디터 제품을 만든다. `subject.md`의 `CE-01`부터 `CE-05`는
 과제 요구사항을 사용자 행동 단위로 묶은 product stories다. 세부 REQ와 인증, 권한, workspace
 membership, 데이터 보존, 로컬 실행 안정성, UI 일관성은 이 stories를 실제 제품으로 성립시키는
