@@ -7,9 +7,8 @@ status: active
 
 ## 목적
 
-Backend architecture는 CE-01부터 CE-05까지의 product stories를 제품 경계 위에서 증명한다. 현재 기준은
-`Workspace`, `Identity`, `Documents`, `Collaboration` capability가 테스트 통과용 shortcut이 아니라
-신뢰 가능한 product boundary로 동작하는 것이다.
+Backend architecture는 `Workspace`, `Identity`, `Documents`, `Collaboration` capability가 신뢰 가능한
+product boundary로 동작하도록 유지한다.
 
 ## Module Ownership
 
@@ -17,7 +16,7 @@ Backend architecture는 CE-01부터 CE-05까지의 product stories를 제품 경
 | --------------------- | ----------------------------------------------------------------------------------------------------------------------- |
 | `WorkspaceModule`     | `Workspace`, `Project`, `Folder`, hidden root folder policy, folder lifecycle invariant                                 |
 | `IdentityModule`      | `User`, `WorkspaceMembership`, membership display identity, role value                                                  |
-| `DocumentsModule`     | `Document`, body reference, `DocumentProperty`, `DocumentState`, checkpoint metadata use cases, CE-04 history read path |
+| `DocumentsModule`     | `Document`, body reference, `DocumentProperty`, `DocumentState`, checkpoint metadata use cases, history read path       |
 | `CollaborationModule` | collaboration provider adapters, sync orchestration ports, artifact extraction/storage ports                            |
 | `apps/collab` runtime | Hocuspocus/Yjs websocket runtime, live collaboration provider state, realtime adapter execution                         |
 
@@ -63,16 +62,8 @@ ownership follows the table below.
 | Image upload                     | `POST /documents/:documentId/images`                                                                                                                  | `DocumentsModule`     | Returns an editor-insertable image reference without exposing object-storage provider internals.                                                                                                                             |
 | Collaboration session            | `POST /documents/:documentId/collaboration-sessions`                                                                                                  | `CollaborationModule` | Issues provider-neutral realtime session data. It must not create checkpoints or expose provider-specific Yjs/Hocuspocus state.                                                                                              |
 
-The following routes are explicitly dev-only bootstrap routes and must not be required by the
-normal product runtime path:
-
-- `GET /review-context/seed`
-- `GET /collaboration/sessions/seed`
-
 The following existing routes are retired from the product contract:
 
-- `GET /collaboration/documents/:documentId/session`, replaced by
-  `POST /documents/:documentId/collaboration-sessions`
 - `POST /collaboration/documents/:documentId/checkpoints`, replaced by
   `POST /documents/:documentId/checkpoints`
 
@@ -98,10 +89,10 @@ Contract rules:
   contract. They resolve current Markdown content server-side from the document content projection
   and collaboration serialization boundary.
 
-## Product Quality Boundary
+## Product API Boundary
 
-Backend tasks are not complete when a CE path merely returns successful responses. Product routes
-must satisfy these boundary rules:
+Product routes keep account, workspace, document, and collaboration data behind explicit API
+boundaries:
 
 - Public routes are limited to credential/session bootstrap and explicitly documented public reads.
 - Workspace, document, checkpoint, export, image, and collaboration session routes derive access from

@@ -1,55 +1,76 @@
 import type {
-  CollaborationSessionDto,
-  CollaborationSessionResponseDto,
+  CreateAccountRequestDto,
+  CreateWorkspaceMemberRequestDto,
+  CreateProjectRequestDto,
   CreateDocumentRequestDto,
   CreateFolderRequestDto,
-  CreateCheckpointRequestDto,
-  CreateCheckpointResponseDto,
   CreateSessionRequestDto,
+  CreateWorkspaceRequestDto,
   DeletedResourceResponseDto,
   DocumentConnectionsResponseDto,
   DocumentContentResponseDto,
   DocumentId,
   DocumentResponseDto,
   FolderResponseDto,
+  ListArchivedDocumentsResponseDto,
   ListCheckpointsResponseDto,
+  ListWorkspaceMembersResponseDto,
   ListWorkspacesResponseDto,
+  MoveDocumentRequestDto,
+  MoveFolderRequestDto,
+  ProjectId,
+  ProjectResponseDto,
   ReplaceDocumentPropertiesRequestDto,
-  SeedReviewContextDto,
   SessionResponseDto,
   UpdateDocumentContentRequestDto,
   UpdateDocumentRequestDto,
+  UpdateAccountProfileRequestDto,
   UpdateFolderRequestDto,
+  UpdateProjectRequestDto,
+  UpdateWorkspaceMemberRequestDto,
+  UpdateWorkspaceRequestDto,
+  UserResponseDto,
   WorkspaceId,
+  WorkspaceMemberResponseDto,
+  WorkspaceMembershipId,
   WorkspaceNavigationResponseDto,
+  WorkspaceResponseDto,
 } from "@rme/contracts";
 
+export { createCollaborationCheckpoint, fetchCollaborationSession } from "./collaboration";
+export {
+  apiClientBoundaryId,
+  apiClientMockReplacementPoint,
+  createMockApiClient,
+  createProductApiClient,
+  fetchJson,
+} from "./core";
+export type { ApiClient } from "./core";
 export {
   createMarkdownExport,
   inspectCheckpointSnapshot,
   uploadDocumentImage,
 } from "./document-artifacts";
+import { fetchJson, type ApiClient } from "./core";
 
-export type ApiClient = Readonly<{
-  baseUrl: string;
-  providerName: string;
-}>;
-
-export const apiClientBoundaryId = "lib.api-client";
-export const apiClientMockReplacementPoint = "lib.api-client.mock";
-
-export function createMockApiClient(): ApiClient {
-  return {
-    baseUrl: apiBaseUrl(),
-    providerName: apiClientMockReplacementPoint,
-  };
+export async function createAccount(
+  client: ApiClient,
+  request: CreateAccountRequestDto,
+): Promise<UserResponseDto> {
+  return fetchJson(client, "/accounts", {
+    method: "POST",
+    body: JSON.stringify(request),
+  });
 }
 
-export function createProductApiClient(): ApiClient {
-  return {
-    baseUrl: apiBaseUrl(),
-    providerName: "lib.api-client.product",
-  };
+export async function updateAccountProfile(
+  client: ApiClient,
+  request: UpdateAccountProfileRequestDto,
+): Promise<UserResponseDto> {
+  return fetchJson(client, "/accounts/me/profile", {
+    method: "PATCH",
+    body: JSON.stringify(request),
+  });
 }
 
 export async function fetchAuthSession(client: ApiClient): Promise<SessionResponseDto> {
@@ -76,11 +97,120 @@ export async function fetchWorkspaces(client: ApiClient): Promise<ListWorkspaces
   return fetchJson(client, "/workspaces");
 }
 
+export async function createWorkspace(
+  client: ApiClient,
+  request: CreateWorkspaceRequestDto,
+): Promise<WorkspaceResponseDto> {
+  return fetchJson(client, "/workspaces", {
+    method: "POST",
+    body: JSON.stringify(request),
+  });
+}
+
+export async function updateWorkspace(
+  client: ApiClient,
+  workspaceId: WorkspaceId,
+  request: UpdateWorkspaceRequestDto,
+): Promise<WorkspaceResponseDto> {
+  return fetchJson(client, `/workspaces/${encodeURIComponent(workspaceId)}`, {
+    method: "PATCH",
+    body: JSON.stringify(request),
+  });
+}
+
+export async function deleteWorkspace(
+  client: ApiClient,
+  workspaceId: WorkspaceId,
+): Promise<DeletedResourceResponseDto> {
+  return fetchJson(client, `/workspaces/${encodeURIComponent(workspaceId)}`, {
+    method: "DELETE",
+  });
+}
+
+export async function fetchWorkspaceMembers(
+  client: ApiClient,
+  workspaceId: WorkspaceId,
+): Promise<ListWorkspaceMembersResponseDto> {
+  return fetchJson(client, `/workspaces/${encodeURIComponent(workspaceId)}/members`);
+}
+
+export async function createWorkspaceMember(
+  client: ApiClient,
+  workspaceId: WorkspaceId,
+  request: CreateWorkspaceMemberRequestDto,
+): Promise<WorkspaceMemberResponseDto> {
+  return fetchJson(client, `/workspaces/${encodeURIComponent(workspaceId)}/members`, {
+    method: "POST",
+    body: JSON.stringify(request),
+  });
+}
+
+export async function updateWorkspaceMember(
+  client: ApiClient,
+  workspaceId: WorkspaceId,
+  memberId: WorkspaceMembershipId,
+  request: UpdateWorkspaceMemberRequestDto,
+): Promise<WorkspaceMemberResponseDto> {
+  return fetchJson(
+    client,
+    `/workspaces/${encodeURIComponent(workspaceId)}/members/${encodeURIComponent(memberId)}`,
+    {
+      method: "PATCH",
+      body: JSON.stringify(request),
+    },
+  );
+}
+
+export async function deleteWorkspaceMember(
+  client: ApiClient,
+  workspaceId: WorkspaceId,
+  memberId: WorkspaceMembershipId,
+): Promise<DeletedResourceResponseDto> {
+  return fetchJson(
+    client,
+    `/workspaces/${encodeURIComponent(workspaceId)}/members/${encodeURIComponent(memberId)}`,
+    {
+      method: "DELETE",
+    },
+  );
+}
+
 export async function fetchWorkspaceNavigation(
   client: ApiClient,
   workspaceId: WorkspaceId,
 ): Promise<WorkspaceNavigationResponseDto> {
   return fetchJson(client, `/workspaces/${encodeURIComponent(workspaceId)}/navigation`);
+}
+
+export async function createProject(
+  client: ApiClient,
+  workspaceId: WorkspaceId,
+  request: CreateProjectRequestDto,
+): Promise<ProjectResponseDto> {
+  return fetchJson(client, `/workspaces/${encodeURIComponent(workspaceId)}/projects`, {
+    method: "POST",
+    body: JSON.stringify(request),
+  });
+}
+
+export async function updateProject(
+  client: ApiClient,
+  projectId: ProjectId,
+  request: UpdateProjectRequestDto,
+): Promise<ProjectResponseDto> {
+  return fetchJson(client, `/projects/${encodeURIComponent(projectId)}`, {
+    method: "PATCH",
+    body: JSON.stringify(request),
+  });
+}
+
+export async function deleteProject(
+  client: ApiClient,
+  projectId: ProjectId,
+): Promise<DeletedResourceResponseDto> {
+  return fetchJson(client, `/projects/${encodeURIComponent(projectId)}`, {
+    method: "DELETE",
+  });
 }
 
 export async function fetchDocument(
@@ -107,6 +237,33 @@ export async function deleteDocument(
 ): Promise<DeletedResourceResponseDto> {
   return fetchJson(client, `/documents/${encodeURIComponent(documentId)}`, {
     method: "DELETE",
+  });
+}
+
+export async function moveDocument(
+  client: ApiClient,
+  documentId: DocumentId,
+  request: MoveDocumentRequestDto,
+): Promise<DocumentResponseDto> {
+  return fetchJson(client, `/documents/${encodeURIComponent(documentId)}/move`, {
+    method: "POST",
+    body: JSON.stringify(request),
+  });
+}
+
+export async function fetchArchivedDocuments(
+  client: ApiClient,
+  workspaceId: WorkspaceId,
+): Promise<ListArchivedDocumentsResponseDto> {
+  return fetchJson(client, `/workspaces/${encodeURIComponent(workspaceId)}/trash/documents`);
+}
+
+export async function restoreDocument(
+  client: ApiClient,
+  documentId: DocumentId,
+): Promise<DocumentResponseDto> {
+  return fetchJson(client, `/documents/${encodeURIComponent(documentId)}/restore`, {
+    method: "POST",
   });
 }
 
@@ -171,6 +328,17 @@ export async function updateFolder(
   });
 }
 
+export async function moveFolder(
+  client: ApiClient,
+  folderId: string,
+  request: MoveFolderRequestDto,
+): Promise<FolderResponseDto> {
+  return fetchJson(client, `/folders/${encodeURIComponent(folderId)}/move`, {
+    method: "POST",
+    body: JSON.stringify(request),
+  });
+}
+
 export async function deleteFolder(
   client: ApiClient,
   folderId: string,
@@ -192,96 +360,4 @@ export async function fetchDocumentCheckpoints(
   documentId: DocumentId,
 ): Promise<ListCheckpointsResponseDto> {
   return fetchJson(client, `/documents/${encodeURIComponent(documentId)}/checkpoints`);
-}
-
-export async function fetchSeedReviewContext(client: ApiClient): Promise<SeedReviewContextDto> {
-  const response = await fetch(`${client.baseUrl}/review-context/seed`);
-
-  if (!response.ok) {
-    throw new Error(`Seed review context request failed with ${response.status}`);
-  }
-
-  return (await response.json()) as SeedReviewContextDto;
-}
-
-export async function fetchCollaborationSession(
-  client: ApiClient,
-  documentId: string,
-): Promise<CollaborationSessionDto> {
-  return mapCollaborationSessionResponse(
-    await fetchJson<CollaborationSessionResponseDto>(
-      client,
-      `/documents/${encodeURIComponent(documentId)}/collaboration-sessions`,
-      {
-        method: "POST",
-        body: JSON.stringify({}),
-      },
-    ),
-  );
-}
-
-export async function createCollaborationCheckpoint(
-  client: ApiClient,
-  documentId: string,
-  request: CreateCheckpointRequestDto,
-): Promise<CreateCheckpointResponseDto> {
-  const response = await fetch(
-    `${client.baseUrl}/documents/${encodeURIComponent(documentId)}/checkpoints`,
-    {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(request),
-    },
-  );
-
-  if (!response.ok) {
-    throw new Error(`Checkpoint creation request failed with ${response.status}`);
-  }
-
-  return (await response.json()) as CreateCheckpointResponseDto;
-}
-
-async function fetchJson<T>(client: ApiClient, path: string, init: RequestInit = {}): Promise<T> {
-  const headers = new Headers(init.headers);
-  if (init.body && !headers.has("Content-Type")) {
-    headers.set("Content-Type", "application/json");
-  }
-
-  const response = await fetch(`${client.baseUrl}${path}`, {
-    ...init,
-    headers,
-    credentials: "include",
-  });
-
-  if (!response.ok) {
-    throw new Error(`${init.method ?? "GET"} ${path} failed with ${response.status}`);
-  }
-
-  return (await response.json()) as T;
-}
-
-function apiBaseUrl() {
-  const env = (import.meta as ImportMeta & { env?: Record<string, string | undefined> }).env;
-  const configured = env?.VITE_RME_API_BASE_URL ?? env?.VITE_API_BASE_URL;
-  if (configured) return configured;
-
-  if (typeof window !== "undefined") {
-    return `${window.location.protocol}//${window.location.hostname}:4000`;
-  }
-
-  return "http://127.0.0.1:4000";
-}
-
-function mapCollaborationSessionResponse(
-  response: CollaborationSessionResponseDto,
-): CollaborationSessionDto {
-  return {
-    documentId: response.documentId,
-    documentKey: response.documentKey,
-    realtimeUrl: response.realtimeUrl,
-    currentMemberId: response.currentMember.id,
-    members: response.allowedMembers,
-    sync: response.sync,
-  };
 }

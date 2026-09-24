@@ -2,7 +2,6 @@
 title: docs/product/editor/rich-preview.md
 surface: editor
 related_requirements:
-  - CE-05-RICH-PREVIEW
   - REQ-EDITOR-RICH-AUTHORING-SURFACE
   - REQ-MARKDOWN-PORTABILITY
 related_adrs:
@@ -40,8 +39,8 @@ not the DB projection.
 - Source + rendered preview Split mode.
 - 별도 read-only rendered preview pane.
 - Full block database editing은 제외한다.
-- 여러 workspace document를 center editor area에서 동시에 여는 IDE-style multi-pane editing은 CE-05가 아니라 post-CE product-extension으로 보류한다.
+- 여러 workspace document를 center editor area에서 동시에 여는 IDE-style multi-pane editing은 향후 product-extension으로 보류한다.
 
 ## 검증
 
-Reviewer가 TipTap rich editor에서 Markdown authoring shortcut으로 heading, link, list, code를 작성하고, 같은 content가 Markdown export와 revision snapshot으로 보존되는지 확인한다.
+사용자가 TipTap rich editor에서 Markdown authoring shortcut으로 heading, link, list, code를 작성하고, 같은 content가 Markdown export와 revision snapshot으로 보존되는지 확인한다.

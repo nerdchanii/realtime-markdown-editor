@@ -14,7 +14,7 @@ completed_by:
   - tasks/archive/TASK-030-history-ui-integration.md
   - tasks/archive/TASK-078-checkpoint-metadata-artifact-split.md
 refs:
-  - docs/compliance/subject-matrix.md
+  - docs/compliance/feature-acceptance-map.md
   - docs/product/editor/history.md
 ---
 

@@ -25,10 +25,10 @@ status: active
 
 ## 요구사항 계층
 
-- Subject requirement: `subject.md`에서 온 과제 요구사항. CE source identity를 유지하고
-  source-neutral하게 둔다.
-- Derived requirement: subject requirement를 이 제품에서 만족시키기 위해 필요한 세부 요구사항.
-- Product extension requirement: PM/개발 협업 관점을 반영하기 위해 자유영역에서 선택한 제품
+- Core feature requirement: 제품의 핵심 사용자 행동을 표현하는 요구사항.
+- Supporting requirement: core feature가 계정, 워크스페이스, 데이터 보존, UI 흐름과 연결되기 위해
+  필요한 세부 요구사항.
+- Product extension requirement: 문서 자동화, workflow, 외부 연동처럼 제품 방향을 확장하는
   요구사항.
 - Research requirement: 결정 전 POC 또는 benchmark가 필요한 요구사항.
 - Backlog requirement: 아직 계획되거나 구체화되지 않은 candidate, deferred, ambiguous 요구사항.
@@ -57,7 +57,7 @@ status: active
 | `id` | 안정적인 요구사항 ID |
 | `title` | 한 줄 핵심 설명 |
 | `status` | 현재 상태. 예: `active`, `planned`, `done`, `candidate`, `deferred`, `ambiguous` |
-| `category` | `subject`, `subject-derived`, `product-extension`, `research`, `backlog` |
+| `category` | `core-feature`, `supporting`, `product-extension`, `research`, `backlog` |
 | `type` | `functional`, `non-functional`, `ux`, `architecture`, `ops`, `research` |
 | `taskability` | 현재 task로 바로 깔 수 있는지. 예: `taskable`, `blocked`, `ambiguous`, `done` |
 | `scope` | 주된 영향 영역. 예: `frontend`, `backend`, `workflow`, `platform`, `ops`, `automation` |
@@ -79,8 +79,8 @@ status: active
 
 ## ID 정책
 
-- Subject requirement는 `CE-번호-행위` 형식을 사용한다. 예: `CE-03-OFFLINE-MERGE`
-- 정규화 요구사항은 의미 기반 ID를 사용한다. 예: `REQ-OFFLINE-LOCAL-PERSISTENCE`
+- 기존 core feature ID는 안정성을 위해 유지한다. 예: `CE-03-OFFLINE-MERGE`
+- 새 정규화 요구사항은 의미 기반 ID를 사용한다. 예: `REQ-OFFLINE-LOCAL-PERSISTENCE`
 - `functional`, `non-functional`, `ux`, `architecture`, `ops`는 ID prefix가 아니라 문서와
   scope/보조 metadata가 설명한다.
 - 상태와 단계는 metadata이며 file path에 넣지 않는다.
@@ -105,7 +105,7 @@ pnpm requirements:index -- --category backlog
 
 ## 다른 문서와의 관계
 
-- `docs/compliance/subject-matrix.md`는 subject compliance를 설명한다.
+- `docs/compliance/feature-acceptance-map.md`는 기능별 사용자 행동 확인 지도를 설명한다.
 - `docs/product/README.md`는 product surface를 mapping한다.
 - `docs/domain/README.md`는 domain language와 contract를 소유한다.
 - `docs/adr/`는 decision과 tradeoff를 소유한다.

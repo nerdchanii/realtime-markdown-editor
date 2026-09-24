@@ -1,23 +1,13 @@
 import { createMockApiClient } from "@/lib/api-client";
 
-import type { DocumentContextViewModel } from "@/features/document";
-import {
-  createMockCollaborationAdapter,
-  type CollaborationAdapter,
-  type EditorWorkspaceViewModel,
-} from "@/features/editor";
+import { createMockCollaborationAdapter, type EditorWorkspaceViewModel } from "@/features/editor";
 import type { HistoryInspectorViewModel } from "@/features/history";
 import type { WorkspaceNavigationViewModel } from "@/features/workspace";
+import type { WorkspaceShellFeatureProviders } from "@/layouts/workspace-shell/types";
 
 export const appMockProviderReplacementPoint = "app.providers.mock";
 
-export type AppFeatureProviders = Readonly<{
-  workspaceNavigation: WorkspaceNavigationViewModel;
-  documentContext: DocumentContextViewModel;
-  editorWorkspace: EditorWorkspaceViewModel;
-  editorCollaborationAdapter: CollaborationAdapter;
-  historyInspector: HistoryInspectorViewModel;
-}>;
+export type AppFeatureProviders = WorkspaceShellFeatureProviders;
 
 const workspaceNavigation: WorkspaceNavigationViewModel = {
   replacementPoint: "features.workspace.provider.mock",

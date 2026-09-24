@@ -236,8 +236,8 @@ Write set:
 
 Acceptance:
 
-- `/?member=alice&document=seed-review-plan` opens the seeded workspace document.
-- Alice and Bob identities are selectable or query-param driven.
+- The shell opens an authenticated product workspace document from normal workspace/document APIs.
+- Member identity comes from the active session and workspace membership.
 - The shell renders workspace navigation, document header, editor area, properties, backlinks, and history panel.
 - CE e2e tests fail only for unimplemented realtime/history/preview behavior, not missing shell selectors.
 

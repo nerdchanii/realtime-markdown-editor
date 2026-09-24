@@ -13,7 +13,7 @@ blocks: []
 next_step: task extraction 모델이 채택되면 파싱 문법과 ownership을 정한다.
 refs:
   - subject.md
-  - docs/compliance/subject-matrix.md
+  - docs/compliance/feature-acceptance-map.md
 ---
 
 # REQ-DEFERRED-METADATA-PARSING

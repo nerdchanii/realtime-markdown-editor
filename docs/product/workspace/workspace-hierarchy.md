@@ -33,6 +33,11 @@ related_adrs:
 - 더 많은 projects, folders, documents로 확장 가능한 model을 유지한다.
 - Document 생성 결과는 생성자 view에만 머물지 않고 같은 workspace를 보는 다른 member의 document list에도 표시되어야 한다.
 - Workspace, project, folder, document는 제품 UI에서 추가, 수정, 삭제 또는 archive할 수 있어야 한다.
+- Folder와 document move는 Explorer의 normal navigation control에서 실행하며, move 후 workspace
+  navigation projection에 즉시 반영된다.
+- Workspace와 Project 삭제는 hard delete가 아니라 archive 정책이다. Archive된 workspace/project는
+  normal navigation과 session workspace list에서 제외하고, 포함된 folder는 inactive 처리하며,
+  포함된 document는 Trash archive 상태로 전환한다.
 
 ## 표시와 정렬
 

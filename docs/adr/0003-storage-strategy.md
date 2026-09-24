@@ -81,7 +81,7 @@ V1 skeleton에서는 이 후보를 adapter boundary로 채택하되 production o
 
 Object storage는 운영 provider를 지금 확정한다는 뜻이 아니라, artifact 저장 경계를 공식화한다는 뜻이다. S3-compatible boundary를 기준으로 두면 local/dev에서는 MinIO를 쓰고, future deployment에서는 S3/R2로 옮길 수 있다.
 
-V1 checkpoint artifact를 Markdown snapshot으로 두면 CE-04 reviewer path가 단순하고 명확해진다. Reviewer는 이전 document content를 읽을 수 있고, 구현은 CRDT update replay나 rendered HTML 보존 정책을 먼저 확정하지 않아도 된다. CRDT update artifact는 live collaboration persistence의 책임으로 남기고, rendered HTML은 snapshot source of truth로 저장하지 않는다.
+V1 checkpoint artifact를 Markdown snapshot으로 두면 history inspection path가 단순하고 명확해진다. 사용자는 이전 document content를 읽을 수 있고, 구현은 CRDT update replay나 rendered HTML 보존 정책을 먼저 확정하지 않아도 된다. CRDT update artifact는 live collaboration persistence의 책임으로 남기고, rendered HTML은 snapshot source of truth로 저장하지 않는다.
 
 ## 결과
 

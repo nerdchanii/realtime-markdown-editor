@@ -1,4 +1,3 @@
-import { seededNavigationModel } from "./seed";
 import type {
   NormalizedWorkspaceNavigationViewModel,
   WorkspaceNavigationNode,
@@ -9,7 +8,7 @@ import type {
 export function normalizeViewModel(
   viewModel: WorkspaceNavigationViewModel,
 ): NormalizedWorkspaceNavigationViewModel {
-  const fallback = seededNavigationModel;
+  const fallback = emptyNavigationModel;
 
   return {
     ...fallback,
@@ -26,6 +25,26 @@ export function normalizeViewModel(
     defaultFolderId: fallbackTo(viewModel.defaultFolderId, null),
   };
 }
+
+const emptyNavigationModel = {
+  replacementPoint: "features.workspace.provider.empty",
+  label: "Workspace",
+  workspaceId: "workspace_unavailable",
+  workspaceName: "Workspace",
+  workspaceDescription: "",
+  activeMembersLabel: "",
+  currentMemberLabel: "",
+  root: {
+    id: "workspace_unavailable_root",
+    kind: "workspaceRoot",
+    name: "Workspace",
+    children: [],
+  },
+  projects: [],
+  selectedDocumentId: null,
+  activeFolderId: null,
+  defaultFolderId: null,
+} satisfies NormalizedWorkspaceNavigationViewModel;
 
 function fallbackTo<T>(...values: readonly [T | undefined, ...(T | undefined)[], T]): T {
   for (const value of values) {

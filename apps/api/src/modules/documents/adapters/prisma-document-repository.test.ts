@@ -118,6 +118,7 @@ type StoredDocumentContentRow = Readonly<{
   markdownBody: string;
   latestRevisionId: string | null;
   markdownBodyUpdatedAt: Date;
+  archivedAt: Date | null;
 }>;
 
 class FakeDocumentContentPersistenceClient {
@@ -135,13 +136,14 @@ class FakeDocumentContentPersistenceClient {
       data,
     }: {
       where: { id: string };
-      data: { markdownBody: string; latestRevisionId: string | null; contentSource: string };
+      data: { markdownBody: string; latestRevisionId?: string | null; contentSource: string };
     }) => {
       this.contentRow = {
         id: where.id,
         markdownBody: data.markdownBody,
-        latestRevisionId: data.latestRevisionId,
+        latestRevisionId: data.latestRevisionId ?? null,
         markdownBodyUpdatedAt: this.updatedAt,
+        archivedAt: null,
       };
       return this.contentRow;
     },

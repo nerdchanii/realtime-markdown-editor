@@ -1,5 +1,3 @@
-/* eslint-disable max-lines */
-
 export type HttpSchemaTarget = "params" | "query" | "body" | "multipart" | "response";
 
 export type HttpSchemaFieldKind =
@@ -65,11 +63,33 @@ export const httpRuntimeSchemaStrategy = {
     "Return ApiErrorResponseDto through the centralized TASK-073 error envelope for validation, auth, authorization, and resource errors.",
     "Do not place class-validator decorators, Zod objects, Prisma models, Yjs/Hocuspocus types, or storage provider types inside domain files.",
     "Public product routes derive current user and membership from the httpOnly session; request DTOs must not trust memberId or authorMembershipId for product actions.",
-    "Dev-only seed/review routes may expose local reviewer bootstrap data but must stay out of the normal product runtime path.",
+    "Dev-only seed routes may expose local sample workspace bootstrap data but must stay out of the normal product runtime path.",
   ],
 } as const satisfies HttpRuntimeSchemaStrategy;
 
 export const httpSchemaCatalog = [
+  {
+    id: "CreateAccountRequest",
+    dto: "CreateAccountRequestDto",
+    target: "body",
+    fields: [
+      { name: "email", kind: "string", required: true, format: "email" },
+      { name: "name", kind: "string", required: true, minLength: 1 },
+      { name: "password", kind: "string", required: true, minLength: 8 },
+    ],
+  },
+  {
+    id: "UserResponse",
+    dto: "UserResponseDto",
+    target: "response",
+    fields: [{ name: "user", kind: "object", required: true }],
+  },
+  {
+    id: "UpdateAccountProfileRequest",
+    dto: "UpdateAccountProfileRequestDto",
+    target: "body",
+    fields: [{ name: "name", kind: "string", required: false, minLength: 1 }],
+  },
   {
     id: "CreateSessionRequest",
     dto: "CreateSessionRequestDto",
@@ -111,12 +131,6 @@ export const httpSchemaCatalog = [
     fields: [{ name: "checkpointId", kind: "string", required: true, format: "resource-id" }],
   },
   {
-    id: "CollaborationSessionQuery",
-    dto: "CollaborationSessionQueryDto",
-    target: "query",
-    fields: [{ name: "memberId", kind: "string", required: false, format: "resource-id" }],
-  },
-  {
     id: "CreateWorkspaceRequest",
     dto: "CreateWorkspaceRequestDto",
     target: "body",
@@ -127,6 +141,45 @@ export const httpSchemaCatalog = [
     dto: "UpdateWorkspaceRequestDto",
     target: "body",
     fields: [{ name: "name", kind: "string", required: false, minLength: 1 }],
+  },
+  {
+    id: "CreateWorkspaceMemberRequest",
+    dto: "CreateWorkspaceMemberRequestDto",
+    target: "body",
+    fields: [
+      { name: "email", kind: "string", required: true, format: "email" },
+      { name: "displayName", kind: "string", required: false, minLength: 1 },
+      {
+        name: "role",
+        kind: "enum",
+        required: false,
+        enumValues: ["owner", "editor"],
+      },
+    ],
+  },
+  {
+    id: "UpdateWorkspaceMemberRequest",
+    dto: "UpdateWorkspaceMemberRequestDto",
+    target: "body",
+    fields: [
+      { name: "displayName", kind: "string", required: false, minLength: 1 },
+      { name: "color", kind: "string", required: false, minLength: 1 },
+      {
+        name: "role",
+        kind: "enum",
+        required: false,
+        enumValues: ["owner", "editor"],
+      },
+    ],
+  },
+  {
+    id: "WorkspaceMemberIdPathParams",
+    dto: "WorkspaceMemberIdPathParamsDto",
+    target: "params",
+    fields: [
+      { name: "workspaceId", kind: "string", required: true, format: "resource-id" },
+      { name: "memberId", kind: "string", required: true, format: "resource-id" },
+    ],
   },
   {
     id: "CreateProjectRequest",
@@ -298,6 +351,18 @@ export const httpSchemaCatalog = [
     fields: [{ name: "workspaces", kind: "array", required: true, itemSchema: "WorkspaceDto" }],
   },
   {
+    id: "WorkspaceMemberResponse",
+    dto: "WorkspaceMemberResponseDto",
+    target: "response",
+    fields: [{ name: "member", kind: "object", required: true }],
+  },
+  {
+    id: "ListWorkspaceMembersResponse",
+    dto: "ListWorkspaceMembersResponseDto",
+    target: "response",
+    fields: [{ name: "members", kind: "array", required: true, itemSchema: "WorkspaceMemberDto" }],
+  },
+  {
     id: "ProjectResponse",
     dto: "ProjectResponseDto",
     target: "response",
@@ -357,6 +422,14 @@ export const httpSchemaCatalog = [
     target: "response",
     fields: [
       { name: "documents", kind: "array", required: true, itemSchema: "DocumentSummaryDto" },
+    ],
+  },
+  {
+    id: "ListArchivedDocumentsResponse",
+    dto: "ListArchivedDocumentsResponseDto",
+    target: "response",
+    fields: [
+      { name: "documents", kind: "array", required: true, itemSchema: "ArchivedDocumentDto" },
     ],
   },
   {
@@ -429,21 +502,6 @@ export const httpSchemaCatalog = [
       { name: "currentMember", kind: "object", required: true },
       { name: "allowedMembers", kind: "array", required: true, itemSchema: "RealtimeMemberDto" },
       { name: "sync", kind: "object", required: true },
-    ],
-  },
-  {
-    id: "SeedReviewContextResponse",
-    dto: "SeedReviewContextDto",
-    target: "response",
-    fields: [
-      { name: "currentMemberId", kind: "string", required: true },
-      { name: "users", kind: "array", required: true, itemSchema: "UserDto" },
-      { name: "workspace", kind: "object", required: true },
-      { name: "project", kind: "object", required: true },
-      { name: "folder", kind: "object", required: true },
-      { name: "document", kind: "object", required: true },
-      { name: "members", kind: "array", required: true, itemSchema: "WorkspaceMemberDto" },
-      { name: "collaboration", kind: "object", required: true },
     ],
   },
 ] as const satisfies readonly HttpSchemaDescriptor[];

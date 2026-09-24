@@ -18,6 +18,7 @@ type DocumentContentRecord = Readonly<{
   markdownBody: string;
   latestRevisionId: string | null;
   markdownBodyUpdatedAt: Date;
+  archivedAt?: Date | null;
 }>;
 
 export type PrismaDocumentContentPersistenceClient = Readonly<{
@@ -29,13 +30,14 @@ export type PrismaDocumentContentPersistenceClient = Readonly<{
         markdownBody: true;
         latestRevisionId: true;
         markdownBodyUpdatedAt: true;
+        archivedAt: true;
       };
     }): Promise<DocumentContentRecord | null>;
     update(args: {
       where: { id: string };
       data: {
         markdownBody: string;
-        latestRevisionId: string | null;
+        latestRevisionId?: string | null;
         contentSource: "collaborationProjection" | "manualImport";
       };
       select: {
@@ -43,6 +45,7 @@ export type PrismaDocumentContentPersistenceClient = Readonly<{
         markdownBody: true;
         latestRevisionId: true;
         markdownBodyUpdatedAt: true;
+        archivedAt: true;
       };
     }): Promise<DocumentContentRecord>;
   };
@@ -60,7 +63,7 @@ export class PrismaDocumentContentRepository implements DocumentContentRepositor
       where: { id: documentId },
       select: documentContentSelect,
     });
-    if (!record) return null;
+    if (!record || record.archivedAt) return null;
 
     return toDocumentContentProjection(record);
   }
@@ -74,7 +77,9 @@ export class PrismaDocumentContentRepository implements DocumentContentRepositor
       where: { id: input.documentId },
       data: {
         markdownBody: input.markdownBody,
-        latestRevisionId: input.latestRevisionId ?? null,
+        ...(input.latestRevisionId === undefined
+          ? {}
+          : { latestRevisionId: input.latestRevisionId }),
         contentSource: toPrismaContentSource(input.source),
       },
       select: documentContentSelect,
@@ -89,6 +94,7 @@ const documentContentSelect = {
   markdownBody: true,
   latestRevisionId: true,
   markdownBodyUpdatedAt: true,
+  archivedAt: true,
 } as const;
 
 function toDocumentContentProjection(record: DocumentContentRecord): DocumentContentProjection {

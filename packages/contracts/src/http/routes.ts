@@ -1,5 +1,3 @@
-/* eslint-disable max-lines */
-
 import type { HttpSchemaRef } from "./schemas.js";
 
 export type HttpMethod = "DELETE" | "GET" | "PATCH" | "POST" | "PUT";
@@ -8,10 +6,9 @@ export type HttpRouteOwner =
   | "CollaborationModule"
   | "DocumentsModule"
   | "IdentityModule"
-  | "ReviewContextModule"
   | "WorkspaceModule";
 
-export type HttpRouteAudience = "product" | "dev-only" | "retired";
+export type HttpRouteAudience = "product";
 
 export type SubjectRequirementRef =
   | "CE-01"
@@ -27,9 +24,13 @@ export type SubjectRequirementRef =
   | "REQ-MARKDOWN-PORTABILITY"
   | "REQ-OFFLINE-RECONNECT-MERGE"
   | "REQ-PRESENCE-MEMBER-AWARENESS"
+  | "REQ-PRODUCTION-ACCOUNT-MANAGEMENT"
   | "REQ-PROPERTIES-OUTSIDE-BODY"
+  | "REQ-DOCUMENT-TRASH-RESTORE"
   | "REQ-WORKSPACE-DOCUMENT-SCOPE"
-  | "REQ-WORKSPACE-HIERARCHY";
+  | "REQ-WORKSPACE-HIERARCHY"
+  | "REQ-WORKSPACE-LIFECYCLE-MANAGEMENT"
+  | "REQ-WORKSPACE-MEMBER-MANAGEMENT";
 
 export type HttpRouteSchemaSet = Readonly<{
   params?: HttpSchemaRef;
@@ -59,6 +60,28 @@ export const canonicalCheckpointCreationRoute = {
 } as const;
 
 export const canonicalProductHttpRoutes = [
+  {
+    id: "accounts.create",
+    method: "POST",
+    path: "/accounts",
+    owner: "IdentityModule",
+    audience: "product",
+    requestDto: "CreateAccountRequestDto",
+    responseDto: "UserResponseDto",
+    schemas: { body: "CreateAccountRequest", response: "UserResponse" },
+    relatedRequirements: ["REQ-PRODUCTION-ACCOUNT-MANAGEMENT", "REQ-IDENTITY-MEMBERSHIP"],
+  },
+  {
+    id: "accounts.updateCurrentProfile",
+    method: "PATCH",
+    path: "/accounts/me/profile",
+    owner: "IdentityModule",
+    audience: "product",
+    requestDto: "UpdateAccountProfileRequestDto",
+    responseDto: "UserResponseDto",
+    schemas: { body: "UpdateAccountProfileRequest", response: "UserResponse" },
+    relatedRequirements: ["REQ-PRODUCTION-ACCOUNT-MANAGEMENT", "REQ-IDENTITY-MEMBERSHIP"],
+  },
   {
     id: "auth.createSession",
     method: "POST",
@@ -109,7 +132,7 @@ export const canonicalProductHttpRoutes = [
     requestDto: "CreateWorkspaceRequestDto",
     responseDto: "WorkspaceResponseDto",
     schemas: { body: "CreateWorkspaceRequest", response: "WorkspaceResponse" },
-    relatedRequirements: ["REQ-WORKSPACE-HIERARCHY"],
+    relatedRequirements: ["REQ-WORKSPACE-HIERARCHY", "REQ-WORKSPACE-LIFECYCLE-MANAGEMENT"],
   },
   {
     id: "workspaces.get",
@@ -134,7 +157,74 @@ export const canonicalProductHttpRoutes = [
       body: "UpdateWorkspaceRequest",
       response: "WorkspaceResponse",
     },
-    relatedRequirements: ["REQ-WORKSPACE-HIERARCHY"],
+    relatedRequirements: ["REQ-WORKSPACE-HIERARCHY", "REQ-WORKSPACE-LIFECYCLE-MANAGEMENT"],
+  },
+  {
+    id: "workspaces.delete",
+    method: "DELETE",
+    path: "/workspaces/:workspaceId",
+    owner: "WorkspaceModule",
+    audience: "product",
+    responseDto: "DeletedResourceResponseDto",
+    schemas: {
+      params: "WorkspaceIdPathParams",
+      response: "DeletedResourceResponse",
+    },
+    relatedRequirements: ["REQ-WORKSPACE-HIERARCHY", "REQ-WORKSPACE-LIFECYCLE-MANAGEMENT"],
+    notes: ["Workspace archive hides the workspace and archives contained folders/documents."],
+  },
+  {
+    id: "workspace-members.list",
+    method: "GET",
+    path: "/workspaces/:workspaceId/members",
+    owner: "WorkspaceModule",
+    audience: "product",
+    responseDto: "ListWorkspaceMembersResponseDto",
+    schemas: { params: "WorkspaceIdPathParams", response: "ListWorkspaceMembersResponse" },
+    relatedRequirements: ["REQ-WORKSPACE-MEMBER-MANAGEMENT"],
+  },
+  {
+    id: "workspace-members.create",
+    method: "POST",
+    path: "/workspaces/:workspaceId/members",
+    owner: "WorkspaceModule",
+    audience: "product",
+    requestDto: "CreateWorkspaceMemberRequestDto",
+    responseDto: "WorkspaceMemberResponseDto",
+    schemas: {
+      params: "WorkspaceIdPathParams",
+      body: "CreateWorkspaceMemberRequest",
+      response: "WorkspaceMemberResponse",
+    },
+    relatedRequirements: ["REQ-WORKSPACE-MEMBER-MANAGEMENT"],
+  },
+  {
+    id: "workspace-members.update",
+    method: "PATCH",
+    path: "/workspaces/:workspaceId/members/:memberId",
+    owner: "WorkspaceModule",
+    audience: "product",
+    requestDto: "UpdateWorkspaceMemberRequestDto",
+    responseDto: "WorkspaceMemberResponseDto",
+    schemas: {
+      params: "WorkspaceMemberIdPathParams",
+      body: "UpdateWorkspaceMemberRequest",
+      response: "WorkspaceMemberResponse",
+    },
+    relatedRequirements: ["REQ-WORKSPACE-MEMBER-MANAGEMENT"],
+  },
+  {
+    id: "workspace-members.delete",
+    method: "DELETE",
+    path: "/workspaces/:workspaceId/members/:memberId",
+    owner: "WorkspaceModule",
+    audience: "product",
+    responseDto: "DeletedResourceResponseDto",
+    schemas: {
+      params: "WorkspaceMemberIdPathParams",
+      response: "DeletedResourceResponse",
+    },
+    relatedRequirements: ["REQ-WORKSPACE-MEMBER-MANAGEMENT"],
   },
   {
     id: "workspaces.getNavigation",
@@ -154,7 +244,7 @@ export const canonicalProductHttpRoutes = [
     audience: "product",
     responseDto: "ListProjectsResponseDto",
     schemas: { params: "WorkspaceIdPathParams", response: "ListProjectsResponse" },
-    relatedRequirements: ["REQ-WORKSPACE-HIERARCHY"],
+    relatedRequirements: ["REQ-WORKSPACE-HIERARCHY", "REQ-WORKSPACE-LIFECYCLE-MANAGEMENT"],
   },
   {
     id: "projects.create",
@@ -169,7 +259,7 @@ export const canonicalProductHttpRoutes = [
       body: "CreateProjectRequest",
       response: "ProjectResponse",
     },
-    relatedRequirements: ["REQ-WORKSPACE-HIERARCHY"],
+    relatedRequirements: ["REQ-WORKSPACE-HIERARCHY", "REQ-WORKSPACE-LIFECYCLE-MANAGEMENT"],
   },
   {
     id: "projects.get",
@@ -179,7 +269,7 @@ export const canonicalProductHttpRoutes = [
     audience: "product",
     responseDto: "ProjectResponseDto",
     schemas: { params: "ProjectIdPathParams", response: "ProjectResponse" },
-    relatedRequirements: ["REQ-WORKSPACE-HIERARCHY"],
+    relatedRequirements: ["REQ-WORKSPACE-HIERARCHY", "REQ-WORKSPACE-LIFECYCLE-MANAGEMENT"],
   },
   {
     id: "projects.update",
@@ -194,7 +284,21 @@ export const canonicalProductHttpRoutes = [
       body: "UpdateProjectRequest",
       response: "ProjectResponse",
     },
-    relatedRequirements: ["REQ-WORKSPACE-HIERARCHY"],
+    relatedRequirements: ["REQ-WORKSPACE-HIERARCHY", "REQ-WORKSPACE-LIFECYCLE-MANAGEMENT"],
+  },
+  {
+    id: "projects.delete",
+    method: "DELETE",
+    path: "/projects/:projectId",
+    owner: "WorkspaceModule",
+    audience: "product",
+    responseDto: "DeletedResourceResponseDto",
+    schemas: {
+      params: "ProjectIdPathParams",
+      response: "DeletedResourceResponse",
+    },
+    relatedRequirements: ["REQ-WORKSPACE-HIERARCHY", "REQ-WORKSPACE-LIFECYCLE-MANAGEMENT"],
+    notes: ["Project archive hides the project and archives documents below its root folder."],
   },
   {
     id: "folders.listChildren",
@@ -215,7 +319,7 @@ export const canonicalProductHttpRoutes = [
     requestDto: "CreateFolderRequestDto",
     responseDto: "FolderResponseDto",
     schemas: { body: "CreateFolderRequest", response: "FolderResponse" },
-    relatedRequirements: ["REQ-WORKSPACE-HIERARCHY"],
+    relatedRequirements: ["REQ-WORKSPACE-HIERARCHY", "REQ-WORKSPACE-LIFECYCLE-MANAGEMENT"],
   },
   {
     id: "folders.update",
@@ -230,7 +334,7 @@ export const canonicalProductHttpRoutes = [
       body: "UpdateFolderRequest",
       response: "FolderResponse",
     },
-    relatedRequirements: ["REQ-WORKSPACE-HIERARCHY"],
+    relatedRequirements: ["REQ-WORKSPACE-HIERARCHY", "REQ-WORKSPACE-LIFECYCLE-MANAGEMENT"],
   },
   {
     id: "folders.move",
@@ -245,7 +349,7 @@ export const canonicalProductHttpRoutes = [
       body: "MoveFolderRequest",
       response: "FolderResponse",
     },
-    relatedRequirements: ["REQ-WORKSPACE-HIERARCHY"],
+    relatedRequirements: ["REQ-WORKSPACE-HIERARCHY", "REQ-WORKSPACE-LIFECYCLE-MANAGEMENT"],
   },
   {
     id: "folders.delete",
@@ -255,7 +359,7 @@ export const canonicalProductHttpRoutes = [
     audience: "product",
     responseDto: "DeletedResourceResponseDto",
     schemas: { params: "FolderIdPathParams", response: "DeletedResourceResponse" },
-    relatedRequirements: ["REQ-WORKSPACE-HIERARCHY"],
+    relatedRequirements: ["REQ-WORKSPACE-HIERARCHY", "REQ-WORKSPACE-LIFECYCLE-MANAGEMENT"],
     notes: ["Root folders must reject delete requests."],
   },
   {
@@ -286,6 +390,7 @@ export const canonicalProductHttpRoutes = [
       "CE-05",
       "REQ-PROPERTIES-OUTSIDE-BODY",
       "REQ-WORKSPACE-DOCUMENT-SCOPE",
+      "REQ-WORKSPACE-LIFECYCLE-MANAGEMENT",
     ],
   },
   {
@@ -311,7 +416,7 @@ export const canonicalProductHttpRoutes = [
       body: "UpdateDocumentRequest",
       response: "DocumentResponse",
     },
-    relatedRequirements: ["REQ-PROPERTIES-OUTSIDE-BODY"],
+    relatedRequirements: ["REQ-PROPERTIES-OUTSIDE-BODY", "REQ-WORKSPACE-LIFECYCLE-MANAGEMENT"],
   },
   {
     id: "documents.move",
@@ -326,7 +431,11 @@ export const canonicalProductHttpRoutes = [
       body: "MoveDocumentRequest",
       response: "DocumentResponse",
     },
-    relatedRequirements: ["REQ-WORKSPACE-HIERARCHY", "REQ-WORKSPACE-DOCUMENT-SCOPE"],
+    relatedRequirements: [
+      "REQ-WORKSPACE-HIERARCHY",
+      "REQ-WORKSPACE-DOCUMENT-SCOPE",
+      "REQ-WORKSPACE-LIFECYCLE-MANAGEMENT",
+    ],
   },
   {
     id: "documents.delete",
@@ -336,7 +445,33 @@ export const canonicalProductHttpRoutes = [
     audience: "product",
     responseDto: "DeletedResourceResponseDto",
     schemas: { params: "DocumentIdPathParams", response: "DeletedResourceResponse" },
-    relatedRequirements: ["REQ-WORKSPACE-HIERARCHY"],
+    relatedRequirements: [
+      "REQ-WORKSPACE-HIERARCHY",
+      "REQ-DOCUMENT-TRASH-RESTORE",
+      "REQ-WORKSPACE-LIFECYCLE-MANAGEMENT",
+    ],
+  },
+  {
+    id: "documents.listArchivedByWorkspace",
+    method: "GET",
+    path: "/workspaces/:workspaceId/trash/documents",
+    owner: "DocumentsModule",
+    audience: "product",
+    responseDto: "ListArchivedDocumentsResponseDto",
+    schemas: { params: "WorkspaceIdPathParams", response: "ListArchivedDocumentsResponse" },
+    relatedRequirements: ["REQ-DOCUMENT-TRASH-RESTORE", "REQ-WORKSPACE-DOCUMENT-SCOPE"],
+    notes: ["Archived documents are excluded from normal workspace navigation."],
+  },
+  {
+    id: "documents.restore",
+    method: "POST",
+    path: "/documents/:documentId/restore",
+    owner: "DocumentsModule",
+    audience: "product",
+    responseDto: "DocumentResponseDto",
+    schemas: { params: "DocumentIdPathParams", response: "DocumentResponse" },
+    relatedRequirements: ["REQ-DOCUMENT-TRASH-RESTORE", "REQ-WORKSPACE-DOCUMENT-SCOPE"],
+    notes: ["Restore clears archive state only when the original folder path is still active."],
   },
   {
     id: "documents.getContent",
@@ -493,54 +628,6 @@ export const canonicalProductHttpRoutes = [
   },
 ] as const satisfies readonly HttpRouteContract[];
 
-export const devOnlyHttpRoutes = [
-  {
-    id: "dev.getSeedReviewContext",
-    method: "GET",
-    path: "/review-context/seed",
-    owner: "ReviewContextModule",
-    audience: "dev-only",
-    responseDto: "SeedReviewContextDto",
-    schemas: { response: "SeedReviewContextResponse" },
-    relatedRequirements: ["CE-01", "CE-02", "CE-03", "CE-04", "CE-05"],
-    notes: ["Local reviewer bootstrap only; not a normal product runtime dependency."],
-  },
-  {
-    id: "dev.getSeedCollaborationSession",
-    method: "GET",
-    path: "/collaboration/sessions/seed",
-    owner: "CollaborationModule",
-    audience: "dev-only",
-    responseDto: "CollaborationSessionResponseDto",
-    schemas: { query: "CollaborationSessionQuery", response: "CollaborationSessionResponse" },
-    relatedRequirements: ["CE-01", "CE-02", "CE-03"],
-    notes: ["Local reviewer bootstrap only; replaced by document collaboration sessions."],
-  },
-] as const satisfies readonly HttpRouteContract[];
-
-export const retiredHttpRoutes = [
-  {
-    id: "retired.collaborationGetDocumentSession",
-    method: "GET",
-    path: "/collaboration/documents/:documentId/session",
-    owner: "CollaborationModule",
-    audience: "retired",
-    responseDto: "CollaborationSessionResponseDto",
-    schemas: {
-      params: "DocumentIdPathParams",
-      query: "CollaborationSessionQuery",
-      response: "CollaborationSessionResponse",
-    },
-    relatedRequirements: ["CE-01", "CE-02", "CE-03"],
-    replaces: "POST /documents/:documentId/collaboration-sessions",
-    notes: [
-      "Existing seed-backed route; product runtime should use the canonical documents route.",
-    ],
-  },
-] as const satisfies readonly HttpRouteContract[];
-
 export const httpRouteInventory = [
   ...canonicalProductHttpRoutes,
-  ...devOnlyHttpRoutes,
-  ...retiredHttpRoutes,
 ] as const satisfies readonly HttpRouteContract[];

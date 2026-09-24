@@ -3,7 +3,10 @@ import type {
   CollaborationSessionDto,
   DocumentId,
   DocumentDetailDto,
+  ProjectId,
   SessionDto,
+  WorkspaceId,
+  WorkspaceMembershipId,
   WorkspaceNavigationResponseDto,
 } from "@rme/contracts";
 
@@ -26,6 +29,7 @@ export type ProductWorkspaceState =
       reload: () => void;
       apiClient: ApiClient;
       selectDocumentId: (documentId: DocumentId) => void;
+      accountSurface: ProductAccountSurface;
     }>
   | Readonly<{
       status: "empty";
@@ -64,4 +68,16 @@ export type ProductWorkspaceModel = Readonly<{
   collaborationSession: CollaborationSessionDto;
   markdownBody: string;
   backlinks: readonly BacklinkDto[];
+}>;
+
+export type ProductAccountSurface = Readonly<{
+  workspaceId: WorkspaceId;
+  userName: string;
+  userEmail: string;
+  currentMemberDisplayName: string;
+  currentMemberColor: string;
+  currentMemberId: WorkspaceMembershipId | null;
+  workspaceName: string;
+  projectId: ProjectId | null;
+  projectName: string;
 }>;

@@ -12,7 +12,7 @@
 
 ## Current Contract Areas
 
-- Seed review context for local reviewer scenarios.
+- Local sample workspace context.
 - Workspace, project, folder, user, and workspace membership identity.
 - Document summary/detail and properties.
 - Collaboration session and realtime awareness payloads.

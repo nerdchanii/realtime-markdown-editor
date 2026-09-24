@@ -7,41 +7,31 @@ status: active
 
 ## 목적
 
-제품 문서는 사용자에게 보이는 product surface와 capability를 설명한다. Architecture track, research task, local setup task, backlog governance를 소유하지 않는다.
+제품 문서는 사용자에게 보이는 기능과 사용 흐름을 설명한다. 문서의 기준은 내부 추적 항목이나 완료 gate가
+아니라, 팀이 워크스페이스 안에서 Markdown 문서를 함께 작성하고 유지하는 실제 사용 경험이다.
 
-제품 문서는 `subject.md`의 CE 요구사항을 product story로 해석하고, 세부 REQ가 그 story를 제품으로
-성립시키는 방식을 설명한다. 각 CE story는 관련 세부 요구사항과
-`docs/product/product-quality-gates.md`의 품질 gate를 함께 통과할 때 완료된다.
+각 기능 문서는 사용자가 무엇을 할 수 있는지, 어떤 상태를 이해할 수 있는지, 다른 기능과 어떻게
+연결되는지를 설명한다. Architecture track, research task, local setup task, backlog governance는 이
+문서의 소유 범위가 아니다.
 
-## Product Quality 기준
+## Product Areas
 
-- 제품은 테스트 통과용 demo가 아니라 사용자가 신뢰할 수 있는 협업 Markdown 도구다.
-- 인증, 권한, workspace membership, 데이터 보존, 로컬 실행 안정성, UI 일관성은 CE stories를 실제
-  제품으로 성립시키는 세부 요구사항이다.
-- CE 요구사항은 사용자 행동 단위의 product stories이며, PM적 요구사항 해석과 제품 품질을 낮추는
-  명분이 될 수 없다.
-- 기능별 product surface 문서는 해당 기능이 어떤 사용자 문제를 해결하고 어떤 품질 gate를 통과해야
-  하는지 설명해야 한다.
+| area      | 목적                                           | 문서                       |
+| --------- | ---------------------------------------------- | -------------------------- |
+| Editor    | Markdown 작성, 협업 편집, presence, 이력 관리. | `docs/product/editor/`     |
+| Workspace | workspace, user, membership, document context. | `docs/product/workspace/`  |
+| Workflow  | document state와 향후 문서 자동화의 기반.      | `docs/product/workflow/`   |
 
-## Product Surface
-
-| surface         | 목적                                            | 문서                                    |
-| --------------- | ----------------------------------------------- | --------------------------------------- |
-| Editor          | 과제 핵심 요구와 editor-facing capability.      | `docs/product/editor/`                  |
-| Workspace       | workspace, user, membership, document context.  | `docs/product/workspace/`               |
-| Workflow        | future document-state automation의 기반.        | `docs/product/workflow/`                |
-| Product Quality | 모든 product surface가 통과해야 하는 완료 gate. | `docs/product/product-quality-gates.md` |
-
-## Product Surface Map
+## Feature Map
 
 | capability              | surface       | 관련 요구사항                                                                                            | 관련 ADR                     |
 | ----------------------- | ------------- | -------------------------------------------------------------------------------------------------------- | ---------------------------- |
 | Editor-first UI refresh | Product shell | `REQ-EDITOR-FIRST-UI-REFRESH`                                                                            | DESIGN.md                    |
-| 동시 편집               | Editor        | `CE-01-CONCURRENT-EDITING`, `REQ-COLLAB-ENGINE-ADAPTER`                                                  | ADR-0001, ADR-0002           |
-| Presence                | Editor        | `CE-02-PRESENCE`, `REQ-PRESENCE-MEMBER-AWARENESS`, `REQ-PRESENCE-CARET-LABEL-LEGIBILITY`                 | ADR-0001, ADR-0005           |
-| Offline merge           | Editor        | `CE-03-OFFLINE-MERGE`, `REQ-OFFLINE-LOCAL-PERSISTENCE`, `REQ-OFFLINE-INDEXEDDB-DRAFT-RECOVERY`           | ADR-0002, ADR-0003           |
-| History                 | Editor        | `CE-04-REVISION-HISTORY`, `REQ-HISTORY-CHECKPOINTS`, `REQ-COLLABORATIVE-CREATION-VISIBILITY`             | ADR-0003, ADR-0004           |
-| Rich preview            | Editor        | `CE-05-RICH-PREVIEW`, `REQ-EDITOR-RICH-AUTHORING-SURFACE`                                                | ADR-0002, ADR-0005, ADR-0007 |
+| 동시 편집               | Editor        | `REQ-COLLAB-ENGINE-ADAPTER`                                                                              | ADR-0001, ADR-0002           |
+| Presence                | Editor        | `REQ-PRESENCE-MEMBER-AWARENESS`, `REQ-PRESENCE-CARET-LABEL-LEGIBILITY`                                  | ADR-0001, ADR-0005           |
+| Offline merge           | Editor        | `REQ-OFFLINE-LOCAL-PERSISTENCE`, `REQ-OFFLINE-INDEXEDDB-DRAFT-RECOVERY`                                  | ADR-0002, ADR-0003           |
+| History                 | Editor        | `REQ-HISTORY-CHECKPOINTS`, `REQ-COLLABORATIVE-CREATION-VISIBILITY`                                       | ADR-0003, ADR-0004           |
+| Rich preview            | Editor        | `REQ-EDITOR-RICH-AUTHORING-SURFACE`                                                                      | ADR-0002, ADR-0005, ADR-0007 |
 | Properties              | Editor        | `REQ-PROPERTIES-OUTSIDE-BODY`                                                                            | ADR-0005                     |
 | Links/backlinks         | Editor        | `REQ-LINKS-BACKLINKS-STANDARD-MARKDOWN`                                                                  | ADR-0005                     |
 | Markdown export         | Editor        | `REQ-MARKDOWN-EXPORT-FRONTMATTER`                                                                        | ADR-0005                     |

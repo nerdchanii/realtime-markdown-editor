@@ -30,7 +30,7 @@ related_documents:
   - docs/research/poc-001-collaboration-engine/docs/evidence.md
   - docs/research/poc-001-collaboration-engine/performance/performance-report.md
   - docs/research/poc-001-collaboration-engine/performance/headless-crdt-report.md
-  - docs/compliance/subject-matrix.md
+  - docs/compliance/feature-acceptance-map.md
 supersedes: []
 superseded_by: null
 ---
@@ -118,7 +118,7 @@ Headless CRDT-only benchmark에서는 두 후보 모두 충분히 빠르다. 현
 
 ### 후속 작업
 
-- 제품 walking skeleton에서 CE-01 two-browser convergence와 CE-02 remote cursor/selection presence를 실제 제품 경로로 기록한다.
+- 제품 구현에서 multi-session convergence와 remote cursor/selection presence를 editor flow로 기록한다.
 - Hocuspocus/Yjs persistence artifact 저장과 server restart rehydration 정책을 ADR-0003 구현 세부로 확정한다.
 - Checkpoint/history는 ADR-0004의 explicit checkpoint 정책에 맞춰 제품 API로 구현한다.
 
@@ -126,7 +126,7 @@ Headless CRDT-only benchmark에서는 두 후보 모두 충분히 빠르다. 현
 
 - `docs/research/poc-001-collaboration-engine` 기준 `pnpm test`가 통과해야 한다.
 - 필요하면 `pnpm typecheck`, `pnpm build`, `pnpm test:e2e:tiptap`, `POC_PERF_RUNS=3 pnpm bench:perf`, `pnpm bench:crdt`로 POC evidence를 재생성한다.
-- 제품 구현에서는 `docs/compliance/subject-matrix.md`의 CE-01~CE-05 evidence 기준으로 최종 acceptance를 확인한다.
+- 제품 구현에서는 `docs/compliance/feature-acceptance-map.md`의 feature acceptance 기준으로 동작을 확인한다.
 
 ## 관련 문서
 
@@ -135,7 +135,7 @@ Headless CRDT-only benchmark에서는 두 후보 모두 충분히 빠르다. 현
 - `docs/research/poc-001-collaboration-engine/docs/evidence.md`
 - `docs/research/poc-001-collaboration-engine/performance/performance-report.md`
 - `docs/research/poc-001-collaboration-engine/performance/headless-crdt-report.md`
-- `docs/compliance/subject-matrix.md`
+- `docs/compliance/feature-acceptance-map.md`
 - ADR-0001
 - ADR-0003
 - ADR-0004

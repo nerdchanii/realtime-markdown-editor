@@ -4,8 +4,8 @@ export function resolveActiveEditorDocumentId(viewModelDocumentId: string | unde
 
 function readDocumentIdFromLocation() {
   if (typeof window === "undefined") {
-    return "seed-review-plan";
+    return "document_unavailable";
   }
 
-  return new URLSearchParams(window.location.search).get("document") ?? "seed-review-plan";
+  return new URLSearchParams(window.location.search).get("document") ?? "document_unavailable";
 }

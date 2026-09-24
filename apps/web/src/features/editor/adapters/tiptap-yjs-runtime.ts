@@ -83,7 +83,8 @@ function createCollaborationCaretMarker(color: string, name: string): HTMLElemen
   label.classList.add("collaboration-carets__label");
   label.style.backgroundColor = color;
   label.style.color = getReadableTextColor(color);
-  label.textContent = name;
+  label.dataset.memberName = name;
+  label.setAttribute("aria-label", name);
   marker.append(label);
 
   return marker;

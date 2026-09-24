@@ -1,11 +1,10 @@
 import { HocuspocusProvider } from "@hocuspocus/provider";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import type { CollaborationSessionDto, RealtimeMemberDto } from "@rme/contracts";
 
 import type { EditorSelectionSnapshot, PresenceMember } from "../ports/collaboration-adapter";
 
-const appCursorAwarenessKey = "rmeCursor";
 const appSelectionAwarenessKey = "rmeSelection";
 
 export type AwarenessRuntime = Readonly<{
@@ -23,7 +22,10 @@ export function useAwarenessPresence(
     if (!session || !runtime) return undefined;
 
     const updatePresence = () => {
-      setPresence(readRemotePresence(session, runtime));
+      const nextPresence = readRemotePresence(session, runtime);
+      setPresence((currentPresence) =>
+        isSamePresenceList(currentPresence, nextPresence) ? currentPresence : nextPresence,
+      );
     };
     const timer = window.setTimeout(updatePresence, 0);
 
@@ -45,10 +47,16 @@ export function useAwarenessSelectionUpdate(
   session: CollaborationSessionDto | null,
   runtime: AwarenessRuntime | null,
 ) {
+  const lastSelectionKeyRef = useRef<string | null>(null);
+
   return useCallback(
     (selection: EditorSelectionSnapshot) => {
       if (!session || !runtime) return;
 
+      const nextSelectionKey = createSelectionKey(session, selection);
+      if (lastSelectionKeyRef.current === nextSelectionKey) return;
+
+      lastSelectionKeyRef.current = nextSelectionKey;
       publishSelectionAwareness(session, runtime.provider, selection);
     },
     [runtime, session],
@@ -73,12 +81,11 @@ function publishSelectionAwareness(
   const member = findCurrentMember(session);
   const selectedRange = createPresenceRange(session, member, selection);
 
-  setAwarenessIdentity(provider, member);
-  provider.setAwarenessField(appCursorAwarenessKey, {
-    ...selectedRange,
-    anchor: selectedRange.head,
-  });
   provider.setAwarenessField(appSelectionAwarenessKey, selectedRange);
+}
+
+function createSelectionKey(session: CollaborationSessionDto, selection: EditorSelectionSnapshot) {
+  return `${session.documentId}:${session.currentMemberId}:${selection.anchor}:${selection.head}`;
 }
 
 function createPresenceRange(
@@ -186,4 +193,25 @@ function toPresenceOffsets(range: RuntimePresenceRange | null | undefined) {
     anchor: Math.min(range.anchor, range.head),
     head: Math.max(range.anchor, range.head),
   };
+}
+
+function isSamePresenceList(
+  left: readonly PresenceMember[],
+  right: readonly PresenceMember[],
+): boolean {
+  if (left.length !== right.length) return false;
+
+  return left.every((member, index) => isSamePresenceMember(member, right[index]));
+}
+
+function isSamePresenceMember(left: PresenceMember, right: PresenceMember | undefined): boolean {
+  return (
+    right !== undefined &&
+    left.id === right.id &&
+    left.name === right.name &&
+    left.color === right.color &&
+    left.range === right.range &&
+    left.anchor === right.anchor &&
+    left.head === right.head
+  );
 }

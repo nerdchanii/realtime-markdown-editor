@@ -12,7 +12,7 @@ blocks: []
 completed_by:
   - tasks/archive/TASK-024-ce-01-concurrent-editing-integration.md
 refs:
-  - docs/compliance/subject-matrix.md
+  - docs/compliance/feature-acceptance-map.md
   - docs/product/editor/concurrent-editing.md
 ---
 

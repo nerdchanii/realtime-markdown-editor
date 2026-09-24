@@ -20,7 +20,7 @@ status: active
 | DocumentState           | `draft`, `review`, `saved` 같은 workflow-facing value/state. 현재 제품에서는 직접 변경할 수 있고 transition policy가 없다.          |
 | User                    | 특정 workspace와 독립적인 사람/account identity.                                                                                    |
 | WorkspaceMembership     | 한 workspace 안에서 user가 갖는 identity. member display name/color를 포함한다.                                                     |
-| WorkspaceMembershipRole | `owner`, `editor`, `viewer` 같은 membership role value. Authorization behavior의 현재 범위는 product quality gate와 ADR이 정한다.   |
+| WorkspaceMembershipRole | `owner`, `editor`, `viewer` 같은 membership role value. Authorization behavior의 현재 범위는 product principles와 ADR이 정한다.      |
 | Presence                | cursor와 selection을 보여주는 임시 realtime awareness. Domain entity가 아니라 application/provider awareness state다.               |
 | Checkpoint              | metadata를 가진 user-visible historical document state.                                                                             |
 | Autosave                | 지속적인 persistence/sync behavior. User-facing checkpoint가 아니다.                                                                |
@@ -29,4 +29,4 @@ status: active
 | Collaboration artifact  | sync/history에 필요한 provider-specific 또는 serialized document state. Domain entity가 아니라 adapter/infrastructure concern이다.  |
 | Object artifact         | relational metadata 밖에 저장되는 blob, snapshot, export, large document artifact.                                                  |
 | Adapter                 | provider-specific API를 domain/application code에서 숨기는 경계.                                                                    |
-| Product acceptance path | CE-01부터 CE-05까지를 제품 품질 gate 위에서 end-to-end로 증명하는 경로.                                                             |
+| Feature acceptance path | 제품 기능을 사용자 행동 단위로 확인하는 경로.                                                                                        |

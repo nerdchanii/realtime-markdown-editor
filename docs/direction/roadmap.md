@@ -10,6 +10,16 @@ source: docs/direction/2026-09-24-product-direction-interview.md
 Realtime markdown editor 에서 Realtime editor(ADE 표면)로 가는 전환 계획이다. 한 번에 모두 해결하지
 않는다. 각 단계는 하나 이상의 작은 PR 로 끝나며, 앞 단계의 결과가 다음 단계의 입력이 된다.
 
+> 참고 [agent]: 진단과 인터뷰가 끝난 뒤 `main` 에 다음 변경이 들어왔다.
+> - seed runtime 제거
+> - exec-plan archive
+> - editor-first shell refresh
+> - CE acceptance spec 분리
+> - `docs/product/product-principles.md` 추가
+>
+> 그래서 단계 1 과 "저위험 정비"의 개별 항목은 착수 전에 현재 `main` 기준으로 다시 확인한다.
+> `product-principles.md` 도 인터뷰 기록과 충돌하는지 확인한다.
+
 게이트 표기(업계 조사 기반 제안, 채택 여부는 [open]):
 
 - **G0**: 에이전트 자율

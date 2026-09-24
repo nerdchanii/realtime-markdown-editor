@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
+import {
+  useCallback,
+  useEffect,
+  useState,
+  useSyncExternalStore,
+  type Dispatch,
+  type SetStateAction,
+} from "react";
 
 import type { CollaborationSessionDto } from "@rme/contracts";
 
@@ -14,6 +21,7 @@ import {
   type RuntimeSyncSnapshot,
   useRuntimeSyncSnapshot,
 } from "./tiptap-yjs-sync-status";
+import { isSameCollaborationRuntimeSession } from "./tiptap-yjs-session";
 
 export const tiptapYjsCollaborationProviderName = "features.editor.collaboration.tiptap-yjs";
 
@@ -51,17 +59,18 @@ function useTiptapYjsDocument(options: CollaborationDocumentOptions): Collaborat
 
 function useCollaborationSession(
   options: CollaborationDocumentOptions,
-  setSession: (session: CollaborationSessionDto | null) => void,
+  setSession: Dispatch<SetStateAction<CollaborationSessionDto | null>>,
 ) {
   const { session: initialSession } = options;
 
   useEffect(() => {
-    if (initialSession) {
-      setSession(initialSession);
-      return undefined;
-    }
-
-    setSession(null);
+    setSession((currentSession) => {
+      if (!initialSession) return currentSession === null ? currentSession : null;
+      if (currentSession && isSameCollaborationRuntimeSession(currentSession, initialSession)) {
+        return currentSession;
+      }
+      return initialSession;
+    });
     return undefined;
   }, [initialSession, setSession]);
 }

@@ -1,14 +1,35 @@
-import type { KeyboardEvent, RefObject } from "react";
+import type { DragEvent, RefObject } from "react";
 import { useEffect, useRef, useState } from "react";
 
+import { DeleteNodeButton } from "./DeleteNodeButton";
+import {
+  canDropOnFolder,
+  readWorkspaceDragItem,
+  type WorkspaceDragItem,
+  writeWorkspaceDragItem,
+} from "./drag-utils";
+import {
+  documentButtonStyle,
+  documentRowStyle,
+  folderRenameInputStyle,
+  folderRenameWrapStyle,
+  folderRowStyle,
+  folderSelectStyle,
+  folderToggleStyle,
+} from "./node-view-styles";
+import { handleRenameKeyDown, isDuplicateSiblingName } from "./rename-utils";
 import { panelStyles } from "./styles";
 import { createWorkspaceDocumentSelection, isFolderNode } from "./tree-utils";
 import type {
+  WorkspaceDocumentMoveRequest,
+  WorkspaceDocumentRenameRequest,
+  WorkspaceFolderMoveRequest,
+  WorkspaceFolderMoveTarget,
   WorkspaceFolderRenameRequest,
   WorkspaceNavigationNode,
   WorkspaceNavigationSelection,
 } from "./types";
-import { ChevronDown, FileText, Folder, Trash2 } from "lucide-react";
+import { ChevronDown, FileText, Folder } from "lucide-react";
 
 type WorkspaceNodeViewProps = Readonly<{
   node: WorkspaceNavigationNode;
@@ -21,8 +42,15 @@ type WorkspaceNodeViewProps = Readonly<{
   onSelectDocument: (selection: WorkspaceNavigationSelection) => void;
   onDeleteDocument: (documentId: string) => void;
   onDeleteFolder: (folderId: string) => void;
+  onRenameDocument: (request: WorkspaceDocumentRenameRequest) => void;
   onRenameFolder: (request: WorkspaceFolderRenameRequest) => void;
+  onMoveFolder: (request: WorkspaceFolderMoveRequest) => void;
+  onMoveDocument: (request: WorkspaceDocumentMoveRequest) => void;
+  moveTargets: readonly WorkspaceFolderMoveTarget[];
   siblingNames?: readonly string[];
+  dragItem: WorkspaceDragItem | null;
+  onDragStart: (item: WorkspaceDragItem) => void;
+  onDragEnd: () => void;
 }>;
 
 export function WorkspaceNodeView(props: WorkspaceNodeViewProps) {
@@ -51,9 +79,26 @@ function FolderNodeView(props: WorkspaceNodeViewProps) {
   const { node } = props;
   const [isExpanded, setIsExpanded] = useState(true);
   const [isRenaming, setIsRenaming] = useState(false);
+  const [isDragOver, setIsDragOver] = useState(false);
   const [draftName, setDraftName] = useState(node.name);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const isSelected = node.id === props.selectedFolderId;
+  const projectId = props.projectId ?? null;
+  const canDrop = canDropOnFolder(node.id, projectId, props.dragItem, props.moveTargets);
+  const handleDrop = (event: DragEvent<HTMLDivElement>) => {
+    const dragItem = props.dragItem ?? readWorkspaceDragItem(event.dataTransfer);
+    if (!canDropOnFolder(node.id, projectId, dragItem, props.moveTargets) || !dragItem) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+    setIsDragOver(false);
+    if (dragItem.kind === "document") {
+      props.onMoveDocument({ documentId: dragItem.id, targetFolderId: node.id });
+    } else {
+      props.onMoveFolder({ folderId: dragItem.id, targetParentFolderId: node.id });
+    }
+    props.onDragEnd();
+  };
   const toggleFolder = () => {
     props.onSelectFolder(node.id);
     setIsExpanded((current) => !current);
@@ -78,7 +123,34 @@ function FolderNodeView(props: WorkspaceNodeViewProps) {
 
   return (
     <li data-node-kind={node.kind} data-node-id={node.id}>
-      <div style={folderRowStyle(isSelected)}>
+      <div
+        draggable={!isRenaming}
+        data-testid={`workspace-folder-row-${node.id}`}
+        onDragEnd={props.onDragEnd}
+        onDragStart={(event) => {
+          event.stopPropagation();
+          const dragItem: WorkspaceDragItem = { kind: "folder", id: node.id, projectId };
+          event.dataTransfer.effectAllowed = "move";
+          writeWorkspaceDragItem(event.dataTransfer, dragItem);
+          props.onDragStart(dragItem);
+        }}
+        onDragEnter={(event) => {
+          const dragItem = props.dragItem ?? readWorkspaceDragItem(event.dataTransfer);
+          if (!canDropOnFolder(node.id, projectId, dragItem, props.moveTargets)) return;
+          event.preventDefault();
+          setIsDragOver(true);
+        }}
+        onDragLeave={() => setIsDragOver(false)}
+        onDragOver={(event) => {
+          const dragItem = props.dragItem ?? readWorkspaceDragItem(event.dataTransfer);
+          if (!canDropOnFolder(node.id, projectId, dragItem, props.moveTargets)) return;
+          event.preventDefault();
+          event.dataTransfer.dropEffect = "move";
+          setIsDragOver(true);
+        }}
+        onDrop={handleDrop}
+        style={folderRowStyle(isSelected, isDragOver && canDrop)}
+      >
         <FolderToggle node={node} isExpanded={isExpanded} onToggle={toggleFolder} />
         <FolderNameControl
           draftName={draftName}
@@ -218,33 +290,98 @@ function DocumentNodeView({
   projectId = null,
   onSelectDocument,
   onDeleteDocument,
+  onRenameDocument,
+  onDragStart,
+  onDragEnd,
+  siblingNames,
 }: WorkspaceNodeViewProps) {
+  const [isRenaming, setIsRenaming] = useState(false);
+  const [draftTitle, setDraftTitle] = useState(node.name);
+  const inputRef = useRef<HTMLInputElement | null>(null);
   const isSelected = node.id === selectedDocumentId;
   const selection = createWorkspaceDocumentSelection(node, workspaceId, projectId, path);
+  const finishRenaming = () => {
+    const nextTitle = draftTitle.trim();
+    if (!nextTitle || isDuplicateSiblingName(nextTitle, node.name, siblingNames)) {
+      setDraftTitle(node.name);
+      setIsRenaming(false);
+      return;
+    }
+
+    setIsRenaming(false);
+    if (nextTitle !== node.name) onRenameDocument({ documentId: node.id, title: nextTitle });
+  };
+
+  useEffect(() => {
+    if (!isRenaming) return;
+    inputRef.current?.focus();
+    inputRef.current?.select();
+  }, [isRenaming]);
 
   return (
     <li data-node-kind={node.kind} data-node-id={node.id}>
-      <div style={documentRowStyle(isSelected)}>
-        <button
-          type="button"
-          style={documentButtonStyle(isSelected)}
-          aria-current={isSelected ? "page" : undefined}
-          data-testid={`workspace-document-${node.id}`}
-          onClick={() => onSelectDocument(selection)}
-        >
-          <span style={panelStyles.nodeContent}>
-            <span style={panelStyles.nodeLabel}>
-              <FileText
-                size={16}
-                color={isSelected ? "var(--color-accent)" : "currentColor"}
-                style={{ flexShrink: 0 }}
-              />
-              <span style={{ ...panelStyles.nodeTitle, fontWeight: isSelected ? 500 : 400 }}>
-                {node.name}
+      <div
+        draggable={!isRenaming}
+        data-testid={`workspace-document-row-${node.id}`}
+        onDragEnd={onDragEnd}
+        onDragStart={(event) => {
+          event.stopPropagation();
+          const dragItem: WorkspaceDragItem = {
+            kind: "document",
+            id: node.id,
+            folderId: node.folderId ?? null,
+            projectId,
+          };
+          event.dataTransfer.effectAllowed = "move";
+          writeWorkspaceDragItem(event.dataTransfer, dragItem);
+          onDragStart(dragItem);
+        }}
+        style={documentRowStyle(isSelected)}
+      >
+        {isRenaming ? (
+          <span style={folderRenameWrapStyle}>
+            <FileText size={16} color={isSelected ? "var(--color-accent)" : "currentColor"} />
+            <input
+              ref={inputRef}
+              aria-label={`Rename ${node.name}`}
+              value={draftTitle}
+              onBlur={finishRenaming}
+              onChange={(event) => setDraftTitle(event.target.value)}
+              onKeyDown={(event) =>
+                handleRenameKeyDown(event, finishRenaming, () => {
+                  setDraftTitle(node.name);
+                  setIsRenaming(false);
+                })
+              }
+              style={folderRenameInputStyle}
+            />
+          </span>
+        ) : (
+          <button
+            type="button"
+            style={documentButtonStyle(isSelected)}
+            aria-current={isSelected ? "page" : undefined}
+            data-testid={`workspace-document-${node.id}`}
+            onClick={() => onSelectDocument(selection)}
+            onDoubleClick={() => {
+              setDraftTitle(node.name);
+              setIsRenaming(true);
+            }}
+          >
+            <span style={panelStyles.nodeContent}>
+              <span style={panelStyles.nodeLabel}>
+                <FileText
+                  size={16}
+                  color={isSelected ? "var(--color-accent)" : "currentColor"}
+                  style={{ flexShrink: 0 }}
+                />
+                <span style={{ ...panelStyles.nodeTitle, fontWeight: isSelected ? 500 : 400 }}>
+                  {node.name}
+                </span>
               </span>
             </span>
-          </span>
-        </button>
+          </button>
+        )}
         <DeleteNodeButton
           label={`Delete ${node.name}`}
           message={`Delete document "${node.name}"?`}
@@ -254,153 +391,3 @@ function DocumentNodeView({
     </li>
   );
 }
-
-function DeleteNodeButton({
-  label,
-  message,
-  onDelete,
-}: Readonly<{
-  label: string;
-  message: string;
-  onDelete: () => void;
-}>) {
-  return (
-    <button
-      type="button"
-      className="workspace-node-delete"
-      style={nodeDeleteStyle}
-      aria-label={label}
-      onClick={(event) => {
-        event.stopPropagation();
-        if (!confirmDelete(message)) return;
-        onDelete();
-      }}
-    >
-      <Trash2 size={13} />
-    </button>
-  );
-}
-
-function documentButtonStyle(isSelected: boolean) {
-  return {
-    ...panelStyles.nodeButton,
-    flex: 1,
-    background: isSelected ? "#eff6ff" : "transparent",
-    color: isSelected ? "#1447e6" : "#45556c",
-  };
-}
-
-function folderRowStyle(isSelected: boolean) {
-  return {
-    display: "flex",
-    alignItems: "center",
-    width: "100%",
-    minWidth: 0,
-    position: "relative" as const,
-    overflow: "hidden",
-    borderRadius: "4px",
-    background: isSelected ? "#eff6ff" : "transparent",
-    color: isSelected ? "#1447e6" : "#45556c",
-  };
-}
-
-function documentRowStyle(isSelected: boolean) {
-  return {
-    display: "flex",
-    alignItems: "center",
-    width: "100%",
-    minWidth: 0,
-    position: "relative" as const,
-    overflow: "hidden",
-    borderRadius: "4px",
-    background: isSelected ? "#eff6ff" : "transparent",
-    color: isSelected ? "#1447e6" : "#45556c",
-  };
-}
-
-const folderToggleStyle = {
-  display: "inline-flex",
-  width: "22px",
-  height: "28px",
-  flex: "0 0 auto",
-  alignItems: "center",
-  justifyContent: "center",
-  border: 0,
-  background: "transparent",
-  cursor: "pointer",
-  padding: 0,
-};
-
-function confirmDelete(message: string): boolean {
-  if (typeof globalThis.confirm !== "function") return true;
-  return globalThis.confirm(message);
-}
-
-function handleRenameKeyDown(
-  event: KeyboardEvent<HTMLInputElement>,
-  onFinish: () => void,
-  onCancel: () => void,
-) {
-  if (event.key === "Enter") {
-    event.preventDefault();
-    onFinish();
-  }
-  if (event.key === "Escape") {
-    event.preventDefault();
-    onCancel();
-  }
-}
-
-function isDuplicateSiblingName(
-  nextName: string,
-  currentName: string,
-  siblingNames: readonly string[] = [],
-) {
-  const normalizedNextName = nextName.trim().toLowerCase();
-  const normalizedCurrentName = currentName.trim().toLowerCase();
-  if (normalizedNextName === normalizedCurrentName) return false;
-
-  return siblingNames.some((name) => name.trim().toLowerCase() === normalizedNextName);
-}
-
-const folderSelectStyle = {
-  ...panelStyles.nodeButton,
-  flex: 1,
-  padding: "6px 6px 6px 0px",
-  gap: "4px",
-  background: "transparent",
-};
-
-const folderRenameWrapStyle = {
-  ...panelStyles.nodeButton,
-  flex: 1,
-  padding: "6px 6px 6px 0px",
-  gap: "4px",
-  background: "transparent",
-};
-
-const folderRenameInputStyle = {
-  minWidth: 0,
-  flex: 1,
-  border: "0",
-  background: "transparent",
-  color: "inherit",
-  font: "inherit",
-  outline: "0",
-  padding: 0,
-};
-
-const nodeDeleteStyle = {
-  display: "inline-flex",
-  width: "22px",
-  height: "22px",
-  flex: "0 0 auto",
-  alignItems: "center",
-  justifyContent: "center",
-  border: 0,
-  borderRadius: "4px",
-  background: "transparent",
-  color: "#90a1b9",
-  cursor: "pointer",
-  padding: 0,
-};

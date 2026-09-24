@@ -12,8 +12,6 @@ export type CollabRuntimeConfig = {
   port: number;
   apiBaseUrl: string;
   publicRealtimeUrl: string;
-  seedDocumentKey: string;
-  enableSeedSessionFallback: boolean;
   enableLiveYjsPersistenceFallback: boolean;
   liveYjsPersistence: LiveYjsPersistenceConfig;
 };
@@ -29,7 +27,7 @@ const BOOLEAN_VALUES = new Map([
 
 export function readCollabRuntimeConfig(env: NodeJS.ProcessEnv): CollabRuntimeConfig {
   const host = readString(env.RME_COLLAB_HOST, "127.0.0.1");
-  const port = readPort(env.RME_COLLAB_PORT ?? env.COLLAB_PORT, 1234);
+  const port = readPort(env.RME_COLLAB_PORT ?? env.COLLAB_PORT, 4001);
   const liveYjsPersistenceProvider = readLiveYjsPersistenceProvider(
     env.RME_COLLAB_YJS_PERSISTENCE_PROVIDER,
     "api-postgres",
@@ -40,11 +38,6 @@ export function readCollabRuntimeConfig(env: NodeJS.ProcessEnv): CollabRuntimeCo
     port,
     apiBaseUrl: readString(env.RME_API_BASE_URL, "http://127.0.0.1:4000"),
     publicRealtimeUrl: readString(env.RME_COLLAB_PUBLIC_URL, `ws://${host}:${port}`),
-    seedDocumentKey: readString(
-      env.RME_COLLAB_SEED_DOCUMENT_KEY,
-      "workspace_review/document_review_plan",
-    ),
-    enableSeedSessionFallback: readBoolean(env.RME_COLLAB_ENABLE_SEED_SESSION_FALLBACK, false),
     enableLiveYjsPersistenceFallback: readBoolean(
       env.RME_COLLAB_ENABLE_LIVE_YJS_PERSISTENCE_FALLBACK,
       false,

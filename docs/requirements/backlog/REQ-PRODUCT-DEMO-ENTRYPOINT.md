@@ -35,7 +35,7 @@ Acceptance candidate:
 - Demo session 이후 모든 workspace/document/collaboration API는 기존 session + membership
   authorization 경로를 사용한다.
 - Demo workspace는 seeded product data 또는 별도 provisioned demo workspace를 사용하되, normal
-  runtime이 `/review-context/seed`에 의존하지 않는다.
+  runtime과 동일한 product API 경로를 사용한다.
 - Demo user/session 만료와 cleanup 정책은 production 노출 전에 정의되어야 한다.
 
 Open decisions:

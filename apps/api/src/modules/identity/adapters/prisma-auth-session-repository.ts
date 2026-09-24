@@ -13,6 +13,10 @@ import type { UserId, WorkspaceMembershipId } from "@rme/contracts";
 import { verifyPasswordCredential } from "@/modules/identity/use-cases/password-credential.js";
 
 const sessionTtlMs = 7 * 24 * 60 * 60 * 1000;
+const activeMembershipWhere = {
+  removedAt: null,
+  workspace: { rootFolderId: { not: null } },
+} as const;
 
 @Injectable()
 export class PrismaAuthSessionRepository implements AuthSessionRepository {
@@ -25,31 +29,29 @@ export class PrismaAuthSessionRepository implements AuthSessionRepository {
   }): Promise<CreatedSession | null> {
     const user = await this.database.user.findUnique({
       where: { email: input.email },
-      include: { memberships: { orderBy: { createdAt: "asc" } } },
+      include: { memberships: { where: activeMembershipWhere, orderBy: { createdAt: "asc" } } },
     });
     if (!user) return null;
     if (!isValidPassword(input.password, user)) return null;
 
-    const currentMembership =
-      user.memberships.find((membership) => membership.workspaceId === input.workspaceId) ??
-      (input.workspaceId ? null : (user.memberships[0] ?? null));
-    if (!currentMembership) return null;
+    const currentMembership = selectCurrentMembership(user.memberships, input.workspaceId);
+    if (isMissingRequestedWorkspaceMembership(input.workspaceId, currentMembership)) return null;
 
     const token = randomBytes(32).toString("base64url");
     const expiresAt = new Date(Date.now() + sessionTtlMs);
-    await this.createDatabaseSession(token, user.id, currentMembership.id, expiresAt);
+    await this.createDatabaseSession(token, user.id, currentMembership?.id ?? null, expiresAt);
 
     return {
       token,
       expiresAt,
-      context: sessionContextFromUser(user, currentMembership.id),
+      context: sessionContextFromUser(user, currentMembership?.id ?? null),
     };
   }
 
   private async createDatabaseSession(
     token: string,
     userId: string,
-    currentMembershipId: string,
+    currentMembershipId: string | null,
     expiresAt: Date,
   ): Promise<void> {
     await this.database.session.create({
@@ -67,7 +69,9 @@ export class PrismaAuthSessionRepository implements AuthSessionRepository {
     const session = await this.database.session.findUnique({
       where: { tokenHash: hashSessionToken(token) },
       include: {
-        user: { include: { memberships: { orderBy: { createdAt: "asc" } } } },
+        user: {
+          include: { memberships: { where: activeMembershipWhere, orderBy: { createdAt: "asc" } } },
+        },
       },
     });
     if (!session || session.status !== "active" || session.expiresAt <= new Date()) return null;
@@ -114,6 +118,21 @@ type UserWithMemberships = Readonly<{
   }>;
 }>;
 
+function selectCurrentMembership(
+  memberships: UserWithMemberships["memberships"],
+  workspaceId: WorkspaceId | null,
+): UserWithMemberships["memberships"][number] | null {
+  if (workspaceId === null) return memberships[0] ?? null;
+  return memberships.find((membership) => membership.workspaceId === workspaceId) ?? null;
+}
+
+function isMissingRequestedWorkspaceMembership(
+  workspaceId: WorkspaceId | null,
+  membership: UserWithMemberships["memberships"][number] | null,
+) {
+  return workspaceId !== null && !membership;
+}
+
 function sessionContextFromUser(
   user: UserWithMemberships,
   currentMembershipId: string | null,
@@ -135,7 +154,8 @@ function sessionContextFromUser(
     },
     memberships,
     currentMembership:
-      memberships.find((membership) => membership.id === currentMembershipId) ?? null,
+      memberships.find((membership) => membership.id === currentMembershipId) ??
+      (currentMembershipId ? null : (memberships[0] ?? null)),
   };
 }
 

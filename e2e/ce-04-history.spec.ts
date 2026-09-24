@@ -1,6 +1,11 @@
 import { expect, test } from "@playwright/test";
 
-import { appendRichEditorLine, richMarkdownEditor } from "./support/reviewer-session.js";
+import {
+  addMarkdownLine,
+  createUserCheckpoint,
+  markdownSurface,
+  openCheckpointSnapshot,
+} from "./support/ce-acceptance.js";
 import { createProductSession, ensureCe04ProductFixture } from "./support/product-fixtures.js";
 
 test("CE-04: reviewer can create and inspect a user-visible document revision", async ({
@@ -16,22 +21,25 @@ test("CE-04: reviewer can create and inspect a user-visible document revision", 
   });
   await page.goto("/?workspace=workspace_ce04&document=document_ce04_plan");
 
-  const editor = richMarkdownEditor(page);
+  const editor = markdownSurface(page);
   const revisionText = `Revision candidate text ${Date.now()}`;
-  const revisionMessage = `Capture review plan draft ${Date.now()}`;
+  const revisionMessage = "Manual checkpoint";
   await expect(editor).toBeVisible();
   await expect(editor).toContainText("This document is loaded from product storage.");
   await expect(editor).not.toContainText("Stale local-only review plan");
-  await appendRichEditorLine(page, editor, revisionText);
+  await addMarkdownLine(page, revisionText);
 
-  await page.getByTestId("publish-revision-button").click();
-  await page.getByTestId("revision-message-input").fill(revisionMessage);
-  await page.getByTestId("confirm-publish-revision-button").click();
+  await createUserCheckpoint(page, revisionMessage);
+  const checkpointCountAfterSave = await page
+    .getByRole("button", { name: new RegExp(revisionMessage) })
+    .count();
+  await expect(page.getByLabel("Document checkpoint saved")).toBeDisabled();
+  await expect(page.getByRole("button", { name: new RegExp(revisionMessage) })).toHaveCount(
+    checkpointCountAfterSave,
+  );
 
-  await expect(page.getByTestId("revision-history-list")).toContainText(revisionMessage);
-  await page.getByTestId("revision-history-item").filter({ hasText: revisionMessage }).click();
-  await expect(page.getByTestId("revision-snapshot-viewer")).toContainText(revisionText);
+  await expect(await openCheckpointSnapshot(page, revisionMessage)).toContainText(revisionText);
 
   await page.reload();
-  await expect(page.getByTestId("revision-history-list")).toContainText(revisionMessage);
+  await expect(page.getByLabel("History inspector")).toContainText(revisionMessage);
 });

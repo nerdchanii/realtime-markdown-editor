@@ -1,10 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import type { DocumentId, FolderId } from "@rme/contracts";
+import type { DocumentId, FolderId, ProjectId, WorkspaceId } from "@rme/contracts";
 
 import type {
   WorkspaceDocumentCreateRequest,
+  WorkspaceDocumentMoveRequest,
+  WorkspaceDocumentRenameRequest,
+  WorkspaceArchivedDocument,
   WorkspaceFolderCreateRequest,
+  WorkspaceFolderMoveRequest,
   WorkspaceFolderRenameRequest,
   WorkspaceNavigationSelection,
 } from "@/features/workspace";
@@ -14,6 +18,11 @@ import {
   createProductApiClient,
   deleteDocument,
   deleteFolder,
+  fetchArchivedDocuments,
+  moveDocument,
+  moveFolder,
+  restoreDocument,
+  updateDocument,
   updateFolder,
   type ApiClient,
 } from "@/lib/api-client";
@@ -32,7 +41,14 @@ type LoadedProductWorkspaceInput = {
   createProductFolder: (request: WorkspaceFolderCreateRequest) => void;
   deleteProductDocument: (documentId: string) => void;
   deleteProductFolder: (folderId: string) => void;
+  listArchivedProductDocuments: (
+    workspaceId: string,
+  ) => Promise<readonly WorkspaceArchivedDocument[]>;
+  moveProductDocument: (request: WorkspaceDocumentMoveRequest) => void;
+  moveProductFolder: (request: WorkspaceFolderMoveRequest) => void;
+  renameProductDocument: (request: WorkspaceDocumentRenameRequest) => void;
   renameProductFolder: (request: WorkspaceFolderRenameRequest) => void;
+  restoreProductDocument: (documentId: string) => void;
   reloadToken: number;
   selectDocument: (selection: WorkspaceNavigationSelection) => void;
   selectedDocumentId: DocumentId | null;
@@ -81,7 +97,16 @@ function useWorkspaceMutations(
   const createProductFolder = useProductFolderCreator(apiClient, reload);
   const deleteProductDocument = useProductDocumentDeleter(apiClient, reload, setSelectedDocumentId);
   const deleteProductFolder = useProductFolderDeleter(apiClient, reload, setSelectedDocumentId);
+  const listArchivedProductDocuments = useProductArchivedDocumentLister(apiClient);
+  const moveProductDocument = useProductDocumentMover(apiClient, reload, setSelectedDocumentId);
+  const moveProductFolder = useProductFolderMover(apiClient, reload, setSelectedDocumentId);
+  const renameProductDocument = useProductDocumentRenamer(apiClient, reload);
   const renameProductFolder = useProductFolderRenamer(apiClient, reload);
+  const restoreProductDocument = useProductDocumentRestorer(
+    apiClient,
+    reload,
+    setSelectedDocumentId,
+  );
 
   return useMemo(
     () => ({
@@ -89,24 +114,44 @@ function useWorkspaceMutations(
       createProductFolder,
       deleteProductDocument,
       deleteProductFolder,
+      listArchivedProductDocuments,
+      moveProductDocument,
+      moveProductFolder,
+      renameProductDocument,
       renameProductFolder,
+      restoreProductDocument,
     }),
     [
       createProductDocument,
       createProductFolder,
       deleteProductDocument,
       deleteProductFolder,
+      listArchivedProductDocuments,
+      moveProductDocument,
+      moveProductFolder,
+      renameProductDocument,
       renameProductFolder,
+      restoreProductDocument,
     ],
   );
 }
 
 function useLoadedProductWorkspace(input: LoadedProductWorkspaceInput) {
+  const { reload } = input;
   const [state, setState] = useState<ProductWorkspaceState>({
     status: "loading",
     apiClient: input.apiClient,
-    reload: input.reload,
+    reload,
   });
+
+  useEffect(() => {
+    if (state.status !== "ready") return undefined;
+    const intervalId = window.setInterval(() => {
+      if (isRichEditorFocused()) return;
+      reload();
+    }, productWorkspacePollIntervalMs);
+    return () => window.clearInterval(intervalId);
+  }, [reload, state.status]);
 
   useEffect(() => {
     const abortController = new AbortController();
@@ -128,6 +173,15 @@ function useLoadedProductWorkspace(input: LoadedProductWorkspaceInput) {
   }, [input]);
 
   return state;
+}
+
+const productWorkspacePollIntervalMs = 2500;
+
+function isRichEditorFocused() {
+  if (typeof HTMLElement === "undefined") return false;
+  const activeElement = globalThis.document?.activeElement;
+  if (!(activeElement instanceof HTMLElement)) return false;
+  return activeElement.closest('[data-testid="rich-markdown-editor"]') !== null;
 }
 
 function createFailedState(
@@ -196,6 +250,54 @@ function useProductFolderRenamer(apiClient: ApiClient, reload: () => void) {
   );
 }
 
+function useProductDocumentRenamer(apiClient: ApiClient, reload: () => void) {
+  return useCallback(
+    (request: WorkspaceDocumentRenameRequest) => {
+      const title = request.title.trim();
+      if (!title) return;
+
+      void updateDocument(apiClient, request.documentId as DocumentId, { title }).then(reload);
+    },
+    [apiClient, reload],
+  );
+}
+
+function useProductDocumentMover(
+  apiClient: ApiClient,
+  reload: () => void,
+  setSelectedDocumentId: (documentId: DocumentId) => void,
+) {
+  return useCallback(
+    (request: WorkspaceDocumentMoveRequest) => {
+      void moveDocument(apiClient, request.documentId as DocumentId, {
+        targetFolderId: request.targetFolderId as FolderId,
+      }).then((response) => {
+        setSelectedDocumentId(response.document.id);
+        reload();
+      });
+    },
+    [apiClient, reload, setSelectedDocumentId],
+  );
+}
+
+function useProductFolderMover(
+  apiClient: ApiClient,
+  reload: () => void,
+  setSelectedDocumentId: (documentId: DocumentId | null) => void,
+) {
+  return useCallback(
+    (request: WorkspaceFolderMoveRequest) => {
+      void moveFolder(apiClient, request.folderId, {
+        targetParentFolderId: request.targetParentFolderId as FolderId,
+      }).then(() => {
+        setSelectedDocumentId(null);
+        reload();
+      });
+    },
+    [apiClient, reload, setSelectedDocumentId],
+  );
+}
+
 function useProductDocumentDeleter(
   apiClient: ApiClient,
   reload: () => void,
@@ -228,6 +330,36 @@ function useProductFolderDeleter(
   );
 }
 
+function useProductArchivedDocumentLister(apiClient: ApiClient) {
+  return useCallback(
+    async (workspaceId: string): Promise<readonly WorkspaceArchivedDocument[]> => {
+      const response = await fetchArchivedDocuments(apiClient, workspaceId as WorkspaceId);
+      return response.documents.map((document) => ({
+        id: document.id,
+        title: document.title,
+        archivedAt: document.archivedAt,
+      }));
+    },
+    [apiClient],
+  );
+}
+
+function useProductDocumentRestorer(
+  apiClient: ApiClient,
+  reload: () => void,
+  setSelectedDocumentId: (documentId: DocumentId | null) => void,
+) {
+  return useCallback(
+    (documentId: string) => {
+      void restoreDocument(apiClient, documentId as DocumentId).then((response) => {
+        setSelectedDocumentId(response.document.id);
+        reload();
+      });
+    },
+    [apiClient, reload, setSelectedDocumentId],
+  );
+}
+
 function createLoadedState(
   model: Awaited<ReturnType<typeof loadProductWorkspace>>,
   input: Omit<LoadedProductWorkspaceInput, "reloadToken" | "selectedDocumentId">,
@@ -242,13 +374,41 @@ function createLoadedState(
       input.createProductDocument,
       input.createProductFolder,
       input.deleteProductDocument,
+      () => input.listArchivedProductDocuments(model.navigation.workspace.id),
+      input.restoreProductDocument,
       input.deleteProductFolder,
+      input.renameProductDocument,
       input.renameProductFolder,
+      input.moveProductFolder,
+      input.moveProductDocument,
       input.reload,
     ),
     apiClient: input.apiClient,
     selectDocumentId: input.selectDocumentId,
     reload: input.reload,
+    accountSurface: createAccountSurface(model),
+  };
+}
+
+function createAccountSurface(
+  model: NonNullable<Awaited<ReturnType<typeof loadProductWorkspace>>>,
+) {
+  const currentMember = model.session?.currentMembership;
+  const folder = model.navigation.folders.find(
+    (candidate) => candidate.id === model.selectedDocument.folderId,
+  );
+  const project = model.navigation.projects.find((candidate) => candidate.id === folder?.projectId);
+
+  return {
+    workspaceId: model.navigation.workspace.id,
+    userName: model.session?.user.name ?? "Signed in user",
+    userEmail: model.session?.user.email ?? "",
+    currentMemberDisplayName: currentMember?.displayName ?? model.session?.user.name ?? "Member",
+    currentMemberColor: currentMember?.color ?? "#8a99ad",
+    currentMemberId: currentMember?.id ?? null,
+    workspaceName: model.navigation.workspace.name,
+    projectId: (project?.id ?? null) as ProjectId | null,
+    projectName: project?.name ?? model.navigation.projects[0]?.name ?? "Workspace root",
   };
 }
 

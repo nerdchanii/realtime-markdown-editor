@@ -1,6 +1,14 @@
+import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 
 import { expect, type Page } from "@playwright/test";
+
+import {
+  localProductPassword,
+  localProductPasswordHash,
+  localProductPasswordSalt,
+  localProductSeedSpec,
+} from "../../scripts/product-seed-spec.mjs";
 
 type PrismaModel = {
   upsert(args: unknown): Promise<unknown>;
@@ -31,25 +39,64 @@ type WorkspaceScaffold = Readonly<{
   projectRootFolderId: string;
 }>;
 
-export const reviewerWorkspaceId = "workspace_review";
-export const reviewerProjectRootFolderId = "folder_project_root";
-
-const localProductPassword = "password";
-const localProductPasswordSalt = "local-review-password-salt";
-const localProductPasswordHash =
-  "3bbff257761674495c3ad315d62259d7d7f1b13901c9c63eac6cb9bf189cc2f49d5254e6f2858b69cf2ac9cae04982f423a3253b239d3c450cb8c72785057e81";
+export const reviewerWorkspaceId = localProductSeedSpec.workspace.id;
+export const reviewerProjectRootFolderId = localProductSeedSpec.project.rootFolderId;
 
 const apiRequire = createRequire(new URL("../../apps/api/package.json", import.meta.url));
 const { PrismaClient } = apiRequire("@prisma/client") as {
   PrismaClient: new () => PrismaFixtureClient;
 };
 
-export async function createProductSession(page: Page, email: string, workspaceId: string) {
-  const response = await page.request.post(`${apiBaseUrl()}/auth/session`, {
-    data: { email, password: localProductPassword, workspaceId },
-  });
+export async function createProductSession(page: Page, email: string, workspaceId?: string) {
+  const endpoint = `${apiBaseUrl()}/auth/session`;
+  let lastError: string | null = null;
+  const data = workspaceId
+    ? { email, password: localProductPassword, workspaceId }
+    : { email, password: localProductPassword };
 
-  expect(response.ok(), await response.text()).toBeTruthy();
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    try {
+      const response = await page.request.post(endpoint, {
+        data,
+      });
+      if (response.ok()) return;
+      lastError = await response.text();
+    } catch (error) {
+      lastError = error instanceof Error ? error.message : String(error);
+    }
+
+    await page.waitForTimeout(500);
+  }
+
+  expect(false, lastError ?? "Timed out creating product session.").toBeTruthy();
+}
+
+export async function ensureStandaloneProductUser(
+  email: string,
+  name = "Standalone User",
+  userId = `user_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+) {
+  const prisma = new PrismaClient();
+
+  try {
+    await prisma.user.upsert({
+      where: { email },
+      update: {
+        name,
+        passwordHash: localProductPasswordHash,
+        passwordSalt: localProductPasswordSalt,
+      },
+      create: {
+        id: userId,
+        email,
+        name,
+        passwordHash: localProductPasswordHash,
+        passwordSalt: localProductPasswordSalt,
+      },
+    });
+  } finally {
+    await prisma.$disconnect();
+  }
 }
 
 export async function ensureCe04ProductFixture() {
@@ -102,10 +149,10 @@ export async function ensureReviewerProductFixture() {
   try {
     await seedWorkspaceScaffold(prisma, {
       workspaceId: reviewerWorkspaceId,
-      workspaceName: "Review Team Workspace",
-      workspaceRootFolderId: "folder_workspace_root",
-      projectId: "project_editor",
-      projectName: "Editor Review",
+      workspaceName: localProductSeedSpec.workspace.name,
+      workspaceRootFolderId: localProductSeedSpec.workspace.rootFolderId,
+      projectId: localProductSeedSpec.project.id,
+      projectName: localProductSeedSpec.project.name,
       projectRootFolderId: reviewerProjectRootFolderId,
     });
     await seedReviewerMembers(prisma);
@@ -236,6 +283,7 @@ async function seedMember(
       displayName: member.displayName,
       color: member.color ?? "#0969da",
       role: member.role ?? "owner",
+      removedAt: null,
     },
     create: {
       id: member.membershipId,
@@ -249,123 +297,67 @@ async function seedMember(
 }
 
 async function seedReviewerMembers(prisma: PrismaFixtureClient) {
-  await seedMember(prisma, {
-    userId: "user_alice",
-    email: "alice@example.test",
-    membershipId: "member_alice",
-    workspaceId: reviewerWorkspaceId,
-    displayName: "Alice",
-    color: "#0969da",
-    role: "owner",
-  });
-  await seedMember(prisma, {
-    userId: "user_bob",
-    email: "bob@example.test",
-    membershipId: "member_bob",
-    workspaceId: reviewerWorkspaceId,
-    displayName: "Bob",
-    color: "#1a7f37",
-    role: "member",
-  });
-  await seedMember(prisma, {
-    userId: "user_carol",
-    email: "carol@example.test",
-    membershipId: "member_carol",
-    workspaceId: reviewerWorkspaceId,
-    displayName: "Carol",
-    color: "#8250df",
-    role: "member",
-  });
-  await seedMember(prisma, {
-    userId: "user_dana",
-    email: "dana@example.test",
-    membershipId: "member_dana",
-    workspaceId: reviewerWorkspaceId,
-    displayName: "Dana",
-    color: "#bf3989",
-    role: "member",
-  });
+  for (const member of localProductSeedSpec.members) {
+    await seedMember(prisma, {
+      userId: member.userId,
+      email: member.email,
+      membershipId: member.membershipId,
+      workspaceId: reviewerWorkspaceId,
+      displayName: member.displayName,
+      color: member.color,
+      role: member.role,
+    });
+  }
 }
 
 async function seedReviewerDocuments(prisma: PrismaFixtureClient) {
-  await prisma.document.upsert({
-    where: { id: "document_review_plan" },
-    update: {
-      folderId: "folder_project_root",
-      title: "Review Plan",
-      state: "review",
-      archivedAt: null,
-      markdownBody:
-        "# Review Plan\n\nThis document keeps product properties outside the Markdown body.",
-      contentSource: "manualImport",
-    },
-    create: {
-      id: "document_review_plan",
+  for (const seededDocument of localProductSeedSpec.documents) {
+    const documentData = {
       folderId: reviewerProjectRootFolderId,
-      title: "Review Plan",
-      state: "review",
-      markdownBodyRef: "documents/document_review_plan/current.md",
-      markdownBody:
-        "# Review Plan\n\nThis document keeps product properties outside the Markdown body.",
-      contentSource: "manualImport",
-    },
-  });
-  await prisma.document.upsert({
-    where: { id: "document_decision_log" },
-    update: {
-      folderId: "folder_project_root",
-      title: "Decision Log",
-      state: "saved",
+      title: seededDocument.title,
+      state: seededDocument.state,
       archivedAt: null,
-      markdownBody: "# Decision Log\n\nLinks to [Review Plan](./review-plan.md).",
+      markdownBody: readSeedMarkdown(seededDocument.sourcePath),
       contentSource: "manualImport",
-    },
-    create: {
-      id: "document_decision_log",
-      folderId: reviewerProjectRootFolderId,
-      title: "Decision Log",
-      state: "saved",
-      markdownBodyRef: "documents/document_decision_log/current.md",
-      markdownBody: "# Decision Log\n\nLinks to [Review Plan](./review-plan.md).",
-      contentSource: "manualImport",
-    },
-  });
-  await prisma.documentProperty.upsert({
-    where: { documentId_key: { documentId: "document_review_plan", key: "Status" } },
-    update: { type: "status", value: { type: "status", value: "In Review" } },
-    create: {
-      documentId: "document_review_plan",
-      key: "Status",
-      type: "status",
-      value: { type: "status", value: "In Review" },
-    },
-  });
-  await prisma.documentProperty.upsert({
-    where: { documentId_key: { documentId: "document_review_plan", key: "Owner" } },
-    update: { type: "member", value: { type: "member", value: "member_alice" } },
-    create: {
-      documentId: "document_review_plan",
-      key: "Owner",
-      type: "member",
-      value: { type: "member", value: "member_alice" },
-    },
-  });
-  await prisma.linkEdge.upsert({
-    where: {
-      sourceDocumentId_targetDocumentId_markdownHref: {
-        sourceDocumentId: "document_decision_log",
-        targetDocumentId: "document_review_plan",
-        markdownHref: "./review-plan.md",
+    };
+    await prisma.document.upsert({
+      where: { id: seededDocument.id },
+      update: documentData,
+      create: {
+        id: seededDocument.id,
+        markdownBodyRef: `documents/${seededDocument.id}/current.md`,
+        ...documentData,
       },
-    },
-    update: { preview: "Decision Log references the current review plan." },
-    create: {
-      sourceDocumentId: "document_decision_log",
-      targetDocumentId: "document_review_plan",
-      markdownHref: "./review-plan.md",
-      preview: "Decision Log references the current review plan.",
-    },
-  });
+    });
+  }
+
+  for (const documentProperty of localProductSeedSpec.documentProperties) {
+    await prisma.documentProperty.upsert({
+      where: {
+        documentId_key: { documentId: documentProperty.documentId, key: documentProperty.key },
+      },
+      update: { type: documentProperty.type, value: documentProperty.value },
+      create: documentProperty,
+    });
+  }
+
+  for (const linkEdge of localProductSeedSpec.linkEdges) {
+    await prisma.linkEdge.upsert({
+      where: {
+        sourceDocumentId_targetDocumentId_markdownHref: {
+          sourceDocumentId: linkEdge.sourceDocumentId,
+          targetDocumentId: linkEdge.targetDocumentId,
+          markdownHref: linkEdge.markdownHref,
+        },
+      },
+      update: { preview: linkEdge.preview },
+      create: linkEdge,
+    });
+  }
+}
+
+function readSeedMarkdown(sourcePath: string) {
+  return readFileSync(new URL(`../../${sourcePath}`, import.meta.url), "utf8");
 }
 
 function titleFromDocumentId(documentId: string) {

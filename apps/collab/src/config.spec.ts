@@ -3,21 +3,20 @@ import { test } from "node:test";
 
 import { readCollabRuntimeConfig } from "./config.js";
 
-test("collab runtime product defaults do not enable seed or memory fallbacks", () => {
+test("collab runtime product defaults do not enable memory fallback", () => {
   const config = readCollabRuntimeConfig({});
 
+  assert.equal(config.port, 4001);
+  assert.equal(config.publicRealtimeUrl, "ws://127.0.0.1:4001");
   assert.equal(config.liveYjsPersistence.provider, "api-postgres");
-  assert.equal(config.enableSeedSessionFallback, false);
   assert.equal(config.enableLiveYjsPersistenceFallback, false);
 });
 
-test("collab runtime dev fallbacks require explicit opt-in flags", () => {
+test("collab runtime memory fallback requires explicit opt-in flag", () => {
   const config = readCollabRuntimeConfig({
-    RME_COLLAB_ENABLE_SEED_SESSION_FALLBACK: "true",
     RME_COLLAB_ENABLE_LIVE_YJS_PERSISTENCE_FALLBACK: "true",
   });
 
-  assert.equal(config.enableSeedSessionFallback, true);
   assert.equal(config.enableLiveYjsPersistenceFallback, true);
 });
 

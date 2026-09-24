@@ -1,6 +1,5 @@
 import type { Editor } from "@tiptap/core";
 import { useCallback, useEffect, useState } from "react";
-import type { DocumentId } from "@rme/contracts";
 
 import { ChevronDownIcon } from "@/components/tiptap-icons/chevron-down-icon";
 import { HeadingButton } from "@/components/tiptap-ui/heading-button";
@@ -21,14 +20,15 @@ import {
 } from "@/components/tiptap-ui-primitive/dropdown-menu";
 import { Spacer } from "@/components/tiptap-ui-primitive/spacer";
 import { Toolbar, ToolbarGroup, ToolbarSeparator } from "@/components/tiptap-ui-primitive/toolbar";
-import {
-  createCollaborationCheckpoint,
-  createMarkdownExport,
-  updateDocumentContent,
-  type ApiClient,
-} from "@/lib/api-client";
+import type { ApiClient } from "@/lib/api-client";
 
 import { CollaboratorStack } from "./CollaboratorStack";
+import {
+  exportEditorMarkdown,
+  saveEditorCheckpoint,
+  type CheckpointSaveStatus,
+  type MarkdownExportStatus,
+} from "./editor-document-actions";
 import type { PresenceMember } from "./ports/collaboration-adapter";
 
 export function EditorToolbar({
@@ -40,6 +40,7 @@ export function EditorToolbar({
   exportTitle,
   isReadOnly = false,
   onSaved,
+  persistedMarkdown,
 }: Readonly<{
   editor: Editor | null;
   markdown: string;
@@ -49,6 +50,7 @@ export function EditorToolbar({
   exportTitle: string;
   isReadOnly?: boolean | undefined;
   onSaved?: (() => void) | undefined;
+  persistedMarkdown: string;
 }>) {
   return (
     <Toolbar
@@ -96,11 +98,13 @@ export function EditorToolbar({
 
       <ToolbarGroup>
         <CheckpointSaveButton
+          key={documentId}
           apiClient={apiClient}
           documentId={documentId}
           isReadOnly={isReadOnly}
           markdown={markdown}
           onSaved={onSaved}
+          persistedMarkdown={persistedMarkdown}
         />
         <ExportMenuButton
           apiClient={apiClient}
@@ -120,15 +124,27 @@ function CheckpointSaveButton({
   isReadOnly,
   markdown,
   onSaved,
+  persistedMarkdown,
 }: Readonly<{
   apiClient?: ApiClient | undefined;
   documentId?: string | undefined;
   isReadOnly: boolean;
   markdown: string;
   onSaved?: (() => void) | undefined;
+  persistedMarkdown: string;
 }>) {
-  const [status, setStatus] = useState<"idle" | "saving" | "saved" | "failed">("idle");
-  const canSave = Boolean(apiClient && documentId && status !== "saving");
+  const [status, setStatus] = useState<CheckpointSaveStatus>("idle");
+  const [savedSnapshot, setSavedSnapshot] = useState(() => ({
+    persistedMarkdown,
+    savedMarkdown: persistedMarkdown,
+  }));
+  const savedMarkdown =
+    savedSnapshot.persistedMarkdown === persistedMarkdown
+      ? savedSnapshot.savedMarkdown
+      : persistedMarkdown;
+  const hasUnsavedChanges = markdown !== savedMarkdown;
+  const canSave = Boolean(apiClient && documentId && status !== "saving" && hasUnsavedChanges);
+  const displayStatus = status === "saved" && hasUnsavedChanges ? "idle" : status;
   const runSave = useCallback(() => {
     if (!apiClient || !documentId || !canSave) return;
 
@@ -136,10 +152,13 @@ function CheckpointSaveButton({
       apiClient,
       documentId,
       markdown,
+      onCheckpointSaved: () => {
+        setSavedSnapshot({ persistedMarkdown, savedMarkdown: markdown });
+      },
       onSaved,
       setStatus,
     });
-  }, [apiClient, canSave, documentId, markdown, onSaved]);
+  }, [apiClient, canSave, documentId, markdown, onSaved, persistedMarkdown]);
 
   useEffect(() => {
     if (!canSave || isReadOnly) return undefined;
@@ -158,7 +177,7 @@ function CheckpointSaveButton({
 
   return (
     <TiptapButton
-      aria-label={saveAriaLabel(status)}
+      aria-label={saveAriaLabel(displayStatus)}
       data-disabled={!canSave}
       disabled={!canSave}
       onClick={runSave}
@@ -167,7 +186,7 @@ function CheckpointSaveButton({
       type="button"
       variant="ghost"
     >
-      <span className="tiptap-button-text">{saveLabel(status)}</span>
+      <span className="tiptap-button-text">{saveLabel(displayStatus)}</span>
     </TiptapButton>
   );
 }
@@ -181,20 +200,16 @@ async function saveCheckpoint(
     apiClient: ApiClient;
     documentId: string;
     markdown: string;
+    onCheckpointSaved: () => void;
     onSaved?: (() => void) | undefined;
-    setStatus: (status: "idle" | "saving" | "saved" | "failed") => void;
+    setStatus: (status: CheckpointSaveStatus) => void;
   }>,
 ) {
   input.setStatus("saving");
 
   try {
-    await updateDocumentContent(input.apiClient, input.documentId as DocumentId, {
-      markdownBody: input.markdown,
-      source: "collaboration-projection",
-    });
-    await createCollaborationCheckpoint(input.apiClient, input.documentId, {
-      message: "Manual checkpoint",
-    });
+    await saveEditorCheckpoint(input);
+    input.onCheckpointSaved();
     input.setStatus("saved");
     input.onSaved?.();
   } catch {
@@ -202,14 +217,14 @@ async function saveCheckpoint(
   }
 }
 
-function saveLabel(status: "idle" | "saving" | "saved" | "failed") {
+function saveLabel(status: CheckpointSaveStatus) {
   if (status === "saving") return "Saving...";
   if (status === "saved") return "Saved";
   if (status === "failed") return "Retry save";
   return "Save";
 }
 
-function saveAriaLabel(status: "idle" | "saving" | "saved" | "failed") {
+function saveAriaLabel(status: CheckpointSaveStatus) {
   if (status === "saving") return "Saving document checkpoint";
   if (status === "saved") return "Document checkpoint saved";
   if (status === "failed") return "Retry saving document checkpoint";
@@ -229,7 +244,7 @@ function ExportMenuButton({
   markdown: string;
   title: string;
 }>) {
-  const [status, setStatus] = useState<"idle" | "exporting" | "failed">("idle");
+  const [status, setStatus] = useState<MarkdownExportStatus>("idle");
 
   if (!apiClient || !documentId || isReadOnly) return null;
 
@@ -278,42 +293,17 @@ async function exportMarkdown(
     documentId: string;
     markdown: string;
     title: string;
-    setStatus: (status: "idle" | "exporting" | "failed") => void;
+    setStatus: (status: MarkdownExportStatus) => void;
   }>,
 ) {
   input.setStatus("exporting");
 
   try {
-    await updateDocumentContent(input.apiClient, input.documentId as DocumentId, {
-      markdownBody: input.markdown,
-      source: "collaboration-projection",
-    });
-    const result = await createMarkdownExport(input.apiClient, input.documentId, {
-      filename: `${slugify(input.title)}.md`,
-    });
-    downloadMarkdownFile(result.filename, result.fileContents);
+    await exportEditorMarkdown(input);
     input.setStatus("idle");
   } catch {
     input.setStatus("failed");
   }
-}
-
-function downloadMarkdownFile(filename: string, fileContents: string) {
-  if (typeof window === "undefined") return;
-
-  const blob = new Blob([fileContents], { type: "text/markdown;charset=utf-8" });
-  const url = window.URL.createObjectURL(blob);
-  const anchor = window.document.createElement("a");
-  anchor.href = url;
-  anchor.download = filename;
-  window.document.body.append(anchor);
-  anchor.click();
-  anchor.remove();
-  window.URL.revokeObjectURL(url);
-}
-
-function slugify(value: string) {
-  return value.trim().toLowerCase().replaceAll(/\s+/g, "-") || "document";
 }
 
 function TextStyleDropdown({ editor }: Readonly<{ editor: Editor | null }>) {

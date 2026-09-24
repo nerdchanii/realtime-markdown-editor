@@ -13,7 +13,7 @@ completed_by:
   - tasks/archive/TASK-041-markdown-modes-rich-preview.md
   - tasks/archive/TASK-062-tiptap-editor-core.md
 refs:
-  - docs/compliance/subject-matrix.md
+  - docs/compliance/feature-acceptance-map.md
   - docs/product/editor/rich-preview.md
 ---
 

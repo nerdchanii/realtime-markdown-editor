@@ -33,6 +33,12 @@ export type WorkspaceNavigationSelection = Readonly<{
   path: readonly string[];
 }>;
 
+export type WorkspaceArchivedDocument = Readonly<{
+  id: string;
+  title: string;
+  archivedAt: string;
+}>;
+
 export type WorkspaceDocumentCreateRequest = Readonly<{
   title: string;
   folderId?: string | null;
@@ -47,6 +53,29 @@ export type WorkspaceFolderCreateRequest = Readonly<{
 export type WorkspaceFolderRenameRequest = Readonly<{
   folderId: string;
   name: string;
+}>;
+
+export type WorkspaceDocumentRenameRequest = Readonly<{
+  documentId: string;
+  title: string;
+}>;
+
+export type WorkspaceFolderMoveRequest = Readonly<{
+  folderId: string;
+  targetParentFolderId: string;
+}>;
+
+export type WorkspaceDocumentMoveRequest = Readonly<{
+  documentId: string;
+  targetFolderId: string;
+}>;
+
+export type WorkspaceFolderMoveTarget = Readonly<{
+  id: string;
+  label: string;
+  projectId: string | null;
+  parentFolderId: string | null;
+  ancestorIds: readonly string[];
 }>;
 
 export type WorkspaceNavigationViewModel = Readonly<{
@@ -66,8 +95,13 @@ export type WorkspaceNavigationViewModel = Readonly<{
   onCreateDocument?: (request: WorkspaceDocumentCreateRequest) => void;
   onCreateFolder?: (request: WorkspaceFolderCreateRequest) => void;
   onDeleteDocument?: (documentId: string) => void;
+  onListArchivedDocuments?: () => Promise<readonly WorkspaceArchivedDocument[]>;
+  onRestoreDocument?: (documentId: string) => void;
   onDeleteFolder?: (folderId: string) => void;
+  onRenameDocument?: (request: WorkspaceDocumentRenameRequest) => void;
   onRenameFolder?: (request: WorkspaceFolderRenameRequest) => void;
+  onMoveFolder?: (request: WorkspaceFolderMoveRequest) => void;
+  onMoveDocument?: (request: WorkspaceDocumentMoveRequest) => void;
 }>;
 
 export type NormalizedWorkspaceNavigationViewModel = Required<
@@ -77,8 +111,13 @@ export type NormalizedWorkspaceNavigationViewModel = Required<
     | "onCreateDocument"
     | "onCreateFolder"
     | "onDeleteDocument"
+    | "onListArchivedDocuments"
+    | "onRestoreDocument"
     | "onDeleteFolder"
+    | "onRenameDocument"
     | "onRenameFolder"
+    | "onMoveFolder"
+    | "onMoveDocument"
   >
 > &
   Pick<
@@ -87,6 +126,11 @@ export type NormalizedWorkspaceNavigationViewModel = Required<
     | "onCreateDocument"
     | "onCreateFolder"
     | "onDeleteDocument"
+    | "onListArchivedDocuments"
+    | "onRestoreDocument"
     | "onDeleteFolder"
+    | "onRenameDocument"
     | "onRenameFolder"
+    | "onMoveFolder"
+    | "onMoveDocument"
   >;

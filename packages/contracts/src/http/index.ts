@@ -1,5 +1,3 @@
-/* eslint-disable max-lines */
-
 import type {
   CheckpointId,
   DocumentId,
@@ -11,11 +9,7 @@ import type {
   WorkspaceId,
   WorkspaceMembershipId,
 } from "../ids.js";
-import type {
-  CollaborationSessionDto,
-  DocumentSyncStateDto,
-  IssuedCollaborationSessionDto,
-} from "../realtime/index.js";
+import type { DocumentSyncStateDto, IssuedCollaborationSessionDto } from "../realtime/index.js";
 
 export type WorkspaceMemberRoleDto = "owner" | "editor" | "viewer";
 
@@ -23,6 +17,20 @@ export type UserDto = Readonly<{
   id: UserId;
   email: string;
   name: string;
+}>;
+
+export type CreateAccountRequestDto = Readonly<{
+  email: string;
+  name: string;
+  password: string;
+}>;
+
+export type UserResponseDto = Readonly<{
+  user: UserDto;
+}>;
+
+export type UpdateAccountProfileRequestDto = Readonly<{
+  name?: string;
 }>;
 
 export type WorkspaceMemberDto = Readonly<{
@@ -72,6 +80,26 @@ export type WorkspaceResponseDto = Readonly<{
 
 export type ListWorkspacesResponseDto = Readonly<{
   workspaces: readonly WorkspaceDto[];
+}>;
+
+export type WorkspaceMemberResponseDto = Readonly<{
+  member: WorkspaceMemberDto;
+}>;
+
+export type ListWorkspaceMembersResponseDto = Readonly<{
+  members: readonly WorkspaceMemberDto[];
+}>;
+
+export type CreateWorkspaceMemberRequestDto = Readonly<{
+  email: string;
+  displayName?: string;
+  role?: WorkspaceMemberRoleDto;
+}>;
+
+export type UpdateWorkspaceMemberRequestDto = Readonly<{
+  displayName?: string;
+  color?: string;
+  role?: WorkspaceMemberRoleDto;
 }>;
 
 export type ProjectDto = Readonly<{
@@ -171,6 +199,11 @@ export type DocumentSummaryDto = Readonly<{
   publishedRevisionId: RevisionId | null;
 }>;
 
+export type ArchivedDocumentDto = DocumentSummaryDto &
+  Readonly<{
+    archivedAt: string;
+  }>;
+
 export type DocumentDetailDto = DocumentSummaryDto &
   Readonly<{
     markdownBody: string;
@@ -222,6 +255,10 @@ export type DocumentContentResponseDto = Readonly<{
 
 export type ListDocumentsResponseDto = Readonly<{
   documents: readonly DocumentSummaryDto[];
+}>;
+
+export type ListArchivedDocumentsResponseDto = Readonly<{
+  documents: readonly ArchivedDocumentDto[];
 }>;
 
 export type WorkspaceNavigationResponseDto = Readonly<{
@@ -336,24 +373,6 @@ export type AutosaveSnapshotDto = Readonly<{
   status: AutosaveStatusDto;
 }>;
 
-export type SeedReviewContextDto = Readonly<{
-  currentMemberId: WorkspaceMembershipId;
-  users: readonly UserDto[];
-  workspace: WorkspaceDto;
-  project: ProjectDto;
-  folder: FolderDto;
-  folders: readonly FolderDto[];
-  document: DocumentDetailDto;
-  documents: readonly DocumentDetailDto[];
-  members: readonly WorkspaceMemberDto[];
-  backlinks: readonly BacklinkDto[];
-  collaboration: CollaborationSessionDto;
-  revisions: readonly RevisionDto[];
-  checkpoints: readonly CheckpointDto[];
-  publications: readonly PublicationDto[];
-  autosaves: readonly AutosaveSnapshotDto[];
-}>;
-
 export type CheckpointSnapshotInspectDto = Readonly<{
   checkpointId: CheckpointId;
   documentId: DocumentId;
@@ -387,10 +406,6 @@ export type DocumentReviewStateDto = Readonly<{
 
 export type CreateCollaborationSessionRequestDto = Readonly<{
   clientId?: string;
-}>;
-
-export type CollaborationSessionQueryDto = Readonly<{
-  memberId?: WorkspaceMembershipId;
 }>;
 
 export type CollaborationSessionResponseDto = IssuedCollaborationSessionDto;

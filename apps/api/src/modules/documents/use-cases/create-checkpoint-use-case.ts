@@ -29,6 +29,11 @@ export class CreateCheckpointUseCase {
 
   async execute(input: CreateCheckpointUseCaseInput): Promise<CheckpointSnapshot> {
     const markdownSnapshot = await this.resolveMarkdownSnapshot(input);
+    const existingCheckpoint = await this.findLatestCheckpointWithSameSnapshot(
+      input.documentId,
+      markdownSnapshot,
+    );
+    if (existingCheckpoint) return existingCheckpoint;
 
     return this.checkpoints.createCheckpoint({
       documentId: input.documentId,
@@ -46,6 +51,19 @@ export class CreateCheckpointUseCase {
     if (input.markdownSnapshot !== undefined) return input.markdownSnapshot;
 
     throw new CheckpointCurrentContentNotFoundError(input.documentId);
+  }
+
+  private async findLatestCheckpointWithSameSnapshot(
+    documentId: DocumentId,
+    markdownSnapshot: string,
+  ): Promise<CheckpointSnapshot | null> {
+    const [latestCheckpoint] = await this.checkpoints.listCheckpoints(documentId);
+    if (!latestCheckpoint) return null;
+
+    const latestSnapshot = await this.checkpoints.findCheckpointSnapshot(latestCheckpoint.id);
+    if (!latestSnapshot) return null;
+
+    return latestSnapshot.markdownBody === markdownSnapshot ? latestSnapshot : null;
   }
 }
 

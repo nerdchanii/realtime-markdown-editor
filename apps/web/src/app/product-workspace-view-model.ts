@@ -11,7 +11,11 @@ import type { DocumentBacklink, DocumentProperty } from "@/features/document";
 import { createTiptapYjsCollaborationAdapter } from "@/features/editor";
 import type {
   WorkspaceDocumentCreateRequest,
+  WorkspaceDocumentMoveRequest,
+  WorkspaceDocumentRenameRequest,
+  WorkspaceArchivedDocument,
   WorkspaceFolderCreateRequest,
+  WorkspaceFolderMoveRequest,
   WorkspaceFolderRenameRequest,
   WorkspaceNavigationSelection,
 } from "@/features/workspace";
@@ -26,8 +30,13 @@ export function createProductProviders(
   onCreateDocument: (request: WorkspaceDocumentCreateRequest) => void,
   onCreateFolder: (request: WorkspaceFolderCreateRequest) => void,
   onDeleteDocument: (documentId: string) => void,
+  onListArchivedDocuments: () => Promise<readonly WorkspaceArchivedDocument[]>,
+  onRestoreDocument: (documentId: string) => void,
   onDeleteFolder: (folderId: string) => void,
+  onRenameDocument: (request: WorkspaceDocumentRenameRequest) => void,
   onRenameFolder: (request: WorkspaceFolderRenameRequest) => void,
+  onMoveFolder: (request: WorkspaceFolderMoveRequest) => void,
+  onMoveDocument: (request: WorkspaceDocumentMoveRequest) => void,
   onDocumentPropertiesUpdated: () => void,
 ): AppFeatureProviders {
   const context = createProviderContext(model);
@@ -39,8 +48,13 @@ export function createProductProviders(
       onCreateDocument,
       onCreateFolder,
       onDeleteDocument,
+      onListArchivedDocuments,
+      onRestoreDocument,
       onDeleteFolder,
+      onRenameDocument,
       onRenameFolder,
+      onMoveFolder,
+      onMoveDocument,
     ),
     documentContext: createDocumentContext(model, context.memberships, onDocumentPropertiesUpdated),
     editorWorkspace: createEditorWorkspace(model, context.memberships, context.currentMemberId),

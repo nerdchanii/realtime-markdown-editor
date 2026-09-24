@@ -1,16 +1,20 @@
-/* eslint-disable max-lines */
-
 import { randomUUID } from "node:crypto";
 
 import type {
+  CreateWorkspaceMemberRequestDto,
   DeletedResourceResponseDto,
   DocumentSummaryDto,
   FolderChildrenResponseDto,
   FolderDto,
   FolderKindDto,
+  ListWorkspaceMembersResponseDto,
   ProjectDto,
+  UpdateWorkspaceMemberRequestDto,
+  UserId,
+  WorkspaceMemberDto,
   WorkspaceDto,
   WorkspaceId,
+  WorkspaceMembershipId,
   WorkspaceNavigationResponseDto,
 } from "@rme/contracts";
 
@@ -48,6 +52,21 @@ type DocumentSummaryRecord = Readonly<{
   publishedRevisionId: string | null;
 }>;
 
+type UserIdentityRecord = Readonly<{
+  id: string;
+  email: string;
+  name: string;
+}>;
+
+type WorkspaceMembershipRecord = Readonly<{
+  id: string;
+  userId: string;
+  workspaceId: string;
+  displayName: string;
+  color: string;
+  role: "owner" | "member";
+}>;
+
 type WorkspaceSelect = Readonly<{ id: true; name: true; rootFolderId: true }>;
 type ProjectSelect = Readonly<{ id: true; workspaceId: true; name: true; rootFolderId: true }>;
 type FolderSelect = Readonly<{
@@ -66,12 +85,27 @@ type DocumentSummarySelect = Readonly<{
   latestRevisionId: true;
   publishedRevisionId: true;
 }>;
+type UserIdentitySelect = Readonly<{ id: true; email: true; name: true }>;
+type WorkspaceMembershipSelect = Readonly<{
+  id: true;
+  userId: true;
+  workspaceId: true;
+  displayName: true;
+  color: true;
+  role: true;
+}>;
 type WorkspaceFindManyWhere = Readonly<{
   rootFolderId?: { not: null };
   id?: { in: readonly string[] };
 }>;
 
 export type PrismaWorkspaceProductPersistenceClient = Readonly<{
+  user: {
+    findUnique(args: {
+      where: { email: string };
+      select: UserIdentitySelect;
+    }): Promise<UserIdentityRecord | null>;
+  };
   workspace: {
     findMany(args: {
       where?: WorkspaceFindManyWhere;
@@ -88,7 +122,7 @@ export type PrismaWorkspaceProductPersistenceClient = Readonly<{
     }): Promise<WorkspaceRecord>;
     update(args: {
       where: { id: string };
-      data: { name?: string; rootFolderId?: string };
+      data: { name?: string; rootFolderId?: string | null };
       select: WorkspaceSelect;
     }): Promise<WorkspaceRecord>;
   };
@@ -108,9 +142,13 @@ export type PrismaWorkspaceProductPersistenceClient = Readonly<{
     }): Promise<ProjectRecord>;
     update(args: {
       where: { id: string };
-      data: { name?: string; rootFolderId?: string };
+      data: { name?: string; rootFolderId?: string | null };
       select: ProjectSelect;
     }): Promise<ProjectRecord>;
+    updateMany(args: {
+      where: { workspaceId: string; rootFolderId: { not: null } };
+      data: { rootFolderId: null };
+    }): Promise<unknown>;
   };
   folder: {
     findMany(args: {
@@ -163,6 +201,42 @@ export type PrismaWorkspaceProductPersistenceClient = Readonly<{
     }): Promise<unknown>;
   };
   workspaceMembership: {
+    findMany(args: {
+      where: { workspaceId: string; removedAt: null };
+      select: WorkspaceMembershipSelect;
+      orderBy: { createdAt: "asc" };
+    }): Promise<WorkspaceMembershipRecord[]>;
+    findUnique(args: {
+      where: { id: string };
+      select: WorkspaceMembershipSelect & { removedAt: true };
+    }): Promise<(WorkspaceMembershipRecord & { removedAt: Date | null }) | null>;
+    upsert(args: {
+      where: { workspaceId_userId: { workspaceId: string; userId: string } };
+      update: {
+        displayName: string;
+        role: "owner" | "member";
+        removedAt: null;
+      };
+      create: {
+        id: string;
+        userId: string;
+        workspaceId: string;
+        displayName: string;
+        color: string;
+        role: "owner" | "member";
+      };
+      select: WorkspaceMembershipSelect;
+    }): Promise<WorkspaceMembershipRecord>;
+    update(args: {
+      where: { id: string };
+      data: {
+        displayName?: string;
+        color?: string;
+        role?: "owner" | "member";
+        removedAt?: Date;
+      };
+      select: WorkspaceMembershipSelect;
+    }): Promise<WorkspaceMembershipRecord>;
     create(args: {
       data: {
         id: string;
@@ -228,6 +302,112 @@ export class PrismaWorkspaceProductRepository implements WorkspaceProductReposit
         select: workspaceSelect,
       }),
     );
+  }
+
+  async deleteWorkspace(workspaceId: string): Promise<DeletedResourceResponseDto | null> {
+    const current = await this.findWorkspace(workspaceId);
+    if (!current) return null;
+    const deletedAt = new Date();
+
+    await this.client.$transaction(async (transaction) => {
+      const folders = await transaction.folder.findMany({
+        where: { workspaceId, deletedAt: null },
+        select: folderSelect,
+        orderBy: { name: "asc" },
+      });
+      const folderIds = folders.map((folder) => folder.id);
+      await transaction.workspace.update({
+        where: { id: workspaceId },
+        data: { rootFolderId: null },
+        select: workspaceSelect,
+      });
+      await transaction.project.updateMany({
+        where: { workspaceId, rootFolderId: { not: null } },
+        data: { rootFolderId: null },
+      });
+      await archiveFolderDocuments(transaction, folderIds, deletedAt);
+      await markFoldersDeleted(transaction, folderIds, deletedAt);
+    });
+
+    return { id: workspaceId, deletedAt: deletedAt.toISOString() };
+  }
+
+  async listWorkspaceMembers(workspaceId: string): Promise<ListWorkspaceMembersResponseDto | null> {
+    if (!(await this.findWorkspace(workspaceId))) return null;
+    const records = await this.client.workspaceMembership.findMany({
+      where: { workspaceId, removedAt: null },
+      select: workspaceMembershipSelect,
+      orderBy: { createdAt: "asc" },
+    });
+    return { members: records.map(toWorkspaceMemberDto) };
+  }
+
+  async addWorkspaceMember(
+    workspaceId: string,
+    input: CreateWorkspaceMemberRequestDto,
+  ): Promise<WorkspaceMemberDto | null> {
+    if (!(await this.findWorkspace(workspaceId))) return null;
+    const user = await this.client.user.findUnique({
+      where: { email: normalizeEmail(input.email) },
+      select: userIdentitySelect,
+    });
+    if (!user) return null;
+
+    const displayName = input.displayName?.trim() || user.name;
+    const record = await this.client.workspaceMembership.upsert({
+      where: { workspaceId_userId: { workspaceId, userId: user.id } },
+      update: {
+        displayName,
+        role: roleDtoToRecord(input.role ?? "editor"),
+        removedAt: null,
+      },
+      create: {
+        id: newId("member"),
+        userId: user.id,
+        workspaceId,
+        displayName,
+        color: colorForUser(user.id),
+        role: roleDtoToRecord(input.role ?? "editor"),
+      },
+      select: workspaceMembershipSelect,
+    });
+    return toWorkspaceMemberDto(record);
+  }
+
+  async updateWorkspaceMember(
+    workspaceId: string,
+    memberId: string,
+    input: UpdateWorkspaceMemberRequestDto,
+  ): Promise<WorkspaceMemberDto | null> {
+    if (!(await this.findActiveWorkspaceMember(workspaceId, memberId))) return null;
+    const data: Parameters<
+      PrismaWorkspaceProductPersistenceClient["workspaceMembership"]["update"]
+    >[0]["data"] = {};
+    if (input.displayName !== undefined) data.displayName = input.displayName.trim();
+    if (input.color !== undefined) data.color = input.color.trim();
+    if (input.role !== undefined) data.role = roleDtoToRecord(input.role);
+
+    return toWorkspaceMemberDto(
+      await this.client.workspaceMembership.update({
+        where: { id: memberId },
+        data,
+        select: workspaceMembershipSelect,
+      }),
+    );
+  }
+
+  async removeWorkspaceMember(
+    workspaceId: string,
+    memberId: string,
+  ): Promise<DeletedResourceResponseDto | null> {
+    if (!(await this.findActiveWorkspaceMember(workspaceId, memberId))) return null;
+    const removedAt = new Date();
+    await this.client.workspaceMembership.update({
+      where: { id: memberId },
+      data: { removedAt },
+      select: workspaceMembershipSelect,
+    });
+    return { id: memberId, deletedAt: removedAt.toISOString() };
   }
 
   async getWorkspaceNavigation(
@@ -317,6 +497,25 @@ export class PrismaWorkspaceProductRepository implements WorkspaceProductReposit
         select: projectSelect,
       }),
     );
+  }
+
+  async deleteProject(projectId: string): Promise<DeletedResourceResponseDto | null> {
+    const current = await this.findProject(projectId);
+    if (!current) return null;
+    const deletedAt = new Date();
+
+    await this.client.$transaction(async (transaction) => {
+      const folderIds = await collectFolderTreeIds(transaction, current.rootFolderId);
+      await transaction.project.update({
+        where: { id: projectId },
+        data: { rootFolderId: null },
+        select: projectSelect,
+      });
+      await archiveFolderDocuments(transaction, folderIds, deletedAt);
+      await markFoldersDeleted(transaction, folderIds, deletedAt);
+    });
+
+    return { id: projectId, deletedAt: deletedAt.toISOString() };
   }
 
   async getFolderChildren(folderId: string): Promise<FolderChildrenResponseDto | null> {
@@ -411,16 +610,22 @@ export class PrismaWorkspaceProductRepository implements WorkspaceProductReposit
     const deletedAt = new Date();
     await this.client.$transaction(async (transaction) => {
       const folderIds = await collectFolderTreeIds(transaction, folderId);
-      await transaction.document.updateMany({
-        where: { folderId: { in: folderIds }, archivedAt: null },
-        data: { archivedAt: deletedAt },
-      });
-      await transaction.folder.updateMany({
-        where: { id: { in: folderIds }, deletedAt: null },
-        data: { deletedAt },
-      });
+      await archiveFolderDocuments(transaction, folderIds, deletedAt);
+      await markFoldersDeleted(transaction, folderIds, deletedAt);
     });
     return { id: folderId, deletedAt: deletedAt.toISOString() };
+  }
+
+  private async findActiveWorkspaceMember(
+    workspaceId: string,
+    memberId: string,
+  ): Promise<WorkspaceMemberDto | null> {
+    const record = await this.client.workspaceMembership.findUnique({
+      where: { id: memberId },
+      select: { ...workspaceMembershipSelect, removedAt: true },
+    });
+    if (!record || record.workspaceId !== workspaceId || record.removedAt) return null;
+    return toWorkspaceMemberDto(record);
   }
 }
 
@@ -441,6 +646,15 @@ const documentSummarySelect = {
   state: true,
   latestRevisionId: true,
   publishedRevisionId: true,
+} as const;
+const userIdentitySelect = { id: true, email: true, name: true } as const;
+const workspaceMembershipSelect = {
+  id: true,
+  userId: true,
+  workspaceId: true,
+  displayName: true,
+  color: true,
+  role: true,
 } as const;
 
 function newId(prefix: string): string {
@@ -487,6 +701,30 @@ async function collectFolderTreeIds(
     folderIds.push(...children.map((child) => child.id));
   }
   return folderIds;
+}
+
+async function archiveFolderDocuments(
+  transaction: PrismaWorkspaceProductPersistenceClient,
+  folderIds: readonly string[],
+  archivedAt: Date,
+): Promise<void> {
+  if (folderIds.length === 0) return;
+  await transaction.document.updateMany({
+    where: { folderId: { in: folderIds }, archivedAt: null },
+    data: { archivedAt },
+  });
+}
+
+async function markFoldersDeleted(
+  transaction: PrismaWorkspaceProductPersistenceClient,
+  folderIds: readonly string[],
+  deletedAt: Date,
+): Promise<void> {
+  if (folderIds.length === 0) return;
+  await transaction.folder.updateMany({
+    where: { id: { in: folderIds }, deletedAt: null },
+    data: { deletedAt },
+  });
 }
 
 async function createOwnerMembership(
@@ -554,6 +792,31 @@ function toDocumentSummaryDto(record: DocumentSummaryRecord): DocumentSummaryDto
     latestRevisionId: record.latestRevisionId as DocumentSummaryDto["latestRevisionId"],
     publishedRevisionId: record.publishedRevisionId as DocumentSummaryDto["publishedRevisionId"],
   };
+}
+
+function toWorkspaceMemberDto(record: WorkspaceMembershipRecord): WorkspaceMemberDto {
+  return {
+    id: record.id as WorkspaceMembershipId,
+    userId: record.userId as UserId,
+    workspaceId: record.workspaceId as WorkspaceId,
+    displayName: record.displayName,
+    color: record.color,
+    role: record.role === "owner" ? "owner" : "editor",
+  };
+}
+
+function roleDtoToRecord(role: CreateWorkspaceMemberRequestDto["role"]): "owner" | "member" {
+  return role === "owner" ? "owner" : "member";
+}
+
+function normalizeEmail(email: string): string {
+  return email.trim().toLowerCase();
+}
+
+function colorForUser(userId: string): string {
+  const palette = ["#0969da", "#1a7f37", "#8250df", "#bf3989", "#bc4c00", "#57606a"];
+  const sum = [...userId].reduce((value, char) => value + char.charCodeAt(0), 0);
+  return palette[sum % palette.length] ?? "#0969da";
 }
 
 function toFolderKind(value: string): FolderKindDto {

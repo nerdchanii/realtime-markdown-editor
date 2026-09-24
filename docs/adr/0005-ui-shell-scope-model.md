@@ -37,7 +37,7 @@ superseded_by: null
 
 ## 맥락
 
-제품은 실시간 협업, presence, history, rich preview, workspace context, properties, links/backlinks, DocumentState foundation을 한 화면 흐름에서 다룬다. 그러나 과제의 핵심은 collaborative Markdown editor이므로 UI는 에디터 우선이어야 한다.
+제품은 실시간 협업, presence, history, rich preview, workspace context, properties, links/backlinks, DocumentState foundation을 한 화면 흐름에서 다룬다. 중심 경험은 collaborative Markdown editor이므로 UI는 에디터 우선이어야 한다.
 
 ## 결정
 
@@ -46,11 +46,11 @@ UI shell은 다음 scope를 분리한다.
 - Editor 범위: Markdown body, cursor/selection, mode, preview, sync state.
 - Document 범위: title, properties, links/backlinks, checkpoint/history, DocumentState.
 - Workspace 범위: workspace/project/folder/document navigation.
-- User/member 범위: user, membership, presence identity, reviewer/mock identity.
+- User/member 범위: user, membership, presence identity, local sample identity.
 
 기본 화면은 left workspace panel, center editor/preview, right inspector를 가진다. Properties는 title 근처에 두며, Markdown export는 frontmatter representation을 사용한다.
 
-ADR-0007 이후 CE-05의 first submission surface는 TipTap 기반 Rich Markdown authoring이다. Raw Markdown source editor와 source/preview Split mode는 보류한다. 여러 workspace document를 center editor area에서 split/tab으로 동시에 여는 IDE-style multi-pane workspace는 향후 확장 가능성을 남기되 first subject skeleton에는 포함하지 않는다.
+ADR-0007 이후 기본 editor surface는 TipTap 기반 Rich Markdown authoring이다. Raw Markdown source editor와 source/preview Split mode는 보류한다. 여러 workspace document를 center editor area에서 split/tab으로 동시에 여는 IDE-style multi-pane workspace는 향후 확장 가능성을 남긴다.
 
 Workflow/dashboard 중심 화면은 deferred다. `DocumentState`는 editor-first shell 안에서 직접 변경 가능한 foundation으로 노출할 수 있지만, workflow executor, transition guard, publish/draft visibility, ownership-based visibility는 workflow capability가 승격될 때 결정한다.
 
@@ -58,7 +58,7 @@ Workflow/dashboard 중심 화면은 deferred다. `DocumentState`는 editor-first
 
 ### 1. Editor-first scope shell
 
-- 장점: CE-01~CE-05 검증 흐름이 명확하다.
+- 장점: 협업 편집 기능 흐름이 명확하다.
 - 단점: deferred workflow 기능을 과하게 드러내지 않도록 조정해야 한다.
 - 리스크: inspector가 기능 dumping ground가 될 수 있다.
 
@@ -71,25 +71,25 @@ Workflow/dashboard 중심 화면은 deferred다. `DocumentState`는 editor-first
 ### 3. workflow/dashboard 중심 화면
 
 - 장점: PM/개발협업 확장성이 잘 보인다.
-- 단점: CE editor skeleton이 부차적으로 밀린다.
-- 리스크: 과제 검증 경로가 복잡해진다.
+- 단점: editor-first 작성 흐름이 부차적으로 밀린다.
+- 리스크: 사용자가 첫 화면에서 작성 맥락을 찾기 어려워진다.
 
 ## 선택 근거
 
-UI는 CE walking skeleton을 먼저 증명해야 한다. Workspace와 workflow foundation은 editor를 지탱하는 context로 배치하고, deferred 기능이 core editor를 압도하지 않게 한다.
+UI는 editor-first 작성 흐름을 먼저 보여줘야 한다. Workspace와 workflow foundation은 editor를 지탱하는 context로 배치하고, deferred 기능이 core editor를 압도하지 않게 한다.
 
 ## 결과
 
 ### 긍정적 영향
 
-- CE-01~CE-05를 한 화면 흐름에서 검증하기 쉽다.
+- 협업 편집, presence, history, rich authoring을 한 화면 흐름에서 이해하기 쉽다.
 - properties, history, links, DocumentState가 서로 다른 scope로 설명된다.
 - design rules와 domain rules가 연결된다.
 
 ### 부정적 영향 또는 트레이드오프
 
 - shell 설계가 단순 editor보다 복잡하다.
-- account switcher/mock identity 같은 reviewer support가 product auth로 오해되지 않게 해야 한다.
+- local sample identity가 account/session UI와 혼동되지 않게 해야 한다.
 
 ### 후속 작업
 

@@ -11,29 +11,26 @@ purpose: AI agent용 저장소 안내
 > 먼저 읽는다. 아래 내용 중 이 기록과 충돌하는 부분은 기록을 따르고, `[open]` 항목은 확정 사실로
 > 쓰지 않는다. 이 파일의 전면 재작성은 로드맵 단계 1 에서 한다.
 
-이 저장소는 실시간 협업 Markdown 에디터 제품을 만든다. `subject.md`의 `CE-01`부터 `CE-05`는
-과제 요구사항을 사용자 행동 단위로 묶은 product stories다. 세부 REQ와 인증, 권한, workspace
-membership, 데이터 보존, 로컬 실행 안정성, UI 일관성은 이 stories를 실제 제품으로 성립시키는
-요구사항이다.
+이 저장소는 개발팀이 프로젝트 문서를 함께 작성하고 관리하는 실시간 협업 Markdown 에디터 제품을
+만든다. 제품 문서는 기능과 사용자 흐름을 중심으로 유지하며, 내부 추적 표현을 제품 설명의 주어로
+삼지 않는다.
 
 ## 먼저 읽을 문서
 
-1. 과제 원문: `subject.md`
-2. 과제 충족 지도: `docs/compliance/subject-matrix.md`
-3. 정규화 요구사항: `docs/requirements/registry.md`
-4. product surface와 품질 gate: `docs/product/README.md`, `docs/product/product-quality-gates.md`
-5. 아키텍처 경계와 결정: `ARCHITECTURE.md`, `docs/architecture/README.md`, `docs/adr/`
-6. 도메인 개념 변경 전: `docs/domain/README.md`
-7. UI 변경 전: `DESIGN.md`
+1. 제품 개요와 기능 지도: `README.md`, `docs/product/README.md`, `docs/product/product-principles.md`
+2. 정규화 요구사항: `docs/requirements/registry.md`
+3. 아키텍처 경계와 결정: `ARCHITECTURE.md`, `docs/architecture/README.md`, `docs/adr/`
+4. 도메인 개념 변경 전: `docs/domain/README.md`
+5. UI 변경 전: `DESIGN.md`
 
 ## 작업 규칙
 
 - 공식 문서에서 `.note/**`를 출처로 인용하지 않는다.
-- `docs/compliance/subject-matrix.md`는 CE story acceptance 지도이며, 제품 완료 판단은
-  `docs/product/product-quality-gates.md`를 함께 통과해야 한다.
-- CE 요구사항은 과제 원문 기준으로 유지한다. IndexedDB, Workspace, object storage 같은 구현/제품 선택은 CE를 재정의하지 않고 CE를 만족시키는 파생 요구로 둔다.
-- CE 검증을 빠르게 만들기 위해 product auth, authorization, persistence, domain invariant, UX
-  consistency를 약화하지 않는다.
+- 제품 설명은 기능과 story 중심으로 작성한다. 내부 요구사항 ID나 테스트 ID는 추적 목적에만 사용한다.
+- IndexedDB, Workspace, object storage 같은 구현/제품 선택은 사용자가 보는 기능 흐름과 데이터 보존
+  책임을 설명하는 방식으로 문서화한다.
+- 검증 편의를 위해 product auth, authorization, persistence, domain invariant, UX consistency를
+  약화하지 않는다.
 - storage, sync, auth, domain 경계를 새로 만들거나 바꾸기 전에는 ADR과 domain 문서를 확인한다.
 - UI 작업은 editor-first 경험을 유지해야 한다.
 - domain model 변경은 plan과 관련 domain 문서 업데이트를 동반해야 한다.

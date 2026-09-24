@@ -7,7 +7,7 @@ status: active
 
 ## 계약
 
-`Checkpoint`는 reviewer가 조회할 수 있는 user-visible historical document state의 metadata다. Ordinary autosave나 provider sync event가 아니다.
+`Checkpoint`는 사용자가 조회할 수 있는 historical document state의 metadata다. Ordinary autosave나 provider sync event가 아니다.
 
 현재 제품 범위에서 `Checkpoint`는 `Documents` capability가 소유하는 document history metadata다.
 Standalone `HistoryModule`은 restore, branching, independent retention/compliance, 또는 별도 SLA가
@@ -25,7 +25,7 @@ Standalone `HistoryModule`은 restore, branching, independent retention/complian
 ## 경계
 
 - Snapshot payload, CRDT update, rendered HTML, object storage key의 provider 세부 형식은 domain entity가 아니다.
-- Markdown snapshot artifact는 CE-04 read-only inspection을 위한 product revision artifact이며, live Yjs binary persistence와 구분한다.
-- Live Yjs binary persistence는 collaborative provider state 재수화 책임이고, `Checkpoint`가 참조하는 Markdown snapshot artifact는 reviewer-facing history 책임이다.
-- Checkpoint restore는 현재 제품 범위에서 필수 요구가 아니다. CE-04는 history 조회와 이전 content inspection을 우선한다.
+- Markdown snapshot artifact는 read-only history inspection을 위한 product revision artifact이며, live Yjs binary persistence와 구분한다.
+- Live Yjs binary persistence는 collaborative provider state 재수화 책임이고, `Checkpoint`가 참조하는 Markdown snapshot artifact는 user-facing history 책임이다.
+- Checkpoint restore는 현재 제품 범위가 아니다. 현재 history 기능은 조회와 이전 content inspection을 우선한다.
 - Autosave/sync state를 자동으로 user-authored checkpoint처럼 표시하지 않는다.

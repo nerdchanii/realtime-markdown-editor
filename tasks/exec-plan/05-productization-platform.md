@@ -116,9 +116,9 @@ Worker responsibilities:
 - Undo/redo is collaboration-safe undo/redo, not the default local history extension.
 - Image upload is artifact-backed before image insertion is exposed as durable product behavior.
 - CE-01 through CE-05 are product core features and product validation stories, not evaluator-only
-  e2e paths. Do not claim acceptance when the path depends on `/review-context/seed`, URL member
-  spoofing, fabricated document ids, retired checkpoint routes, local React-only state, fallback
-  persistence, or label/button-only assertions.
+  e2e paths. Do not claim acceptance when the path depends on URL member spoofing, fabricated
+  document ids, retired checkpoint routes, local React-only state, fallback persistence, or
+  label/button-only assertions.
 
 ## Execution Graph
 

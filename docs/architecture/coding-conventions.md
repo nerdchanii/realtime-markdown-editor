@@ -12,10 +12,8 @@ approved_at: 2026-04-29
 이 문서는 이 저장소의 현재 coding convention이다. 컨벤션은 취향보다 자동 강제 가능한 규칙을
 우선하며, `pre-commit`, `commit-msg`, `pnpm check`가 같은 기준을 보게 한다.
 
-CE story acceptance는 `subject.md`의 CE-01부터 CE-05까지와
-`docs/compliance/subject-matrix.md`에서 추적한다. 제품 완료 판단은
-`docs/product/product-quality-gates.md`를 함께 따른다. 이 문서는 CE 요구사항을 재정의하지 않고,
-제품 품질을 낮추는 코드 품질 저하와 architecture boundary drift를 막는다.
+제품 기능의 사용자 행동 지도는 `docs/compliance/feature-acceptance-map.md`에서 추적한다. 이 문서는
+기능을 재정의하지 않고, 코드 품질 저하와 architecture boundary drift를 막는다.
 
 ## 적용 범위
 
@@ -27,19 +25,21 @@ CE story acceptance는 `subject.md`의 CE-01부터 CE-05까지와
 - 작업 완료 전에는 `pnpm check` 또는 해당 변경 범위의 더 좁은 명시적 검증 명령을 실행한다.
 - CSS, spacing, color, typography, layout polish 같은 순수 시각 변경을 제외한 동작 변경은 TDD를
   따른다.
-- Product-facing 변경은 관련 product quality gate를 약화하지 않는지 확인한다.
+- Product-facing 변경은 `docs/product/product-principles.md`의 기능 설명 원칙과 충돌하지 않는지 확인한다.
 
 ## 로컬 게이트
 
 `commit-msg`는 `pnpm exec commitlint --edit "$1"`을 실행한다.
 
-`pre-commit`은 다음 명령을 순서대로 실행한다.
+`pre-commit`은 `scripts/with-node.sh pnpm precommit:staged`를 실행한다. 이 staged-file gate는
+변경 파일을 기준으로 필요한 검사만 실행한다.
 
-1. `pnpm format:check`
-2. `pnpm lint`
-3. `pnpm typecheck`
-4. `pnpm arch:check`
-5. `pnpm test`
+1. 모든 commit에서 `git diff --cached --check`
+2. Prettier 대상 staged 파일이 있으면 해당 파일만 `prettier --check`
+3. ESLint 대상 staged 파일이 있으면 해당 파일만 `eslint`
+4. TypeScript source, package, tsconfig, lockfile 변경이 있으면 관련 typecheck
+5. Source 또는 architecture 설정 변경이 있으면 `pnpm arch:check`
+6. Source, package, lockfile 변경이 있으면 `pnpm test`
 
 `pnpm check`는 작업 완료 전 최종 게이트다. Root script 기준으로 `typecheck`, `lint`,
 `format:check`, `arch:check`, `test`가 모두 통과해야 한다.
@@ -55,7 +55,7 @@ CE story acceptance는 `subject.md`의 CE-01부터 CE-05까지와
 | TypeScript         | strict type safety                                         |
 | Prettier           | 코드, 설정, script, task Markdown formatting               |
 | Tests              | TDD와 동작 보증                                            |
-| Husky              | 로컬 강제 진입점                                           |
+| Husky              | staged-file 기준 로컬 강제 진입점                          |
 | commitlint         | conventional commit message 검사                           |
 
 Custom architecture script는 저장소 고유 architecture invariant만 맡는다. 예를 들어 금지된 shared
@@ -178,7 +178,6 @@ Prettier 설정은 현재 값을 유지한다.
 
 Walking skeleton 완성 뒤 다음 항목을 별도 task로 승격할 수 있다.
 
-- Staged file 중심 검사 최적화.
 - 더 세밀한 import boundary plugin 설정.
 - Visual regression 또는 screenshot 검증 자동화.
 - CE e2e 검증 job 분리.

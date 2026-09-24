@@ -13,7 +13,7 @@ completed_by:
   - tasks/archive/TASK-029-presence-integration.md
   - tasks/archive/TASK-063-tiptap-yjs-presence-and-collaboration-caret.md
 refs:
-  - docs/compliance/subject-matrix.md
+  - docs/compliance/feature-acceptance-map.md
   - docs/product/editor/presence.md
 ---
 

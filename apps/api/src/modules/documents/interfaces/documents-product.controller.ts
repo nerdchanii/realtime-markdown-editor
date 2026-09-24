@@ -18,11 +18,13 @@ import type {
   DocumentId,
   DocumentResponseDto,
   FolderId,
+  ListArchivedDocumentsResponseDto,
   ListDocumentsResponseDto,
   MoveDocumentRequestDto,
   ReplaceDocumentPropertiesRequestDto,
   UpdateDocumentContentRequestDto,
   UpdateDocumentRequestDto,
+  WorkspaceId,
 } from "@rme/contracts";
 
 import { ProductApiAccessService } from "@/modules/identity/use-cases/product-api-access-service.js";
@@ -44,6 +46,15 @@ export class DocumentsProductController {
   ): Promise<ListDocumentsResponseDto> {
     await this.access.requireFolderAccess(cookieHeader, folderId as FolderId);
     return this.documents.listByFolder(folderId);
+  }
+
+  @Get("workspaces/:workspaceId/trash/documents")
+  async listArchivedByWorkspace(
+    @Param("workspaceId") workspaceId: string,
+    @Headers("cookie") cookieHeader: string | undefined,
+  ): Promise<ListArchivedDocumentsResponseDto> {
+    await this.access.requireWorkspaceAccess(cookieHeader, workspaceId as WorkspaceId);
+    return this.documents.listArchivedByWorkspace(workspaceId);
   }
 
   @Post("folders/:folderId/documents")
@@ -93,6 +104,15 @@ export class DocumentsProductController {
   ): Promise<DeletedResourceResponseDto> {
     await this.access.requireDocumentAccess(cookieHeader, documentId as DocumentId);
     return this.documents.deleteDocument(documentId);
+  }
+
+  @Post("documents/:documentId/restore")
+  async restoreDocument(
+    @Param("documentId") documentId: string,
+    @Headers("cookie") cookieHeader: string | undefined,
+  ): Promise<DocumentResponseDto> {
+    await this.access.requireDocumentAccess(cookieHeader, documentId as DocumentId);
+    return this.documents.restoreDocument(documentId);
   }
 
   @Get("documents/:documentId/content")

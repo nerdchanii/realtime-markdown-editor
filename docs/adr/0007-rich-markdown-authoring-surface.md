@@ -18,7 +18,7 @@ related_requirements:
 related_documents:
   - subject.md
   - DESIGN.md
-  - docs/compliance/subject-matrix.md
+  - docs/compliance/feature-acceptance-map.md
   - docs/product/editor/rich-preview.md
 supersedes: []
 superseded_by: null
@@ -28,9 +28,9 @@ superseded_by: null
 
 ## 맥락
 
-과제 원문은 여러 사용자가 하나의 Markdown 문서를 실시간으로 함께 편집하고 Markdown rich preview를 제공해야 한다고 요구한다. 그러나 raw Markdown source view나 source/preview split view를 필수 UI로 요구하지는 않는다.
+제품은 여러 사용자가 하나의 Markdown 문서를 실시간으로 함께 편집하고 rich-rendered Markdown 작성 경험을 제공한다. Raw Markdown source view나 source/preview split view는 별도 작성 모드로 다룬다.
 
-현재 제품 목표는 reviewer가 첫 화면에서 협업 문서를 실제 제품처럼 편집한다고 느끼는 것이다. `textarea` 기반 source editor를 기본 경로로 두면 TipTap 선택 근거와 rich collaboration 경험이 약해진다. 반대로 TipTap `EditorContent`는 Markdown shortcut, keyboard shortcut, collaboration cursor, rich-rendered document editing을 한 surface에서 제공한다.
+현재 제품 목표는 첫 화면에서 협업 문서를 바로 작성할 수 있게 하는 것이다. `textarea` 기반 source editor를 기본 경로로 두면 TipTap 선택 근거와 rich collaboration 경험이 약해진다. 반대로 TipTap `EditorContent`는 Markdown shortcut, keyboard shortcut, collaboration cursor, rich-rendered document editing을 한 surface에서 제공한다.
 
 ## 결정
 
@@ -54,7 +54,7 @@ First submission의 editor surface는 TipTap `EditorContent` 기반 Rich Markdow
 
 - 장점: 편집면과 read-only output surface를 분리할 수 있다.
 - 단점: Rich editor 자체가 이미 rendered document에 가까워 같은 정보를 중복 표시한다.
-- 리스크: preview pane이 editor-first 화면 밀도를 낮추고 reviewer가 실제 편집 경로를 혼동할 수 있다.
+- 리스크: preview pane이 editor-first 화면 밀도를 낮추고 사용자가 편집 경로를 혼동할 수 있다.
 
 ### 3. TipTap rich authoring surface
 
@@ -85,7 +85,7 @@ TipTap Markdown extension은 raw source UI가 아니라 Markdown 문자열과 Ti
 ### 후속 작업
 
 - Raw Markdown source editor가 필요해지면 CodeMirror 같은 OSS text editor를 별도 검토한다.
-- Source/preview split은 reviewer feedback이나 user evidence가 생긴 뒤 backlog에서 승격한다.
+- Source/preview split은 사용자 근거가 생긴 뒤 backlog에서 승격한다.
 - Diff는 TipTap Pro Snapshot Compare가 아니라 OSS Markdown diff부터 검토한다.
 
 ## 검증 방법
@@ -97,7 +97,7 @@ TipTap Markdown extension은 raw source UI가 아니라 Markdown 문자열과 Ti
 ## 관련 문서
 
 - `subject.md`
-- `docs/compliance/subject-matrix.md`
+- `docs/compliance/feature-acceptance-map.md`
 - `docs/requirements/registry.md`
 - `docs/product/editor/rich-preview.md`
 - `DESIGN.md`

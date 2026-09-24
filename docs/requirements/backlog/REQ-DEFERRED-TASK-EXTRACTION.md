@@ -13,7 +13,7 @@ blocks:
 next_step: task extraction strategy와 product value를 먼저 명확히 한다.
 refs:
   - subject.md
-  - docs/compliance/subject-matrix.md
+  - docs/compliance/feature-acceptance-map.md
 ---
 
 # REQ-DEFERRED-TASK-EXTRACTION

@@ -2,7 +2,6 @@
 title: docs/product/editor/presence.md
 surface: editor
 related_requirements:
-  - CE-02-PRESENCE
   - REQ-PRESENCE-MEMBER-AWARENESS
   - REQ-PRESENCE-CARET-LABEL-LEGIBILITY
   - REQ-IDENTITY-MEMBERSHIP

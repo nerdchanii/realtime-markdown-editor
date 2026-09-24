@@ -5,6 +5,7 @@ import type {
   DocumentConnectionsResponseDto,
   DocumentContentResponseDto,
   DocumentResponseDto,
+  ListArchivedDocumentsResponseDto,
   ListDocumentsResponseDto,
   MoveDocumentRequestDto,
   ReplaceDocumentPropertiesRequestDto,
@@ -12,6 +13,12 @@ import type {
   UpdateDocumentRequestDto,
 } from "@rme/contracts";
 
+import type { DocumentId } from "@/modules/documents/domain/document.js";
+import {
+  DOCUMENT_CONTENT_REPOSITORY,
+  type DocumentContentProjection,
+  type DocumentContentRepository,
+} from "@/modules/documents/ports/document-content-repository.js";
 import {
   DOCUMENT_PRODUCT_REPOSITORY,
   type DocumentProductRepository,
@@ -22,11 +29,22 @@ export class DocumentProductService {
   constructor(
     @Inject(DOCUMENT_PRODUCT_REPOSITORY)
     private readonly repository: DocumentProductRepository,
+    @Inject(DOCUMENT_CONTENT_REPOSITORY)
+    private readonly content: DocumentContentRepository,
   ) {}
 
   async listByFolder(folderId: string): Promise<ListDocumentsResponseDto> {
     return {
       documents: required(await this.repository.listByFolder(folderId), "Folder not found."),
+    };
+  }
+
+  async listArchivedByWorkspace(workspaceId: string): Promise<ListArchivedDocumentsResponseDto> {
+    return {
+      documents: required(
+        await this.repository.listArchivedByWorkspace(workspaceId),
+        "Workspace not found.",
+      ),
     };
   }
 
@@ -91,9 +109,24 @@ export class DocumentProductService {
     return required(await this.repository.deleteDocument(documentId), "Document not found.");
   }
 
-  async getContent(documentId: string): Promise<DocumentContentResponseDto> {
+  async restoreDocument(documentId: string): Promise<DocumentResponseDto> {
     return {
-      content: required(await this.repository.findContent(documentId), "Document not found."),
+      document: required(
+        await this.repository.restoreDocument(documentId),
+        "Archived document or restore target not found.",
+      ),
+    };
+  }
+
+  async getContent(documentId: string): Promise<DocumentContentResponseDto> {
+    await this.getExistingDocument(documentId);
+    return {
+      content: toDocumentContentDto(
+        required(
+          await this.content.findCurrentContent(documentId as DocumentId),
+          "Document not found.",
+        ),
+      ),
     };
   }
 
@@ -101,10 +134,15 @@ export class DocumentProductService {
     documentId: string,
     input: UpdateDocumentContentRequestDto,
   ): Promise<DocumentContentResponseDto> {
+    const current = await this.getExistingDocument(documentId);
     return {
-      content: required(
-        await this.repository.updateContent(documentId, input),
-        "Document not found.",
+      content: toDocumentContentDto(
+        await this.content.saveCurrentContent({
+          documentId: documentId as DocumentId,
+          markdownBody: input.markdownBody,
+          latestRevisionId: input.baseRevisionId ?? current.latestRevisionId,
+          source: input.source,
+        }),
       ),
     };
   }
@@ -146,6 +184,10 @@ export class DocumentProductService {
     );
     if (duplicate) throw new BadRequestException("Document title must be unique in the folder.");
   }
+
+  private async getExistingDocument(documentId: string) {
+    return required(await this.repository.findDetail(documentId), "Document not found.");
+  }
 }
 
 function required<T>(value: T | null, message: string): T {
@@ -157,4 +199,13 @@ function normalizeTitle(title: string): string {
   const trimmed = title.trim();
   if (!trimmed) throw new BadRequestException("Document title is required.");
   return trimmed;
+}
+
+function toDocumentContentDto(projection: DocumentContentProjection) {
+  return {
+    documentId: projection.documentId,
+    markdownBody: projection.markdownBody,
+    latestRevisionId: projection.latestRevisionId,
+    updatedAt: projection.updatedAt.toISOString(),
+  };
 }

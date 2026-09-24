@@ -2,8 +2,12 @@ import type { DocumentSummaryDto, ProjectDto } from "@rme/contracts";
 
 import type {
   WorkspaceDocumentCreateRequest,
+  WorkspaceDocumentMoveRequest,
+  WorkspaceArchivedDocument,
   WorkspaceFolderCreateRequest,
+  WorkspaceFolderMoveRequest,
   WorkspaceFolderRenameRequest,
+  WorkspaceDocumentRenameRequest,
   WorkspaceNavigationNode,
   WorkspaceNavigationSelection,
 } from "@/features/workspace";
@@ -16,8 +20,13 @@ export function createWorkspaceNavigation(
   onCreateDocument: (request: WorkspaceDocumentCreateRequest) => void,
   onCreateFolder: (request: WorkspaceFolderCreateRequest) => void,
   onDeleteDocument: (documentId: string) => void,
+  onListArchivedDocuments: () => Promise<readonly WorkspaceArchivedDocument[]>,
+  onRestoreDocument: (documentId: string) => void,
   onDeleteFolder: (folderId: string) => void,
+  onRenameDocument: (request: WorkspaceDocumentRenameRequest) => void,
   onRenameFolder: (request: WorkspaceFolderRenameRequest) => void,
+  onMoveFolder: (request: WorkspaceFolderMoveRequest) => void,
+  onMoveDocument: (request: WorkspaceDocumentMoveRequest) => void,
 ) {
   const memberships = model.session?.memberships ?? [];
   const currentMember = model.session?.currentMembership ?? null;
@@ -36,7 +45,9 @@ export function createWorkspaceNavigation(
     ...createSelectionFields(model),
     defaultFolderId: navigation.projects[0]?.rootFolderId ?? navigation.workspace.rootFolderId,
     ...{ onSelectDocument, onCreateDocument, onCreateFolder },
-    ...{ onDeleteDocument, onDeleteFolder, onRenameFolder },
+    ...{ onListArchivedDocuments, onRestoreDocument },
+    ...{ onDeleteDocument, onDeleteFolder, onRenameDocument, onRenameFolder },
+    ...{ onMoveFolder, onMoveDocument },
   };
 }
 

@@ -16,8 +16,10 @@ status: active
 - Workspace-specific display detail은 membership에 둔다.
 - Product session, authorship, presence identity, workspace authorization이 참조할 수 있는 신뢰
   가능한 account boundary를 제공한다.
+- Workspace membership removal 이후에도 authorship/audit identity를 보존할 수 있게 한다.
 
 ## 책임이 아닌 것
 
 - Presence color 자체. Presence color는 membership의 책임이다.
 - Enterprise SSO, SCIM, organization administration 같은 advanced identity provider 운영.
+- Workspace membership을 hard delete해서 과거 checkpoint/revision authorship을 지우는 것.

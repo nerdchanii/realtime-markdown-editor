@@ -2,7 +2,6 @@
 title: docs/product/editor/concurrent-editing.md
 surface: editor
 related_requirements:
-  - CE-01-CONCURRENT-EDITING
   - REQ-COLLAB-ENGINE-ADAPTER
   - REQ-WORKSPACE-DOCUMENT-SCOPE
 related_adrs:

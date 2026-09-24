@@ -1,8 +1,8 @@
 import type {
+  ArchivedDocumentDto,
   BacklinkDto,
   CreateDocumentRequestDto,
   DeletedResourceResponseDto,
-  DocumentContentDto,
   DocumentDetailDto,
   DocumentLinkDto,
   DocumentPropertyDto,
@@ -10,7 +10,6 @@ import type {
   DocumentSummaryDto,
   MoveDocumentRequestDto,
   ReplaceDocumentPropertiesRequestDto,
-  UpdateDocumentContentRequestDto,
   UpdateDocumentRequestDto,
 } from "@rme/contracts";
 
@@ -24,6 +23,7 @@ export type DocumentConnections = Readonly<{
 
 export interface DocumentProductRepository {
   listByFolder(folderId: string): Promise<readonly DocumentSummaryDto[] | null>;
+  listArchivedByWorkspace(workspaceId: string): Promise<readonly ArchivedDocumentDto[] | null>;
   createInFolder(
     folderId: string,
     input: CreateDocumentRequestDto,
@@ -38,11 +38,7 @@ export interface DocumentProductRepository {
     targetFolderId: MoveDocumentRequestDto["targetFolderId"],
   ): Promise<DocumentDetailDto | null>;
   deleteDocument(documentId: string): Promise<DeletedResourceResponseDto | null>;
-  findContent(documentId: string): Promise<DocumentContentDto | null>;
-  updateContent(
-    documentId: string,
-    input: UpdateDocumentContentRequestDto,
-  ): Promise<DocumentContentDto | null>;
+  restoreDocument(documentId: string): Promise<DocumentDetailDto | null>;
   replaceProperties(
     documentId: string,
     properties: ReplaceDocumentPropertiesRequestDto["properties"] | readonly DocumentPropertyDto[],
