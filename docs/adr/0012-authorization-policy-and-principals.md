@@ -23,9 +23,10 @@ superseded_by: null
 >
 > - 비교안과 추천안은 에이전트가 작성했다.
 > - 사용자가 두 가지를 선택했다.
->   - 역할 3개(owner/editor/viewer)에 자원 grant 를 더한다. grant 는 다음 단계에 구현한다.
+>   - 역할 4개(owner/admin/editor/viewer)에 자원 grant 를 더한다. grant 는 다음 단계에 구현한다.
+>   - owner 는 가장 높은 admin 이다.
 >   - 에이전트 principal 을 두 유형(delegated, member)으로 둔다.
-> - 아래 `[open]` 항목은 아직 결정되지 않았다.
+> - 세부 질문도 2026-09-25 에 결정되었다. 아래 `[agent]` 세부 사항은 G1 로 추인을 기다린다.
 > - 추적 Issue: #3
 
 ## 맥락
@@ -124,7 +125,15 @@ superseded_by: null
 도입은 두 단계로 나눈다.
 
 - **이번 모델에서 확정**
-  - workspace 역할은 `owner`, `editor`, `viewer` 다.
+  - workspace 역할은 `owner`, `admin`, `editor`, `viewer` 다.
+  - [user] owner 는 admin 중 하나이며, 가장 높은 admin 이다.
+  - [user] admin 은 다른 사람에게 admin 역할을 줄 수 있다.
+  - [agent] 세부 규칙 (G1, `ratify_by: 2026-10-02`):
+    - workspace 를 만든 사람이 owner 가 된다. owner 는 workspace 당 한 명이다.
+    - owner 만 할 수 있는 일: workspace 삭제, 소유권 이전.
+    - admin 은 owner 의 역할을 바꾸거나 owner 를 제거할 수 없다.
+    - admin 끼리는 서로 강등하거나 제거할 수 있다.
+    - 마지막 admin 을 없앨 수 없다는 규칙은 owner 가 항상 admin 이므로 자동으로 성립한다.
   - grant 데이터 모델 모양은 `(resource, principal, role)` 이다.
 - **다음 단계에 구현**
   - 문서와 folder 단위 grant(공유)
@@ -132,15 +141,16 @@ superseded_by: null
 
 역할별 action 은 다음과 같다(초안).
 
-| action | owner | editor | viewer |
-| --- | --- | --- | --- |
-| `content.read` (문서 열람, export, history 조회) | ✓ | ✓ | ✓ |
-| `content.write` (편집, title/properties, 생성, 이동) | ✓ | ✓ | |
-| `content.delete` (archive, 삭제, 복원) | ✓ | ✓ | |
-| `history.checkpoint` | ✓ | ✓ | |
-| `member.manage` (멤버, 역할, grant) | ✓ | | |
-| `workspace.manage` (이름, 삭제) | ✓ | | |
-| `agent.manage` (에이전트 등록과 권한 부여) | ✓ | | |
+| action | owner | admin | editor | viewer |
+| --- | --- | --- | --- | --- |
+| `content.read` (문서 열람, export, history 조회) | ✓ | ✓ | ✓ | ✓ |
+| `content.write` (편집, title/properties, 생성, 이동) | ✓ | ✓ | ✓ | |
+| `content.delete` (archive, 삭제, 복원) | ✓ | ✓ | ✓ | |
+| `history.checkpoint` | ✓ | ✓ | ✓ | |
+| `member.manage` (멤버, 역할(admin 포함), grant) | ✓ | ✓ | | |
+| `agent.manage` (에이전트 등록과 권한 부여) | ✓ | ✓ | | |
+| `workspace.settings` (이름 등 설정) | ✓ | ✓ | | |
+| `workspace.delete`, `workspace.transfer` (삭제, 소유권 이전) | ✓ | | | |
 
 - archived 문서에는 `content.write` 가 거부된다. 복원은 `content.delete` 로 한다.
 - 문서를 옮길 때는 원본과 대상 workspace 양쪽에서 `content.write` 가 있어야 한다. workspace 간 이동은 별도 action 으로 뺄지 열어 둔다.
@@ -152,7 +162,7 @@ superseded_by: null
   - 실효 권한은 두 권한의 **교집합**이다: 사용자의 권한 ∩ 사용자가 그 에이전트에게 준 scope.
   - 사용자 권한이 줄어들면 에이전트 권한도 함께 줄어든다.
 - **member agent**: workspace 에 등록된 독립 참여자다.
-  - 자기 역할을 가진다. owner 가 등록하고 관리한다.
+  - 자기 역할을 가진다. owner 나 admin 이 등록하고 관리한다.
 - **모든 쓰기에는 actor 가 남는다.**
   - actor 형태: `{ principal, onBehalfOf? }`
   - presence, history, audit 에서 사람과 에이전트를 구분해 보여준다.
@@ -174,14 +184,15 @@ superseded_by: null
 ## 결정된 질문과 남은 질문
 
 - [user] 권한 단위:
-  - workspace 역할 `owner / editor / viewer` 에 자원 grant 를 더한다.
-  - 문서와 folder 단위 공유(grant)는 단일 policy 와 3역할 다음 단계에 구현한다.
+  - workspace 역할 `owner / admin / editor / viewer` 에 자원 grant 를 더한다.
+  - 문서와 folder 단위 공유(grant)는 단일 policy 와 역할 다음 단계에 구현한다.
+- [user] owner 는 가장 높은 admin 이다. admin 은 다른 사람에게 admin 을 줄 수 있다.
 - [user] 에이전트 principal:
   - delegated 와 member 두 유형을 둔다.
   - delegated 의 실효 권한은 교집합 규칙을 따른다.
 - [user] 문서 삭제와 복원(`content.delete`)은 **editor 도 할 수 있다**. 위 표를 확정한다.
-- [open] admin 이나 감사자 역할을 추가할 시점. 조직 요구가 생길 때 다시 본다.
-- [open] SSO 나 외부 IdP 연동 범위.
+- [user] SSO(회사 계정 로그인)와 외부 IdP 연동은 나중에 한다. 조직 고객이 요구할 때 다시 본다.
+- 감사자(auditor) 같은 추가 역할은 요구가 생길 때 다시 본다. 사용자가 명시적으로 결정하지 않았으므로 확정 사항이 아니다.
 
 ## 결과
 
@@ -194,7 +205,7 @@ superseded_by: null
      - archived 문서의 쓰기를 차단한다.
      - workspace 간 이동을 검증한다.
      - `memberships[0]` 을 암묵적으로 고르는 코드를 없앤다.
-     - `viewer` 역할을 실제로 지원한다.
+     - `admin`, `viewer` 역할을 실제로 지원한다. DB enum 을 migration 하고, 기존 `owner` 와 `member` 를 매핑한다.
   3. **HTTP 설정**
      - production 에서 cookie `Secure` 를 켠다.
      - CORS 는 기본 거부로 바꾸고 명시한 origin 만 허용한다.
@@ -210,3 +221,4 @@ superseded_by: null
 | 2026-09-25 | 최초 제안 (proposed) | agent:claude-code |
 | 2026-09-25 | 역할 3개 + grant, 에이전트 두 유형으로 accepted. 세부 질문 3개는 open | user |
 | 2026-09-25 | 세부 결정: editor 에게 삭제와 복원 허용 | user |
+| 2026-09-25 | admin 역할 추가(owner 는 가장 높은 admin, admin 은 admin 을 부여할 수 있음), SSO 는 나중에 | user |

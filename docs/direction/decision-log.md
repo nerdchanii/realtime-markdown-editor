@@ -18,3 +18,4 @@ ADR 로 만들 만큼 크지는 않지만 PR 이 끝난 뒤에도 남아야 하�
 | 2026-09-25 | `docs/research/` 는 active 문서지만 링크 검사에서는 제외한다(POC 원본 보존) | G1 | agent:claude-code | pending | 2026-10-02 | research 문서를 규칙 근거로 인용하게 되면 | 단계 1 PR |
 | 2026-09-25 | `scripts/with-node.sh` 는 `fnm` 이 없으면 PATH 의 Node 로 실행한다(cloud 에이전트 환경 대응) | G1 | agent:claude-code | pending | 2026-10-02 | Node 버전 불일치로 문제가 생기면 | 단계 1 PR |
 | 2026-09-25 | 미결 요구 21건을 1:1 로 옮기지 않고 결정 단위 추적 Issue 7개(#2–#8)로 묶는다. 과거 REQ 는 참고 자료로만 링크하고, Markdown 세부 기능 4건은 문서 타입 ADR 뒤에 다시 본다 | G1 | user (A안 선택) / agent:claude-code (분류) | user | - | 흡수한 REQ 가 결정 과정에서 누락되면 | Issue #2–#8 |
+| 2026-09-25 | ADR-0012 owner/admin 세부 규칙: owner 는 workspace 당 한 명이고 생성자가 맡는다. workspace 삭제와 소유권 이전은 owner 만 할 수 있다. admin 은 owner 를 바꾸거나 제거할 수 없고, admin 끼리는 서로 강등하거나 제거할 수 있다 | G1 | agent:claude-code (사용자 결정 "owner 는 가장 높은 admin"을 구체화) | pending | 2026-10-02 | owner 여러 명이 필요하거나 admin 끼리 서로 제거하는 것을 막아야 하면 | PR #9 |
