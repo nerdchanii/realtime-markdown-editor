@@ -31,9 +31,18 @@ related_documents:
   - docs/domain/rules/collaboration-boundaries.md
 supersedes: []
 superseded_by: null
+partially_superseded_by:
+  - ADR-0011
+  - ADR-0013
 ---
 
 # ADR-0009: 문서 편집 SOT는 Yjs로 두고 Postgres와 object storage는 projection과 artifact를 맡긴다
+
+> **부분 흡수 (2026-09-25)**
+>
+> - "문서 편집 상태의 write SOT 는 Yjs" 부분은 ADR-0011(accepted)이 흡수했다.
+> - Yjs field 구조는 ADR-0013(accepted, `meta` 와 `content` 루트)이 정했다.
+> - checkpoint artifact 정책(object storage, `snapshot.json` 과 `state.yjs`)은 아직 proposed 다.
 
 ## 맥락
 

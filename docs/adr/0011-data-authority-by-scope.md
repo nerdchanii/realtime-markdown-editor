@@ -14,7 +14,8 @@ related_documents:
   - docs/adr/0003-storage-strategy.md
   - docs/adr/0009-yjs-document-source-of-truth-and-artifact-policy.md
   - docs/adr/0012-authorization-policy-and-principals.md
-supersedes: []
+supersedes:
+  - ADR-0003 (IndexedDB 범위 제한 항목만)
 superseded_by: null
 ---
 

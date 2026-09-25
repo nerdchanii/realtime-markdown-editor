@@ -32,9 +32,10 @@ NestJS module은 DI와 composition을 위한 framework boundary다. `apps/api/sr
 ## Runtime/package ownership
 
 - `apps/collab` owns Hocuspocus/Yjs server dependencies and websocket runtime execution.
-- `apps/web` owns Tiptap, Hocuspocus provider, and browser Yjs client dependencies for editor integration.
-- `apps/api` issues provider-neutral contracts and must not require Hocuspocus/Yjs/Tiptap runtime packages in domain files.
-- TASK-020 is the dependency owner for initial collaboration runtime topology and lockfile changes.
+- `apps/web` owns editor integration, Hocuspocus provider, and browser Yjs client dependencies.
+  - 현재 구현의 editor 는 Tiptap 이다.
+  - (목표, ADR-0013) `markdown` 과 `code` 타입은 CodeMirror 6 로 편집한다.
+- `apps/api` issues provider-neutral contracts and must not require Hocuspocus/Yjs/editor runtime packages in domain files.
 
 ## History Artifact 규칙
 

@@ -31,9 +31,15 @@ related_documents:
   - docs/adr/0007-rich-markdown-authoring-surface.md
 supersedes: []
 superseded_by: null
+partially_superseded_by: ADR-0013
 ---
 
 # ADR-0005: UI shell은 에디터 우선 범위를 유지한다
+
+> **부분 대체 (2026-09-25)**
+>
+> - ADR-0013 이 "기본 editor surface 는 TipTap Rich Markdown authoring" 조항을 대체한다. `markdown` 타입은 CodeMirror 6 라이브 프리뷰로 편집한다.
+> - editor-first shell 범위에 대한 나머지 결정은 유효하다.
 
 ## 맥락
 

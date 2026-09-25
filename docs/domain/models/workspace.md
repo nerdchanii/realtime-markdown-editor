@@ -11,6 +11,11 @@ status: active
 
 `Workspace`는 정확히 하나의 숨겨진 `WorkspaceRootFolder`를 가진다. `WorkspaceRootFolder`는 user-visible regular folder가 아니라 workspace-level folder tree의 구조적 root다.
 
+- (목표, ADR-0011) `Workspace` 는 데이터 권위 범위 `authority: server | local` 을 가진다.
+  - `server`: 조직과 팀용이다. 서버가 정본을 갖고 권한을 집행한다.
+  - `local`: 개인용이다. 기기가 정본을 갖고, 계정 없이도 쓸 수 있다.
+  - local 범위를 공유하려면 server 범위로 승격한다.
+
 ## 책임
 
 - Collaborative document를 위한 team/company context를 제공한다.
@@ -23,7 +28,7 @@ status: active
 
 - Billing과 provisioning.
 - Enterprise identity provider 연동.
-- 현재 제품 범위를 넘어서는 fine-grained permission policy.
+- 권한 판정 자체. workspace 는 역할의 scope 만 제공하고, 판정은 ADR-0012 의 policy 가 한다.
 - Project를 Folder처럼 이동하거나 삭제하는 containment behavior.
 
 ## 규칙

@@ -20,7 +20,14 @@ status: active
 | DocumentState           | `draft`, `review`, `saved` 같은 workflow-facing value/state. 현재 제품에서는 직접 변경할 수 있고 transition policy가 없다.          |
 | User                    | 특정 workspace와 독립적인 사람/account identity.                                                                                    |
 | WorkspaceMembership     | 한 workspace 안에서 user가 갖는 identity. member display name/color를 포함한다.                                                     |
-| WorkspaceMembershipRole | `owner`, `editor`, `viewer` 같은 membership role value. Authorization behavior의 현재 범위는 product principles와 ADR이 정한다.      |
+| WorkspaceMembershipRole | (목표, ADR-0012) `owner > admin > editor > viewer`. 현재 구현은 `owner`, `member` 두 가지다. |
+| Principal | (목표, ADR-0012) 권한 판정의 주체. `User`, `LocalUser`, `Agent` 가 있다. |
+| LocalUser | (목표, ADR-0012) 계정 없이 local 범위를 쓰는 기기 사용자. 로그인하거나 승격할 때 `User` 에 연결된다. |
+| Agent | (목표, ADR-0012) AI 에이전트 principal. 사용자의 대리인(delegated)이거나 독립 참여자(member)다. |
+| Actor | (목표, ADR-0012) 쓰기를 한 주체의 기록. `{ principal, onBehalfOf? }` 형태다. |
+| Grant | (목표, ADR-0012) 자원(문서, folder) 단위로 역할을 더하는 권한 부여. 다음 단계에 구현한다. |
+| Authority | (목표, ADR-0011) workspace 의 데이터 권위 범위 `server` 또는 `local`. |
+| DocumentType | (목표, ADR-0013) 문서의 편집 대상 종류. `markdown`, `code` 등이 있다. |
 | Presence                | cursor와 selection을 보여주는 임시 realtime awareness. Domain entity가 아니라 application/provider awareness state다.               |
 | Checkpoint              | metadata를 가진 user-visible historical document state.                                                                             |
 | Autosave                | 지속적인 persistence/sync behavior. User-facing checkpoint가 아니다.                                                                |

@@ -16,6 +16,7 @@ Domain docs는 구현이 지켜야 할 제품 언어와 계약을 정의한다. 
 3. `docs/domain/models/project.md`
 4. `docs/domain/models/folder.md`
 5. `docs/domain/models/user.md`
+5a. `docs/domain/models/principal.md` (목표 모델, ADR-0012)
 6. `docs/domain/models/document.md`
 7. `docs/domain/models/checkpoint.md`
 8. `docs/domain/models/document-property.md`
@@ -27,6 +28,10 @@ Domain docs는 구현이 지켜야 할 제품 언어와 계약을 정의한다. 
 14. `docs/domain/rules/folder-lifecycle.md`
 15. `docs/domain/rules/collaboration-boundaries.md`
 
+## 목표 모델 표시
+
+`(목표, ADR-xxxx)` 가 붙은 항목은 accepted 되었지만 아직 구현되지 않은 모델이다. 현재 코드와 다를 수 있다. 구현이 끝나면 표시를 지운다.
+
 ## 변경 규칙
 
 Domain meaning 변경은 민감하다. Entity responsibility, relationship meaning, lifecycle state, provider boundary를 바꾸는 경우 관련 domain doc을 업데이트하고 ADR 필요 여부를 확인한다.
@@ -35,7 +40,7 @@ Domain meaning 변경은 민감하다. Entity responsibility, relationship meani
 
 | 분류                          | 모델                                                                                                   |
 | ----------------------------- | ------------------------------------------------------------------------------------------------------ |
-| Entity/Aggregate              | `Workspace`, `Project`, `Folder`, `Document`, `User`, `WorkspaceMembership`, `Checkpoint`              |
+| Entity/Aggregate              | `Workspace`, `Project`, `Folder`, `Document`, `User`, `WorkspaceMembership`, `Checkpoint`. 목표 모델에서는 `LocalUser`, `Agent` 가 추가된다(ADR-0012). |
 | Document-owned child/value    | `DocumentProperty`                                                                                     |
 | Value/state                   | `FolderKind`, `DocumentState`, `WorkspaceMembershipRole`                                               |
 | Derived projection/read model | `LinkEdge`, workspace/project/folder/document navigation projection                                    |
