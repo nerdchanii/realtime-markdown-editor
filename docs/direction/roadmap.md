@@ -90,8 +90,12 @@ ADR 은 에이전트가 비교안과 추천안을 `proposed` 로 작성하고, �
 
 작성 현황:
 
-- 데이터 권위: [ADR-0011](../adr/0011-data-authority-by-scope.md) (proposed, 2026-09-25). 추천은 범위별 권위(C 안)다.
-- 권한: [ADR-0012](../adr/0012-authorization-policy-and-principals.md) (proposed, 2026-09-25). 추천은 단일 policy, workspace 역할 + 자원 grant, 사람과 에이전트 principal 구분이다.
+- 데이터 권위: [ADR-0011](../adr/0011-data-authority-by-scope.md) **accepted** (2026-09-25).
+  - 범위별 권위를 택했다. local 범위도 바로 도입한다.
+  - 세부 질문 3개는 open 이다.
+- 권한: [ADR-0012](../adr/0012-authorization-policy-and-principals.md) **accepted** (2026-09-25).
+  - 단일 policy, `owner/editor/viewer` + 자원 grant(다음 단계), 사람과 에이전트 principal 구분.
+  - 세부 질문 3개는 open 이다.
 
 ## 단계 4. 코드 방향 결정과 policy 기반 수정
 

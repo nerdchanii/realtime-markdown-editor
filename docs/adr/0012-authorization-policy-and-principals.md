@@ -1,12 +1,12 @@
 ---
 id: ADR-0012
 title: "ADR-0012: 권한은 하나의 policy 로 판정하고 사람과 에이전트를 principal 로 구분한다"
-status: proposed
+status: accepted
 date: 2026-09-25
 gate: G2
-decided_by: agent:claude-code
-ratified_by: pending
-ratified_at: null
+decided_by: user
+ratified_by: user
+ratified_at: 2026-09-25
 reversibility: one-way
 revisit_if: 조직 고객이 역할 세분화(admin, 감사자)나 외부 IdP 를 요구하면, 또는 문서 단위 공유 수요가 workspace 역할만으로 감당되지 않으면 다시 본다.
 related_documents:
@@ -19,8 +19,14 @@ superseded_by: null
 
 # ADR-0012: 권한은 하나의 policy 로 판정하고 사람과 에이전트를 principal 로 구분한다
 
-> 이 ADR 은 **proposed** 다. 에이전트가 작성한 비교안과 추천안이며, 사용자가 확정하기 전까지 규칙으로
-> 인용하지 않는다(ADR-0010). 추적 Issue: #3
+> **accepted (2026-09-25)**
+>
+> - 비교안과 추천안은 에이전트가 작성했다.
+> - 사용자가 두 가지를 선택했다.
+>   - 역할 3개(owner/editor/viewer)에 자원 grant 를 더한다. grant 는 다음 단계에 구현한다.
+>   - 에이전트 principal 을 두 유형(delegated, member)으로 둔다.
+> - 아래 `[open]` 항목은 아직 결정되지 않았다.
+> - 추적 Issue: #3
 
 ## 맥락
 
@@ -90,7 +96,7 @@ superseded_by: null
 - **장점**: 가장 유연하다.
 - **단점**: 조직 통제와 감사가 어렵다. 소규모 팀에게는 과하다.
 
-## 결정 제안
+## 결정
 
 ### 1. 단일 policy 함수와 모든 진입점
 
@@ -152,7 +158,7 @@ superseded_by: null
   - presence, history, audit 에서 사람과 에이전트를 구분해 보여준다.
   - 에이전트가 무엇을 기본 동작으로 하는지(제안 모드 등)는 에이전트 참여 ADR(#4)이 정한다. 이 ADR 은 신원과 권한만 정한다.
 
-### 4. 범위별 권위와의 관계 (ADR-0011 proposed 와 함께 결정)
+### 4. 범위별 권위와의 관계 (ADR-0011)
 
 - **server 범위 workspace**: 서버 policy 가 유일한 판정자다. 권한 회수, 감사, 조직 통제가 여기서 성립한다.
 - **local 범위 workspace**: 기기 소유자가 권위를 가진다. 공유하려면 server 범위로 승격해야 한다.
@@ -165,16 +171,19 @@ superseded_by: null
   - 에이전트의 쓰기
 - 조회 UI 는 나중에 만든다.
 
-## 사용자가 결정할 질문
+## 결정된 질문과 남은 질문
 
-1. **권한 단위**: B 안(workspace 역할 + 자원 grant)인가? 역할은 `owner / editor / viewer` 세 가지로 시작하는가?
-   - admin 이나 감사자 역할은 조직 요구가 생길 때 추가한다.
-2. **문서와 folder 단위 공유(grant)의 구현 시점**: 추천은 단일 policy 와 3역할을 먼저 하고, grant 는 다음 단계다.
-3. **에이전트 principal**: delegated 와 member 두 유형과 교집합 규칙을 받아들이는가?
-4. **문서 삭제와 복원 권한**: editor 에게 줄 것인가, owner 만 할 것인가? 지금은 member 도 할 수 있다.
-5. **조직 계정 연동(SSO, 외부 IdP)**: 이번 범위 밖으로 두는가?
+- [user] 권한 단위:
+  - workspace 역할 `owner / editor / viewer` 에 자원 grant 를 더한다.
+  - 문서와 folder 단위 공유(grant)는 단일 policy 와 3역할 다음 단계에 구현한다.
+- [user] 에이전트 principal:
+  - delegated 와 member 두 유형을 둔다.
+  - delegated 의 실효 권한은 교집합 규칙을 따른다.
+- [open] 문서 삭제와 복원(`content.delete`)을 editor 에게도 줄 것인가? 위 표는 현재 동작을 유지한 초안(editor 허용)이다.
+- [open] admin 이나 감사자 역할을 추가할 시점. 조직 요구가 생길 때 다시 본다.
+- [open] SSO 나 외부 IdP 연동 범위.
 
-## 결과 (accepted 시)
+## 결과
 
 - policy 기준으로 고칠 코드. accepted 뒤 별도 Issue 와 PR 로 진행한다.
   1. **진입점 정리**
@@ -199,3 +208,4 @@ superseded_by: null
 | 날짜 | 변경 | 결정자 |
 | --- | --- | --- |
 | 2026-09-25 | 최초 제안 (proposed) | agent:claude-code |
+| 2026-09-25 | 역할 3개 + grant, 에이전트 두 유형으로 accepted. 세부 질문 3개는 open | user |

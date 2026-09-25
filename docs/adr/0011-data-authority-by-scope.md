@@ -1,12 +1,12 @@
 ---
 id: ADR-0011
 title: "ADR-0011: 데이터 권위는 workspace 범위별로 명시한다"
-status: proposed
+status: accepted
 date: 2026-09-25
 gate: G2
-decided_by: agent:claude-code
-ratified_by: pending
-ratified_at: null
+decided_by: user
+ratified_by: user
+ratified_at: 2026-09-25
 reversibility: one-way
 revisit_if: local 범위가 실제 사용에서 요구되지 않거나, server 범위만으로 오프라인과 즉시성 요구가 충족되면 local 범위 도입을 다시 본다.
 related_documents:
@@ -20,8 +20,12 @@ superseded_by: null
 
 # ADR-0011: 데이터 권위는 workspace 범위별로 명시한다
 
-> 이 ADR 은 **proposed** 다. 에이전트가 작성한 비교안과 추천안이며, 사용자가 확정하기 전까지 규칙으로
-> 인용하지 않는다(ADR-0010). 추적 Issue: #2
+> **accepted (2026-09-25)**
+>
+> - 비교안과 추천안은 에이전트가 작성했다.
+> - 사용자가 C 안(범위별 권위)을 선택했고, local 범위를 바로 도입하기로 했다.
+> - 아래 "남은 질문"의 `[open]` 항목은 아직 결정되지 않았다.
+> - 추적 Issue: #2
 
 ## 맥락
 
@@ -127,7 +131,7 @@ C 안의 평가:
   - local 범위를 너무 일찍 구현하면 과거처럼 넓고 얕은 결과가 나올 수 있다.
   - 대응: 단계를 나눈다(아래 "결정 제안").
 
-## 결정 제안 (추천: C)
+## 결정 (C 안, 사용자 선택)
 
 1. **데이터 권위를 workspace 범위 속성으로 명시한다.** `authority: server | local`. 모든 쓰기 경로는 대상 workspace 의 authority 를 안다.
 2. **문서 편집 상태의 write 정본은 Yjs document 다. 두 범위 모두 같다.**
@@ -140,31 +144,34 @@ C 안의 평가:
    - Markdown 은 projection 과 export 표현이다.
    - 어떤 표현을 정본으로 할지는 문서 타입 모델 ADR(#5)에서 정한다.
    - 이 ADR 은 "하나여야 한다"는 불변식만 정한다.
-4. **단계적으로 도입한다.**
-   - **1단계**: server 범위를 제대로 만든다.
+4. **도입 순서.** [user] local 범위는 뒤로 미루지 않고 **바로** 도입한다.
+   - **트랙 A (server 범위 정비)**
      - 알려진 데이터 유실 위험을 없앤다.
-     - 표현을 하나로 만들고, title 과 properties 를 Yjs 로 옮긴다.
+     - 본문 표현을 하나로 만들고, title 과 properties 를 Yjs 로 옮긴다.
      - 열린 문서만이 아니라 최근 문서와 workspace 트리까지 로컬에 캐시한다.
-   - **2단계**: local 범위를 도입한다. 계정 없는 개인 workspace, opt-in sync, 승격 흐름을 만든다.
-   - **3단계**: local 범위에 로컬 파일시스템을 연동하고, desktop 패키징을 한다(#6 과 연동).
+   - **트랙 B (local 범위)**
+     - 개인 workspace 를 만든다. 이 workspace 는 기기가 정본이다.
+     - 서버 sync 는 opt-in 이다. local 에서 server 로 가는 승격 흐름을 만든다.
+   - 두 트랙은 병행한다. 둘 다 "정본 표현은 하나"(3번)에 의존한다.
+     그래서 문서 타입 ADR(#5)에서 정본 표현을 먼저 정하는 것이 두 트랙 모두의 선행 조건이다.
+   - **이후**: local 범위에 로컬 파일시스템을 연동하고 desktop 패키징을 한다(#6 과 연동).
 5. **ADR-0003 과의 관계**
    - Postgres 는 metadata, object storage 는 snapshot 과 blob 을 맡는다는 역할 분담은 유지한다.
    - "IndexedDB 는 열린 page offline 전용"이라는 제한은 이 ADR 이 accepted 되면 server 범위 캐시와 local 범위 정본으로 확장된다.
    - ADR-0009 는 이 ADR 이 accepted 될 때 문서 SOT 부분이 흡수된다. checkpoint artifact 정책 부분은 별도로 남는다.
 
-## 사용자가 결정할 질문
+## 결정된 질문과 남은 질문
 
-1. **C 안(범위별 권위)을 택하는가?** 아니면 A 나 B 인가?
-2. **local 범위를 언제 도입하는가?**
-   - 추천: 1단계(server 범위 정비) 뒤로 미룬다. 설계만 지금 반영한다.
-3. **server 가 local 범위 문서의 내용을 볼 수 있어야 하는가?**
-   - 서버 백업, 서버 측 에이전트, 검색은 서버가 내용을 봐야 한다. E2E 는 서버가 내용을 볼 수 없어야 한다.
-   - 추천: opt-in sync 는 서버가 볼 수 있는 방식으로 시작하고, E2E 는 나중에 검토한다.
-4. **server 범위에서 권한을 회수하면 기기에 캐시된 사본을 원격으로 지우려고 시도하는가?**
-   - 추천: 이후 sync 는 차단하고, 사본은 best-effort 로 지운다. 완전한 보장은 약속하지 않는다.
-5. **계정 없는 사용(local 범위)을 제품 범위에 넣는가?**
+- [user] 데이터 권위: C 안(범위별)을 택한다.
+- [user] local 범위 도입 시점: 바로 도입한다(server 정비와 병행).
+- [open] 서버가 local 범위 문서의 내용을 볼 수 있어야 하는가(백업, 서버 에이전트, 검색), 아니면 E2E 인가?
+  에이전트는 "처음에는 서버가 볼 수 있는 opt-in sync, E2E 는 나중"을 추천했지만 결정되지 않았다.
+  local 범위의 sync 를 구현하기 전에 정한다.
+- [open] server 범위에서 권한을 회수하면 기기에 캐시된 사본을 어떻게 처리하는가?
+  에이전트는 "이후 sync 차단, 사본은 best-effort 삭제"를 추천했지만 결정되지 않았다.
+- [open] 계정 없이 local 범위를 쓸 수 있게 하는가? 트랙 B 를 설계하기 전에 정한다.
 
-## 결과 (accepted 시)
+## 결과
 
 - 코드 수정 후보. accepted 뒤 별도 Issue 와 PR 로 진행한다.
   - 본문의 이중 표현(XmlFragment 와 `Y.Text`)을 하나로 만든다. 서버 bootstrap 도 정본 표현에 맞춘다.
@@ -180,3 +187,4 @@ C 안의 평가:
 | 날짜 | 변경 | 결정자 |
 | --- | --- | --- |
 | 2026-09-25 | 최초 제안 (proposed) | agent:claude-code |
+| 2026-09-25 | C 안 선택, local 범위 즉시 도입으로 accepted. 세부 질문 3개는 open | user |
