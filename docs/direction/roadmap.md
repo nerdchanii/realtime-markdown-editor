@@ -88,6 +88,11 @@ Realtime markdown editor 에서 Realtime editor(ADE 표면)로 가는 전환 계
 
 ADR 은 에이전트가 비교안과 추천안을 `proposed` 로 작성하고, 사용자가 accepted 로 바꾼다.
 
+작성 현황:
+
+- 데이터 권위: [ADR-0011](../adr/0011-data-authority-by-scope.md) (proposed, 2026-09-25). 추천은 범위별 권위(C 안)다.
+- 권한: [ADR-0012](../adr/0012-authorization-policy-and-principals.md) (proposed, 2026-09-25). 추천은 단일 policy, workspace 역할 + 자원 grant, 사람과 에이전트 principal 구분이다.
+
 ## 단계 4. 코드 방향 결정과 policy 기반 수정
 
 - 단계 3 이 끝난 뒤, 기존 코드를 점진적으로 진화시킬지 core 만 남기고 교체할지 결정한다(G2).
