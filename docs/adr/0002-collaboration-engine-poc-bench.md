@@ -33,9 +33,15 @@ related_documents:
   - docs/archive/compliance/feature-acceptance-map.md
 supersedes: []
 superseded_by: null
+partially_superseded_by: ADR-0013
 ---
 
 # ADR-0002: 협업 엔진으로 Tiptap + Yjs + Hocuspocus를 선택한다
+
+> **부분 대체 (2026-09-25)**
+>
+> - ADR-0013 이 "Editor integration 은 Tiptap" 항목을 대체한다. 첫 문서 타입 `markdown` 과 두 번째 타입 `code` 는 CodeMirror 6 로 편집한다.
+> - Yjs(CRDT)와 Hocuspocus(realtime sync) 결정은 여전히 유효하다.
 
 ## 맥락
 

@@ -157,7 +157,12 @@ superseded_by: null
 
 ### 3. Principal 은 사람과 에이전트를 구분한다
 
-- `Principal = User | Agent`
+- `Principal = User | LocalUser | Agent`
+- **LocalUser** (계정 없이 쓰는 local 범위의 작성자) — [user] 2026-09-25 결정
+  - 기기마다 로컬 사용자 id 를 만들고, 작성자와 presence 로 기록한다.
+  - 로그인하거나 sync·공유(승격)를 할 때 그 LocalUser 를 계정 `User` 에 연결한다. 이전 작성 기록도 그 계정으로 옮긴다.
+  - local 범위에서 LocalUser 는 기기 소유자로서 그 workspace 의 owner 다(§4).
+  - [agent] 이미 다른 계정에 연결된 LocalUser 를 다시 연결하려 하는 등 연결이 충돌하면, 자동으로 병합하지 않고 사용자에게 확인한다.
 - **delegated agent**: 특정 사용자의 대리인이다.
   - 실효 권한은 두 권한의 **교집합**이다: 사용자의 권한 ∩ 사용자가 그 에이전트에게 준 scope.
   - 사용자 권한이 줄어들면 에이전트 권한도 함께 줄어든다.
@@ -222,3 +227,4 @@ superseded_by: null
 | 2026-09-25 | 역할 3개 + grant, 에이전트 두 유형으로 accepted. 세부 질문 3개는 open | user |
 | 2026-09-25 | 세부 결정: editor 에게 삭제와 복원 허용 | user |
 | 2026-09-25 | admin 역할 추가(owner 는 가장 높은 admin, admin 은 admin 을 부여할 수 있음), SSO 는 나중에 | user |
+| 2026-09-25 | 계정 없는 local 작성자를 LocalUser principal 로 두고, 로그인·승격 시 계정에 연결한다(Codex 리뷰 지적 반영) | user |

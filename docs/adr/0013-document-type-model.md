@@ -18,6 +18,7 @@ related_documents:
   - docs/adr/0012-authorization-policy-and-principals.md
 supersedes:
   - ADR-0007
+  - ADR-0002 (editor integration 항목만. Yjs 와 Hocuspocus 결정은 유지)
 superseded_by: null
 ---
 
@@ -92,6 +93,10 @@ superseded_by: null
   - remote cursor 와 selection 은 Yjs awareness 로 표시한다.
   - 편집 화면에 source 와 preview 가 따로 있지 않다. 라이브 프리뷰 하나가 기본 경험이다.
 - **ADR-0007 을 대체한다.** 기존 결정은 Tiptap WYSIWYG 을 기본 편집 경험으로, raw source 를 보류로 두었다.
+- **ADR-0002 는 부분만 대체한다.**
+  - 대체되는 것: "Editor integration 은 Tiptap" 항목. markdown 과 code 타입의 editor integration 은 CodeMirror 6 다.
+  - 유지되는 것: CRDT 는 Yjs, realtime sync server 는 Hocuspocus, provider 와 persistence 를 adapter 경계 뒤에 둔다는 결정.
+  - 나중의 rich-text 타입은 Tiptap 을 다시 쓸 수 있다.
 
 ### 4. 두 번째 타입 — [user] 코드 (`code`)
 
