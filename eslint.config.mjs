@@ -23,6 +23,32 @@ const legacyLargeAdapterFiles = [
   "apps/api/src/modules/workspace/adapters/prisma-workspace-product-repository.ts",
 ];
 
+const frontendApiImportRule = {
+  group: ["apps/api/src/**"],
+  message: "Frontend code must use packages/contracts or feature view models.",
+};
+// Product paths must not depend on mock, seed, fixture, or fake modules (ADR-0010, AGENTS.md).
+const mockImportRule = {
+  group: [
+    "**/*mock*",
+    "**/*Mock*",
+    "**/*seed*",
+    "**/*Seed*",
+    "**/*fixture*",
+    "**/*fake*",
+    "**/*Fake*",
+  ],
+  message:
+    "Product code must not import mock/seed/fixture/fake modules. Show a real empty state or error instead.",
+};
+// Ratchet: existing violations tracked for removal (UI-GAP-013). Do not add entries.
+const legacyMockImportFiles = [
+  "apps/web/src/app/product-workspace-types.ts",
+  "apps/web/src/app/product-workspace-view-model.ts",
+  "apps/web/src/features/editor/index.tsx",
+  "apps/web/src/features/editor/useMockMarkdownDocument.ts",
+];
+
 const frameworkAndProviderImports = [
   "@nestjs",
   "@nestjs/*",
@@ -63,6 +89,7 @@ export default [
       "test-results/**",
       "**/*.tsbuildinfo",
       "pnpm-lock.yaml",
+      "docs/archive/**",
     ],
   },
   js.configs.recommended,
@@ -100,17 +127,7 @@ export default [
         "error",
         { max: 40, skipBlankLines: true, skipComments: true, IIFEs: true },
       ],
-      "no-restricted-imports": [
-        "error",
-        {
-          patterns: [
-            {
-              group: ["apps/api/src/**"],
-              message: "Frontend code must use packages/contracts or feature view models.",
-            },
-          ],
-        },
-      ],
+      "no-restricted-imports": ["error", { patterns: [frontendApiImportRule, mockImportRule] }],
       "@typescript-eslint/naming-convention": [
         "error",
         {
@@ -149,6 +166,12 @@ export default [
     files: [...adapterFiles, ...reactFiles],
     rules: {
       complexity: ["error", { max: 8 }],
+    },
+  },
+  {
+    files: [...legacyMockImportFiles, ...testFiles, "scripts/**/*.mjs"],
+    rules: {
+      "no-restricted-imports": ["error", { patterns: [frontendApiImportRule] }],
     },
   },
   {

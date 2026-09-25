@@ -12,7 +12,7 @@ approved_at: 2026-04-29
 이 문서는 이 저장소의 현재 coding convention이다. 컨벤션은 취향보다 자동 강제 가능한 규칙을
 우선하며, `pre-commit`, `commit-msg`, `pnpm check`가 같은 기준을 보게 한다.
 
-제품 기능의 사용자 행동 지도는 `docs/compliance/feature-acceptance-map.md`에서 추적한다. 이 문서는
+제품 기능의 사용자 행동 지도는 `docs/archive/compliance/feature-acceptance-map.md`에서 추적한다. 이 문서는
 기능을 재정의하지 않고, 코드 품질 저하와 architecture boundary drift를 막는다.
 
 ## 적용 범위
@@ -160,10 +160,8 @@ Prettier 설정은 현재 값을 유지한다.
 - `trailingComma: "all"`
 - `proseWrap: "preserve"`
 
-`docs/**/*.md`와 루트 `*.md`는 Prettier 강제 대상이 아니다. 공식 문서 품질은 자동 포맷보다
-요구사항 정합성, CE 기준, ADR/domain/product 문맥 유지로 관리한다.
-
-`tasks/**/*.md`는 Prettier 대상이다.
+`docs/**/*.md`와 루트 `*.md`는 Prettier 강제 대상이 아니다. 문서 품질은 `pnpm docs:check`(링크,
+ADR 게이트와 출처, proposed 인용 검사)와 ADR/domain/direction 문맥 유지로 관리한다.
 
 ## 제외 범위와 승격 조건
 

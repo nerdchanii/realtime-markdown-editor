@@ -1,10 +1,9 @@
 ---
 title: ARCHITECTURE.md
 status: living
-last_updated: 2026-04-29
+last_updated: 2026-09-25
 related_documents:
-  - subject.md
-  - docs/compliance/subject-matrix.md
+  - docs/direction/2026-09-24-product-direction-interview.md
   - docs/architecture/README.md
   - docs/domain/README.md
   - docs/product/README.md
@@ -15,10 +14,11 @@ related_documents:
 
 ## Architecture Purpose
 
-The architecture must turn the collaboration requirements in `subject.md` into a trustworthy team
-workspace document product. CE-01 through CE-05 are product stories from `subject.md`; detailed
-requirements such as identity, authorization, persistence, and UX quality make those stories usable
-as a real product.
+The architecture must make concurrent editing trustworthy: people (and, per the 2026-09-24 product
+direction, AI agents) edit the same document at the same time without losing work. This file
+describes the current system, a collaborative Markdown editor. The product is being redefined as a
+realtime editor / ADE surface; see `docs/direction/` for intent and open decisions. Where this file
+and the direction record disagree, the direction record wins.
 
 Key quality goals:
 
@@ -54,15 +54,15 @@ The system is a browser-based collaborative Markdown editor backed by server-sid
 
 ## Core Runtime Scenario
 
-The first end-to-end product path follows the subject requirement flow on top of product-shaped
-identity, workspace, document, persistence, and UI boundaries.
+The core end-to-end product path is concurrent editing on top of product-shaped identity,
+workspace, document, persistence, and UI boundaries.
 
 1. Two members open the same workspace-scoped document from a seeded workspace/project/root-folder context.
 2. Two members edit the same Markdown document at the same time.
 3. Remote cursor and selection presence are displayed.
 4. One client loses the network, keeps editing the open document, reconnects, and unique text from both sides is merged without loss.
-5. The reviewer opens checkpoint/history and inspects an earlier document state.
-6. The reviewer checks Markdown rich preview or split preview.
+5. A member opens checkpoint/history and inspects an earlier document state.
+6. A member checks Markdown rich preview or split preview.
 
 ## Architecture Map
 
@@ -71,8 +71,8 @@ identity, workspace, document, persistence, and UI boundaries.
 - Frontend feature and editor-first rules: `docs/architecture/frontend.md`
 - Domain model and terminology: `docs/domain/README.md`
 - Product surface: `docs/product/README.md`
-- Subject compliance map: `docs/compliance/subject-matrix.md`
-- Requirement registry: `docs/requirements/registry.md`
+- Product direction and roadmap: `docs/direction/`
+- Archived requirements, CE stories, and task history (not default reading): `docs/archive/`
 - Decision records: `docs/adr/*`
 
 ## Open Follow-ups

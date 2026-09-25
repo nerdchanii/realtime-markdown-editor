@@ -1,25 +1,24 @@
 ---
 id: ADR-0000
 title: "ADR-0000: 결정 제목"
-status: proposed
+status: proposed # proposed | accepted | superseded | deprecated | rejected
 date: YYYY-MM-DD
-authors:
-  - 결정 소유자 이름 또는 역할
-decision_type: architecture
-tags:
-  - tag-name
-related_requirements:
-  - REQ-ID
+gate: G2 # G1 | G2 (ADR-0010)
+decided_by: user # user | agent:<도구>
+ratified_by: pending # user | lazy-consensus | pending
+ratified_at: null
+ratify_by: null # G1 만: 결정일 + 7일
+reversibility: two-way # one-way | two-way
+revisit_if: 이 결정을 다시 볼 조건
 related_documents:
-  - subject.md
-  - docs/requirements/registry.md
+  - docs/direction/2026-09-24-product-direction-interview.md
 supersedes: []
 superseded_by: null
 ---
 
 # ADR-0000: 결정 제목
 
-`authors`와 변경 이력의 `결정자`는 ADR 결정을 승인하고 소유하는 사람 또는 역할이다. AI assistant는 문서 작성을 도왔더라도 결정자로 기록하지 않는다.
+게이트와 출처 규칙은 [ADR-0010](0010-decision-gates-and-provenance.md)을 따른다. 에이전트도 결정자가 될 수 있지만 `decided_by`에 반드시 기록한다. G2 결정은 사용자가 확정하기 전까지 `proposed`로 두고, 확정 사실로 인용하지 않는다.
 
 ## 맥락
 
@@ -67,7 +66,7 @@ superseded_by: null
 
 ## 관련 문서
 
-- 요구사항:
+- 인터뷰/의도 기록:
 - 제품 문서:
 - 관련 ADR:
 

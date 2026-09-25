@@ -40,7 +40,9 @@ status: proposed
 - `LinkEdge`는 `Document`에서 직접 mutation하는 entity가 아니라 Markdown body에서 파생되는 read model이다.
 - `SyncStatus`는 application/UI state이며 `DocumentState`가 아니다.
 - `Document`는 `Folder` subtype이 아니고, `Folder`도 `Document` subtype이 아니다.
-- ADR-0009 이후 열린 문서의 editable title/body/properties는 Yjs document가 write source of truth다. Postgres `documents`와 `document_properties` rows는 product read projection이며 domain SOT가 아니다.
+- 현재 구현: body는 Yjs로 협업 편집하고, title/properties는 product API로 Postgres에 직접 저장한다.
+  ADR-0009(proposed, 미확정)는 title/properties까지 Yjs를 write source of truth로 두자고 제안하지만,
+  데이터 권위 모델 ADR이 확정되기 전까지 규칙으로 인용하지 않는다.
 
 ## 관계 스케치
 

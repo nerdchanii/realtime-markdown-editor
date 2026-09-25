@@ -41,4 +41,4 @@ status: active
 
 ## 보류된 제품 아이디어
 
-보류 항목은 `docs/requirements/backlog/`의 ID별 파일에 둔다. 단, 이미 domain model foundation으로 선택된 항목은 product surface 문서에서도 설명할 수 있다.
+보류 항목은 `docs/archive/requirements/backlog/`의 ID별 파일에 둔다. 단, 이미 domain model foundation으로 선택된 항목은 product surface 문서에서도 설명할 수 있다.

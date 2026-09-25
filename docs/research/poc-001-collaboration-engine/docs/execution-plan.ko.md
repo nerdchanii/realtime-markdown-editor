@@ -46,7 +46,7 @@ related_requirements:
 
 현재 저장소는 제품 코드가 없는 문서 중심 스켈레톤이다. `docs/research/poc-001-collaboration-engine/`가 ADR-0002에서 지정한 연구 산출물 위치이며, POC 코드는 최종 제품 코드가 아니라 엔진 선택을 위한 격리된 연구 코드로 둔다.
 
-검증 기준의 최상위 지도는 `docs/compliance/subject-matrix.md`다. POC는 `CE-01` 동시 편집, `CE-02` cursor/selection presence, `CE-03` offline reconnect merge, `CE-05` rich/source/split preview 적합성에 대한 engine-selection evidence를 기록한다. Full CE-01/CE-02 acceptance는 product walking skeleton에서 이어서 검증한다. `CE-04` revision history는 final product 요구사항이지만, 이 POC에서는 collaboration artifact에서 explicit checkpoint snapshot을 추출할 수 있는지를 확인한다.
+검증 기준의 최상위 지도는 `docs/archive/compliance/subject-matrix.md`다. POC는 `CE-01` 동시 편집, `CE-02` cursor/selection presence, `CE-03` offline reconnect merge, `CE-05` rich/source/split preview 적합성에 대한 engine-selection evidence를 기록한다. Full CE-01/CE-02 acceptance는 product walking skeleton에서 이어서 검증한다. `CE-04` revision history는 final product 요구사항이지만, 이 POC에서는 collaboration artifact에서 explicit checkpoint snapshot을 추출할 수 있는지를 확인한다.
 
 Provider-specific 타입인 Yjs, Hocuspocus, Yorkie, ProseMirror, Tiptap은 domain/product API로 새면 안 된다. POC도 이 원칙을 확인하기 위해 shared adapter contract를 provider-neutral하게 유지한다.
 
