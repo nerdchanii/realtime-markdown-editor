@@ -17,3 +17,4 @@ ADR 로 만들 만큼 크지는 않지만 PR 이 끝난 뒤에도 남아야 하�
 | 2026-09-25 | 레거시 요구사항, CE, task 문서를 `docs/archive/` 로 옮기고 에이전트 기본 읽기 경로에서 제외한다 | G1 | user (슬림 재구성 지시) / agent:claude-code (세부 배치) | pending | 2026-10-02 | archive 문서를 자주 참조해야 하는 작업이 반복되면 | 단계 1 PR |
 | 2026-09-25 | `docs/research/` 는 active 문서지만 링크 검사에서는 제외한다(POC 원본 보존) | G1 | agent:claude-code | pending | 2026-10-02 | research 문서를 규칙 근거로 인용하게 되면 | 단계 1 PR |
 | 2026-09-25 | `scripts/with-node.sh` 는 `fnm` 이 없으면 PATH 의 Node 로 실행한다(cloud 에이전트 환경 대응) | G1 | agent:claude-code | pending | 2026-10-02 | Node 버전 불일치로 문제가 생기면 | 단계 1 PR |
+| 2026-09-25 | 미결 요구 21건을 1:1 로 옮기지 않고 결정 단위 추적 Issue 7개(#2–#8)로 묶는다. 과거 REQ 는 참고 자료로만 링크하고, Markdown 세부 기능 4건은 문서 타입 ADR 뒤에 다시 본다 | G1 | user (A안 선택) / agent:claude-code (분류) | user | - | 흡수한 REQ 가 결정 과정에서 누락되면 | Issue #2–#8 |
