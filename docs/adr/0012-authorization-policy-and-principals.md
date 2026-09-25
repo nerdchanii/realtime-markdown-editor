@@ -179,7 +179,7 @@ superseded_by: null
 - [user] 에이전트 principal:
   - delegated 와 member 두 유형을 둔다.
   - delegated 의 실효 권한은 교집합 규칙을 따른다.
-- [open] 문서 삭제와 복원(`content.delete`)을 editor 에게도 줄 것인가? 위 표는 현재 동작을 유지한 초안(editor 허용)이다.
+- [user] 문서 삭제와 복원(`content.delete`)은 **editor 도 할 수 있다**. 위 표를 확정한다.
 - [open] admin 이나 감사자 역할을 추가할 시점. 조직 요구가 생길 때 다시 본다.
 - [open] SSO 나 외부 IdP 연동 범위.
 
@@ -209,3 +209,4 @@ superseded_by: null
 | --- | --- | --- |
 | 2026-09-25 | 최초 제안 (proposed) | agent:claude-code |
 | 2026-09-25 | 역할 3개 + grant, 에이전트 두 유형으로 accepted. 세부 질문 3개는 open | user |
+| 2026-09-25 | 세부 결정: editor 에게 삭제와 복원 허용 | user |
