@@ -8,7 +8,7 @@ deciders:
 related_documents:
   - docs/product/README.md
   - docs/product/product-principles.md
-  - docs/compliance/feature-acceptance-map.md
+  - docs/archive/compliance/feature-acceptance-map.md
 ---
 
 # ADR-0008: 제품 기능을 사용자 흐름 중심으로 설명한다
@@ -27,7 +27,7 @@ related_documents:
 
 - `docs/product/**`는 사용자가 무엇을 할 수 있는지와 기능 간 연결을 설명한다.
 - `docs/product/product-principles.md`는 완료 gate가 아니라 제품 설명 원칙을 담는다.
-- `docs/compliance/feature-acceptance-map.md`는 요구사항 번호가 아니라 기능별 사용자 행동 확인 지도를
+- `docs/archive/compliance/feature-acceptance-map.md`는 요구사항 번호가 아니라 기능별 사용자 행동 확인 지도를
   제공한다.
 - 요구사항 ID와 테스트 ID는 추적과 자동화에만 사용하고, 제품 설명의 주어로 쓰지 않는다.
 - 보류된 기능은 미달 항목이 아니라 향후 확장 방향으로 설명한다.

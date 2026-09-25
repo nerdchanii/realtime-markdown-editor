@@ -43,7 +43,6 @@ function isPrettierTarget(file) {
   if (/^apps\/.+\.(ts|tsx|css|json|html)$/.test(file)) return true;
   if (/^packages\/.+\.ts$/.test(file)) return true;
   if (/^e2e\/.+\.ts$/.test(file)) return true;
-  if (/^tasks\/.+\.md$/.test(file)) return true;
   if (/^scripts\/.+\.mjs$/.test(file)) return true;
   return isRootFile(file) && hasExtension(file, ["json", "js", "mjs", "cjs", "yaml", "yml"]);
 }
@@ -83,6 +82,10 @@ function needsArchitectureCheck(file) {
     isWorkspacePackageFile(file) ||
     file === "pnpm-lock.yaml"
   );
+}
+
+function needsDocsCheck(file) {
+  return /\.md$/.test(file) || file === "scripts/check-docs.mjs";
 }
 
 function needsTest(file) {
@@ -131,6 +134,9 @@ function commandsFor(stagedFiles, prettierFiles, lintFiles) {
     "architecture boundary check",
     ["arch:check"],
   );
+  pushConditionalCommand(commands, stagedFiles.some(needsDocsCheck), "docs integrity check", [
+    "docs:check",
+  ]);
   pushConditionalCommand(commands, stagedFiles.some(needsTest), "workspace tests", ["test"]);
   return commands;
 }

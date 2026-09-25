@@ -30,7 +30,7 @@ related_documents:
   - docs/research/poc-001-collaboration-engine/docs/evidence.md
   - docs/research/poc-001-collaboration-engine/performance/performance-report.md
   - docs/research/poc-001-collaboration-engine/performance/headless-crdt-report.md
-  - docs/compliance/feature-acceptance-map.md
+  - docs/archive/compliance/feature-acceptance-map.md
 supersedes: []
 superseded_by: null
 ---
@@ -126,7 +126,7 @@ Headless CRDT-only benchmark에서는 두 후보 모두 충분히 빠르다. 현
 
 - `docs/research/poc-001-collaboration-engine` 기준 `pnpm test`가 통과해야 한다.
 - 필요하면 `pnpm typecheck`, `pnpm build`, `pnpm test:e2e:tiptap`, `POC_PERF_RUNS=3 pnpm bench:perf`, `pnpm bench:crdt`로 POC evidence를 재생성한다.
-- 제품 구현에서는 `docs/compliance/feature-acceptance-map.md`의 feature acceptance 기준으로 동작을 확인한다.
+- 제품 구현에서는 `docs/archive/compliance/feature-acceptance-map.md`의 feature acceptance 기준으로 동작을 확인한다.
 
 ## 관련 문서
 
@@ -135,7 +135,7 @@ Headless CRDT-only benchmark에서는 두 후보 모두 충분히 빠르다. 현
 - `docs/research/poc-001-collaboration-engine/docs/evidence.md`
 - `docs/research/poc-001-collaboration-engine/performance/performance-report.md`
 - `docs/research/poc-001-collaboration-engine/performance/headless-crdt-report.md`
-- `docs/compliance/feature-acceptance-map.md`
+- `docs/archive/compliance/feature-acceptance-map.md`
 - ADR-0001
 - ADR-0003
 - ADR-0004

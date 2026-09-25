@@ -18,7 +18,7 @@ related_requirements:
 related_documents:
   - subject.md
   - DESIGN.md
-  - docs/compliance/feature-acceptance-map.md
+  - docs/archive/compliance/feature-acceptance-map.md
   - docs/product/editor/rich-preview.md
 supersedes: []
 superseded_by: null
@@ -97,8 +97,8 @@ TipTap Markdown extension은 raw source UI가 아니라 Markdown 문자열과 Ti
 ## 관련 문서
 
 - `subject.md`
-- `docs/compliance/feature-acceptance-map.md`
-- `docs/requirements/registry.md`
+- `docs/archive/compliance/feature-acceptance-map.md`
+- `docs/archive/requirements/registry.md`
 - `docs/product/editor/rich-preview.md`
 - `DESIGN.md`
 

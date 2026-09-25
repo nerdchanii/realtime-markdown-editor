@@ -36,29 +36,31 @@ Realtime markdown editor 에서 Realtime editor(ADE 표면)로 가는 전환 계
 
 목표: 에이전트가 읽는 문서가 **짧고, 오해가 없고, 현재 사실과 일치**하게 한다.
 
-1. **결정 체계 확정** (G2, 사용자)
-   - G0/G1/G2 등급, 결정 frontmatter(`status`, `decided_by`, `gate`, `revisit_if`, `evidence`),
-     추인 기한과 방식을 확정한다.
-   - 확정 결과를 첫 ADR 로 남긴다.
-2. **AGENTS.md 재작성** (G1)
-   - 약 100줄 이내의 "지도"로 만든다.
-   - subject/CE 대신 제품 정의와 인터뷰 기록을 가리킨다.
-   - 반드시 지킬 규칙은 문서가 아니라 hook 과 CI 로 옮긴다.
-3. **레거시 격리** (G1)
-   - 다음을 `docs/archive/` 로 옮긴다: `subject.md` 참조, `docs/compliance/`, CE 요구사항,
-     `tasks/archive`, `tasks/exec-plan`, `docs/requirements/**`.
-   - 에이전트가 기본으로 읽는 경로에서 제외한다. 이력은 git 에 남는다.
-4. **작업 기록 이전** (G0)
-   - 진행 중이거나 보류 중인 요구(backlog, items)를 GitHub Issue 로 옮긴다.
-   - `tasks/` 를 제거한다.
-   - PR 을 마무리할 때 지속되는 결정을 decision log 로 승격하는 규칙을 둔다.
-5. **사실 불일치 정리** (G0)
-   - ADR-0009 가 `proposed` 인데 domain 문서가 확정 사실로 인용하는 문제를 고친다.
-   - 존재하지 않는 경로 참조(`tasks/todo/`, `docs/backlog/`, `subject.md`)를 고친다.
-6. **기계 검증** (G0)
-   - `proposed` 인용 금지와 깨진 링크를 검사하는 docs lint 를 추가한다.
-   - 제품 경로의 mock/seed import 를 금지하는 lint 를 추가한다.
-   - CI(GitHub Actions)에서 `pnpm check` 를 돌린다. `prisma generate` 자동화도 포함한다.
+진행 상황 (2026-09-25):
+
+1. [x] **결정 체계 확정** (G2): 사용자가 G0/G1/G2 를 채택했다(2026-09-25).
+   `docs/adr/0010-decision-gates-and-provenance.md`, `docs/direction/decision-log.md`, ADR 템플릿에 반영했다.
+2. [x] **AGENTS.md 재작성** (G1): 제품 정의, 결정 규칙, 과거 실패에서 나온 작업 규칙, 검증 명령,
+   문서 지도로 구성했다.
+3. [x] **레거시 격리** (G1, 사용자가 슬림 재구성을 지시)
+   - `tasks/`, `docs/requirements/`, `docs/compliance/` 를 `docs/archive/` 로 옮겼다.
+   - active 문서의 경로 참조를 갱신했다. `ARCHITECTURE.md` 에서 subject framing 을 걷어냈다.
+   - 과거 ADR 본문은 당시 기록이므로 고치지 않았다.
+4. [ ] **작업 기록 이전** (G0)
+   - [x] `tasks/` 를 저장소 작업 경로에서 뺐다.
+   - [x] PR 의 "Decisions" 섹션과 decision log 승격 규칙을 두었다.
+   - [ ] 미결 요구(archive 된 items 2건, backlog 19건)를 GitHub Issue 로 옮긴다. 많은 항목이 과거
+     Markdown 제품 framing 이라 그대로 옮기면 낡은 맥락이 퍼진다. 어떤 항목을 옮길지 사용자 확인이 필요하다.
+5. [x] **사실 불일치 정리** (G0)
+   - `docs/domain/models/document.md` 의 ADR-0009(proposed) 확정 인용을 현재 구현 기준으로 고쳤다.
+   - 존재하지 않는 경로 참조를 정리했다.
+6. [x] **기계 검증** (G0)
+   - `pnpm docs:check`: 깨진 링크, ADR 형식과 게이트, proposed 인용을 검사한다. pre-commit 과 `pnpm check` 에 포함된다.
+   - ESLint mock/seed/fixture/fake import 금지(ratchet):
+     - 현재 위반 4개 파일만 허용 목록에 있다(UI-GAP-013).
+     - 새 위반은 막힌다. 제거는 후속 작업이다.
+   - GitHub Actions CI: `pnpm install`, `pnpm db:generate`, `pnpm check`
+   - `scripts/with-node.sh` 는 `fnm` 이 없어도 동작한다.
 
 ## 단계 2. 제품 정의 문서
 

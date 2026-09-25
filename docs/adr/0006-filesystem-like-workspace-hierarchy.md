@@ -20,7 +20,7 @@ related_requirements:
   - REQ-PLATFORM-PORTABILITY-GUARDRAIL
 related_documents:
   - subject.md
-  - docs/requirements/registry.md
+  - docs/archive/requirements/registry.md
   - docs/domain/README.md
   - docs/domain/glossary.md
   - docs/domain/models/workspace.md
@@ -177,7 +177,7 @@ Project를 folder tree child로 넣지 않고 Workspace-owned grouping entity로
 
 ## 관련 문서
 
-- 요구사항: `docs/requirements/registry.md`
+- 요구사항: `docs/archive/requirements/registry.md`
 - 제품 문서: `docs/product/workspace/workspace-hierarchy.md`
 - 도메인 문서: `docs/domain/glossary.md`, `docs/domain/models/workspace.md`, `docs/domain/models/document.md`, `docs/domain/relations/workspace-document.md`
 - 관련 ADR: ADR-0001, ADR-0005

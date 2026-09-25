@@ -46,7 +46,7 @@ The engine-selection work is complete when both candidates can be run locally, c
 
 The repository currently contains documentation, not product application code. `docs/research/poc-001-collaboration-engine/` is the research artifact location named by ADR-0002, so POC code lives there as isolated research code rather than final product code.
 
-The top-level validation map is `docs/compliance/subject-matrix.md`. The POC gathers engine-selection evidence for `CE-01` concurrent editing, `CE-02` cursor/selection presence, `CE-03` offline reconnect merge, and `CE-05` rich/source/split preview suitability. Full CE-01/CE-02 acceptance remains part of the product walking skeleton. `CE-04` revision history is a final product requirement; in this POC it is represented by explicit checkpoint snapshot extraction from each collaboration artifact.
+The top-level validation map is `docs/archive/compliance/subject-matrix.md`. The POC gathers engine-selection evidence for `CE-01` concurrent editing, `CE-02` cursor/selection presence, `CE-03` offline reconnect merge, and `CE-05` rich/source/split preview suitability. Full CE-01/CE-02 acceptance remains part of the product walking skeleton. `CE-04` revision history is a final product requirement; in this POC it is represented by explicit checkpoint snapshot extraction from each collaboration artifact.
 
 Provider-specific types such as Yjs, Hocuspocus, Yorkie, ProseMirror, and Tiptap must not leak into domain/product APIs. The POC checks this by keeping the shared adapter contract provider-neutral.
 

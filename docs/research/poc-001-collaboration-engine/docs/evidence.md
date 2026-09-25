@@ -17,7 +17,7 @@ status: measured-with-open-manual-items
 - Members: Alice, Bob.
 - Offline token: `OFFLINE_ALICE_TOKEN`.
 - Online token: `ONLINE_BOB_TOKEN`.
-- 평가 기준: ADR-0002, `docs/execution-plan.md`, `docs/compliance/subject-matrix.md`.
+- 평가 기준: ADR-0002, `docs/execution-plan.md`, `docs/archive/compliance/subject-matrix.md`.
 
 ## 실행 로그
 
