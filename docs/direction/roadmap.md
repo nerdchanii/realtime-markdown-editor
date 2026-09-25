@@ -96,6 +96,10 @@ ADR 은 에이전트가 비교안과 추천안을 `proposed` 로 작성하고, �
 - 권한: [ADR-0012](../adr/0012-authorization-policy-and-principals.md) **accepted** (2026-09-25).
   - 단일 policy, `owner/admin/editor/viewer` + 자원 grant(다음 단계), 사람과 에이전트 principal 구분.
   - SSO 는 나중에 한다.
+- 문서 타입: [ADR-0013](../adr/0013-document-type-model.md) **accepted** (2026-09-25).
+  - 첫 타입은 `markdown` 이다. Markdown 텍스트(`Y.Text`)가 정본이고, CodeMirror 라이브 프리뷰로 편집한다.
+  - 두 번째 타입은 `code` 다. rich-text 는 보류한다.
+  - ADR-0007 을 대체한다.
 
 ## 단계 4. 코드 방향 결정과 policy 기반 수정
 
