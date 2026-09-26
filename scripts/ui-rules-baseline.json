@@ -80,6 +80,7 @@
   },
   "apps/web/src/styles/global.css": {
     "ui/no-box-border": 22,
+    "ui/no-box-border-utility": 2,
     "ui/no-hardcoded-color": 72
   }
 }

@@ -87,9 +87,10 @@ superseded_by: null
   - 기준 스크린샷은 `docs/design/current-ui/` 에 있다. 화면이 바뀌면 이 기준도 갱신한다.
 - **lint**: `pnpm ui:check`(`scripts/check-ui-rules.mjs`)가 두 규칙을 검사한다. pre-commit, `pnpm check`, CI 에서 모두 실행된다.
   - `ui/no-box-border`: `border:` shorthand 로 네 변을 모두 두르는 선언
+  - `ui/no-box-border-utility`: 같은 박스를 Tailwind `border`, `border-2`, `border-[..]` utility 로 두르는 것. `@apply` 나 class 문자열 안에서 검사한다.
   - `ui/no-hardcoded-color`: CSS/SCSS 변수 정의 밖의 hex 나 rgb 색
 - [agent] lint 는 ratchet 이다.
-  - 지금 있는 위반 186건은 파일별 baseline(`scripts/ui-rules-baseline.json`)에 기록했다.
+  - 지금 있는 위반 188건은 파일별 baseline(`scripts/ui-rules-baseline.json`)에 기록했다.
   - 어떤 파일도 baseline 을 넘을 수 없고, 새 파일은 0건에서 시작한다.
   - baseline 은 낮추는 방향(`--update-baseline`)으로만 갱신된다.
   - 정당한 예외는 해당 줄에 `ui-allow: <이유>` 주석을 단다. 리뷰에서 이유를 확인한다.
@@ -106,7 +107,7 @@ superseded_by: null
   - 이전 상세 명세(v0.3.2)는 `docs/archive/design/DESIGN-v0.3.2.md` 로 옮긴다.
   - 편집 화면은 ADR-0013(CodeMirror 라이브 프리뷰)을 따른다.
 - 현재 화면의 위반은 이 ADR 기준의 UI 결함으로 Issue 에 기록한다. 화면 단위 PR 로 고친다.
-- baseline 위반 186건은 해당 화면을 고칠 때 줄여 나간다.
+- baseline 위반 188건은 해당 화면을 고칠 때 줄여 나간다.
 
 ## 변경 이력
 

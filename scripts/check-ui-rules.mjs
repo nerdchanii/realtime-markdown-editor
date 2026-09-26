@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 // Enforces machine-checkable UI rules from ADR-0014 as a ratchet:
 // - ui/no-box-border: a full `border:` shorthand boxes an element. Regions are separated by
 //   background and spacing; only side dividers (border-top/right/bottom/left) are allowed.
+// - ui/no-box-border-utility: the same box drawn with Tailwind `border` utilities.
 // - ui/no-hardcoded-color: hex/rgb colors outside CSS custom property definitions break theming.
 // Existing violations are recorded per file in the baseline. A file may never exceed its baseline,
 // and new files start at zero. `--update-baseline` may only lower counts; `--init-baseline` works
@@ -16,11 +17,18 @@ const baselinePath = join(repoRoot, "scripts/ui-rules-baseline.json");
 const sourceFile = /\.(css|scss|ts|tsx)$/;
 const skippedFile = /\.(test|spec)\.tsx?$/;
 const allowComment = /ui-allow:/;
+const utilityContext = /@apply|className|\bclass=|\bcn\(|\bclsx\(/;
 
 const rules = {
   "ui/no-box-border": (line) =>
     (line.match(/(?<![-\w])border\s*:\s*["'`]?(?!\s*(?:0|none|transparent)\b)[^;,\n}]+/g) ?? [])
       .length,
+  // Tailwind `border`, `border-2`, `border-[1px]` draw all four sides. Side utilities (`border-b`)
+  // and `border-0` stay allowed; color utilities (`border-rme-border`) are not counted on their own.
+  "ui/no-box-border-utility": (line) =>
+    utilityContext.test(line)
+      ? (line.match(/(?<![-\w:$.])border(?:-(?:[1-8]|\[[^\]]*\]))?(?![-\w:])/g) ?? []).length
+      : 0,
   "ui/no-hardcoded-color": (line) =>
     /(--|\$)[\w-]+\s*:/.test(line) ? 0 : (line.match(/#[0-9a-fA-F]{3,8}\b|rgba?\(/g) ?? []).length,
 };
@@ -51,7 +59,9 @@ function scan() {
     const counts = Object.fromEntries(
       Object.entries(countViolations(path)).filter(([, count]) => count > 0),
     );
-    if (Object.keys(counts).length > 0) result[relative(repoRoot, path)] = counts;
+    if (Object.keys(counts).length > 0) {
+      result[relative(repoRoot, path).replaceAll("\\", "/")] = counts;
+    }
   }
   return result;
 }

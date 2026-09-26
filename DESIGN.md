@@ -23,7 +23,7 @@ UI 작업을 하기 전에 이 문서를 읽는다. 결정의 근거와 출처�
 1. **요소를 테두리 박스나 card 로 감싸지 않는다.**
    - 영역은 배경 톤과 여백으로 구분한다.
    - 테두리는 패널 사이 경계선 1px(`border-top/right/bottom/left`)까지만 쓴다.
-   - `border:` shorthand 는 금지다. (`ui/no-box-border`)
+   - `border:` shorthand 와 Tailwind 의 네 변 `border` utility 는 금지다. (`ui/no-box-border`, `ui/no-box-border-utility`)
 2. **색은 theme token 으로만 쓴다.** hex 나 rgb 를 직접 쓰지 않는다. (`ui/no-hardcoded-color`)
 3. 요청하지 않은 기능, 섹션, 장식을 추가하지 않는다.
 4. 동작하지 않는 기능을 동작하는 것처럼 보여주지 않는다. 기능이 없으면 명시적인 빈 상태를 보여준다.
