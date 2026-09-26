@@ -256,7 +256,8 @@ for (const file of legacyScssFiles) {
 
 // UI-006 (ADR-0015): Tailwind is imported once, with automatic source detection turned off.
 const tailwindEntry = "apps/web/src/styles/global.css";
-const tailwindImport = /@import\s+["']tailwindcss["'][^;]*;/g;
+// Any Tailwind entry point counts: the package, its subpaths (`tailwindcss/utilities.css`) and url() form.
+const tailwindImport = /@import\s+(?:url\(\s*)?["']?tailwindcss(?:\/[^"')\s]*)?["']?\s*\)?[^;]*;/g;
 for (const file of styleFiles) {
   const imports = readFileSync(file, "utf8").match(tailwindImport) ?? [];
   const expected = file === tailwindEntry ? ['@import "tailwindcss" source(none);'] : [];

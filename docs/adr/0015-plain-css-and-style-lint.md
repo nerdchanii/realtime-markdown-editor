@@ -72,11 +72,11 @@ superseded_by: null
 | id | 규칙 | 강제 방법 |
 | --- | --- | --- |
 | UI-001 | border 폭과 스타일은 0/none 만 허용한다. 레이아웃 CSS 에서는 한쪽 변 shorthand `border-<side>: 1px solid var(--token)` 만 허용하고(변별 longhand 는 금지), 에디터 본문 CSS 에서는 제한하지 않는다. | Stylelint `declaration-property-value-disallowed-list`, `property-disallowed-list` |
-| UI-002 | 가짜 border 를 막는다. `box-shadow`, `outline`, `background-image` 는 `none` 이나 token(`var(--…)`)만 쓰고, gradient 함수는 token 파일에서만 쓴다. | Stylelint `declaration-property-value-allowed-list`, `function-disallowed-list` |
+| UI-002 | 가짜 border 를 막는다. `box-shadow`, `outline`, `background-image` 는 `none` 이나 token(`var(--…)`)만 쓴다. gradient 함수와 `url()` 은 token 파일에서만 쓴다(`url()` 은 색과 선을 담은 이미지를 끼워 넣을 수 있다). | Stylelint `declaration-property-value-allowed-list`, `function-disallowed-list` |
 | UI-003 | 색 literal(hex, 이름 색, 색 함수)은 token 파일(`apps/web/src/styles/tokens.css`)에서만 쓴다. | Stylelint `color-no-hex`, `color-named`, `function-disallowed-list` |
 | UI-004 | `@apply` 를 쓰지 않는다. | Stylelint `at-rule-disallowed-list` |
-| UI-005 | inline `style` 은 `--name` custom property 만 넘긴다. | ESLint `no-restricted-syntax`(AST selector) |
-| UI-006 | Tailwind 가 TSX 에서 utility 를 만들지 않는다. Tailwind import 는 `global.css` 의 `source(none)` 한 곳뿐이고, utility 를 다시 켜는 `@source`, `@plugin`, `@config` 는 쓰지 않는다. | `pnpm arch:check`, Stylelint `at-rule-disallowed-list` |
+| UI-005 | inline `style` 은 `--name` custom property 만 넘긴다. 코드에서 DOM 스타일을 직접 쓰지 않는다(`el.style.x =`, `cssText`, `setAttribute("style")`, `Object.assign(el.style)`). 값은 `style.setProperty("--name", v)` 로만 넘긴다. | ESLint `no-restricted-syntax`(AST selector) |
+| UI-006 | Tailwind 가 TSX 에서 utility 를 만들지 않는다. Tailwind import(패키지, 하위 경로, `url()` 형태 포함)는 `global.css` 의 `source(none)` 한 곳뿐이고, utility 를 다시 켜는 `@source`, `@plugin`, `@config` 는 쓰지 않는다. | `pnpm arch:check`, Stylelint `at-rule-disallowed-list` |
 | UI-007 | 새 SCSS 파일을 만들지 않는다. `apps/web` 전체를 검사하고, 지금 있는 SCSS 파일 26개만 목록으로 허용한다. 파일을 지우면 목록에서도 뺀다. | `pnpm arch:check` |
 
 - **기존 위반은 bulk suppression 으로 기록하는 ratchet 이다.**

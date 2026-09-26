@@ -34,7 +34,7 @@ const layoutBorderLonghands = [
 const tokenOnlySurfaces = {
   "box-shadow": ["none", tokenValue],
   "/^outline(-style|-width)?$/": ["none", "0", tokenValue],
-  "background-image": ["none", tokenValue, "/^url\\(/"],
+  "background-image": ["none", tokenValue],
 };
 
 // UI-002 (gradients) and UI-003 (color functions).
@@ -65,7 +65,8 @@ export default {
     "declaration-property-value-disallowed-list": noBorders, // UI-001
     "property-disallowed-list": ["/^border-image/"], // UI-001
     "declaration-property-value-allowed-list": tokenOnlySurfaces, // UI-002
-    "function-disallowed-list": [...gradientFunctions, ...colorFunctions], // UI-002, UI-003
+    // url() can embed images with colors and drawn borders; assets come in through tokens.
+    "function-disallowed-list": [...gradientFunctions, ...colorFunctions, "url"], // UI-002, UI-003
     "color-no-hex": true, // UI-003
     "color-named": "never", // UI-003
     // UI-004: no @apply. UI-006: no directive that makes Tailwind generate utilities again.

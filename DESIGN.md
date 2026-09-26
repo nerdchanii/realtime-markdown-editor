@@ -40,11 +40,11 @@ lint 설정의 규칙 id 와 이 표는 `pnpm docs:check` 가 대조한다.
 | id | 규칙 | 강제 |
 | --- | --- | --- |
 | UI-001 | border 는 위의 두 곳에서만 쓴다. | Stylelint |
-| UI-002 | `box-shadow`, `outline`, `background-image` 는 `none` 이나 `var(--token)` 만 쓴다. gradient 는 token 파일에서만 쓴다. 가짜 border 를 막기 위한 규칙이다. | Stylelint |
+| UI-002 | `box-shadow`, `outline`, `background-image` 는 `none` 이나 `var(--token)` 만 쓴다. gradient 와 `url()` 은 token 파일에서만 쓴다. 가짜 border 를 막기 위한 규칙이다. | Stylelint |
 | UI-003 | 색 literal(hex, 이름 색, 색 함수)은 token 파일에서만 쓴다. | Stylelint |
 | UI-004 | `@apply` 를 쓰지 않는다. | Stylelint |
-| UI-005 | inline `style` 은 `--name` custom property 만 넘긴다. | ESLint |
-| UI-006 | Tailwind 는 TSX 에서 utility 를 만들지 않는다(`source(none)`). `@source`, `@plugin`, `@config` 를 쓰지 않는다. | `pnpm arch:check`, Stylelint |
+| UI-005 | inline `style` 과 코드의 DOM 스타일(`el.style.x =` 등)은 `--name` custom property 만 넘긴다. | ESLint |
+| UI-006 | Tailwind 는 TSX 에서 utility 를 만들지 않는다(`source(none)`). Tailwind import 는 한 곳뿐이고, `@source`, `@plugin`, `@config` 를 쓰지 않는다. | `pnpm arch:check`, Stylelint |
 | UI-007 | 새 SCSS 파일을 만들지 않는다. | `pnpm arch:check` |
 
 - 기존 위반은 `stylelint-suppressions.json`, `eslint-suppressions.json` 에 기록되어 있다. 기록은 줄이는 방향으로만 바뀐다.

@@ -59,6 +59,11 @@
       "count": 1
     }
   },
+  "apps/web/src/features/editor/adapters/tiptap-yjs-runtime.ts": {
+    "no-restricted-syntax": {
+      "count": 6
+    }
+  },
   "apps/web/src/features/editor/index.tsx": {
     "no-restricted-syntax": {
       "count": 56
