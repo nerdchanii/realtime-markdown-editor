@@ -21,6 +21,7 @@ Domain docs는 구현이 지켜야 할 제품 언어와 계약을 정의한다. 
 7. `docs/domain/models/checkpoint.md`
 8. `docs/domain/models/document-property.md`
 9. `docs/domain/models/document-state.md`
+9a. `docs/domain/models/workflow.md` (목표 모델, ADR-0017)
 10. `docs/domain/projections/link-edge.md`
 11. `docs/domain/relations/user-workspace.md`
 12. `docs/domain/relations/workspace-document.md`
@@ -40,7 +41,7 @@ Domain meaning 변경은 민감하다. Entity responsibility, relationship meani
 
 | 분류                          | 모델                                                                                                   |
 | ----------------------------- | ------------------------------------------------------------------------------------------------------ |
-| Entity/Aggregate              | `Workspace`, `Project`, `Folder`, `Document`, `User`, `WorkspaceMembership`, `Checkpoint`. 목표 모델에서는 `LocalUser`, `Agent` 가 추가된다(ADR-0012). |
+| Entity/Aggregate              | `Workspace`, `Project`, `Folder`, `Document`, `User`, `WorkspaceMembership`, `Checkpoint`. 목표 모델에서는 `LocalUser`, `Agent` 가 추가된다(ADR-0012). `Workflow`, `WorkflowRun` 도 추가된다(ADR-0017). |
 | Document-owned child/value    | `DocumentProperty`                                                                                     |
 | Value/state                   | `FolderKind`, `DocumentState`, `WorkspaceMembershipRole`                                               |
 | Derived projection/read model | `LinkEdge`, workspace/project/folder/document navigation projection                                    |

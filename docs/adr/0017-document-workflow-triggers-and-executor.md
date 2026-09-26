@@ -226,9 +226,12 @@ superseded_by: null
 
 ### 후속 작업 (문서)
 
-- `docs/domain/models/document-state.md`: 정본 위치, 전환 권한, 이벤트 규칙을 반영한다.
-- `docs/domain/`: Workflow, WorkflowRun, outbox 이벤트 모델을 추가한다. domain model 변경이므로 plan 과 함께 진행한다.
-- `docs/architecture/`: 실행기 프로세스와 outbox 흐름을 추가한다.
+accepted 와 함께 반영했다(2026-09-27).
+
+- [`docs/domain/models/document-state.md`](../domain/models/document-state.md): 정본 위치, 전환 권한, 이벤트 규칙
+- [`docs/domain/models/workflow.md`](../domain/models/workflow.md): Workflow, WorkflowRun, 인과 정보
+- [`docs/domain/glossary.md`](../domain/glossary.md): DocumentState, Workflow, WorkflowRun
+- [`docs/architecture/backend.md`](../architecture/backend.md): 실행기 프로세스와 outbox 흐름
 
 ### 트레이드오프
 
@@ -259,3 +262,4 @@ superseded_by: null
 | 2026-09-26 | 최초 작성 (proposed). 워크플로우 분리, 주인과 트리거 선언, 전환 권한, DocumentState 를 DB 로, 연쇄 허용, 별도 실행기 | user (방향 6 항목) / agent:claude-code (세부 설계와 추천) |
 | 2026-09-26 | 세부 질문 1–9 를 모두 추천안대로 확정하고 accepted 로 바꿨다. 상태 모델은 draft/review/saved 고정. 추천이 명시되지 않은 부분(Q1 추가 시점, Q2 guard 위치, Q3 action, Q5 변경 가능 여부, Q8)은 초안에 가장 가까운 안을 택했다 | user |
 | 2026-09-26 | Q8 정정: local 문서도 상태를 지원한다. 상태 정본은 데이터 정본(ADR-0011)을 따르며 local 은 기기 저장소의 문서 레코드(Y.Doc 밖)다. 같은 use case 를 local adapter 로 실행하고, 권한은 항상 허용, outbox 와 워크플로우는 없다. 승격 때 상태를 옮기되 트리거하지 않는다 | user |
+| 2026-09-27 | 활성 domain·architecture 문서(document-state, workflow 신규, glossary, backend)를 accepted 모델에 맞췄다(Codex 리뷰 반영) | user |

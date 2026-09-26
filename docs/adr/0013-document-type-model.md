@@ -70,7 +70,9 @@ partially_superseded_by: ADR-0017
   | `meta` (Y.Map) | core | title, properties. 모든 타입에 공통이다. ~~DocumentState~~ 는 2026-09-26 개정으로 뺐다(아래 참고). |
   | `content` | 타입 | 본문. markdown 과 code 는 `Y.Text` 다. 앞으로의 rich-text 는 Y.XmlFragment, canvas 와 table 은 Y.Map/Y.Array 다. |
 
-- **개정 (2026-09-26, [user])**: `DocumentState` 는 `meta` 에 두지 않고 Y.Doc 밖(DB)에 둔다. 상태 변경은 API use case 로만 하고, 권한 판정과 이벤트 기록을 그곳에서 한다. 근거와 세부는 [ADR-0017](0017-document-workflow-triggers-and-executor.md)(accepted 2026-09-26)에 있다.
+- **개정 (2026-09-26, [user])**: `DocumentState` 는 `meta` 에 두지 않고 Y.Doc 밖의 문서 레코드에 둔다. 근거와 세부는 [ADR-0017](0017-document-workflow-triggers-and-executor.md) §4 (accepted 2026-09-26)에 있다.
+  - 정본 위치는 범위별 권위(ADR-0011)를 따른다. server 범위는 DB, local 범위는 기기 저장소(IndexedDB)의 문서 레코드다.
+  - 상태 변경은 `ChangeDocumentState` use case 로만 한다. server 범위는 DB adapter 로 실행하고 권한 판정과 outbox 기록을 그곳에서 한다. local 범위는 local 저장 adapter 로 실행하며 서버나 계정이 필요 없다.
 - **core 가 제공하는 것**: 권한(ADR-0012), sync 와 persistence, presence, history 와 checkpoint, 범위와 권위(ADR-0011), 목록과 트리.
   core 는 타입을 모른다.
 - **type module 이 제공하는 것**
@@ -155,3 +157,4 @@ partially_superseded_by: ADR-0017
 | 2026-09-26 | 배포 전이므로 migration 하지 않고 개발 데이터를 버린 뒤 새 구조로 다시 생성한다. 이전 migration 설계를 대체한다 | user |
 | 2026-09-26 | checkpoint 는 type 을 표시한 snapshot 을 쓴다. 타입별 snapshot 계약이 정의되기 전에는 그 타입을 출시하지 않는다(Codex 리뷰 반영) | agent:claude-code |
 | 2026-09-26 | `DocumentState` 를 `meta` 에서 빼고 DB 에 둔다(ADR-0017) | user |
+| 2026-09-27 | 개정문을 ADR-0017 §4 에 맞춰 범위별로 고쳤다. local 범위는 기기 저장소 레코드와 local adapter 를 쓴다(Codex 리뷰 반영) | user |
