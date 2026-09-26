@@ -84,8 +84,7 @@ lint 설정의 규칙 id 와 이 표는 `pnpm docs:check` 가 대조한다.
   - 서식은 인라인으로 렌더링한다. 커서가 있는 줄에서만 Markdown 기호가 드러난다.
   - Tiptap WYSIWYG toolbar 는 목표 모델에 없다. 서식 명령은 단축키, 명령 팔레트, 필요할 때 나타나는 작은 도구로 제공한다. [agent G1]
 - 본문은 가운데 정렬된 읽기 좋은 폭(약 760px)을 쓴다. 본문을 card 로 감싸지 않는다.
-- 문서 제목은 본문의 첫 H1 이다. 제목 입력칸을 본문 밖에 따로 두지 않는다. [user]
-- properties 와 상태는 본문 밖 문서 헤더에 둔다. frontmatter 를 본문 텍스트로 보여주지 않는다.
+- title, properties, 상태는 본문 밖 문서 헤더에 둔다. frontmatter 를 본문 텍스트로 보여주지 않는다.
 
 ## 6. 멀티플레이어 (Figma)
 

@@ -4,16 +4,18 @@ import { test } from "node:test";
 import * as Y from "yjs";
 
 import { markdownContent, markdownType } from "../types/markdown/module";
-import { initDocument, readMeta, snapshotDocument } from "./document";
+import { initDocument, readMeta, setTitle, snapshotDocument } from "./document";
 
 test("a new markdown document has core meta and a Y.Text content root", () => {
   const doc = new Y.Doc();
   initDocument(doc, markdownType, new Date("2026-09-26T00:00:00Z"));
   markdownContent(doc).insert(0, "# Hello");
+  setTitle(doc, "Notes");
 
   assert.deepEqual(readMeta(doc), {
     type: "markdown",
     schemaVersion: 1,
+    title: "Notes",
     createdAt: "2026-09-26T00:00:00.000Z",
   });
   assert.deepEqual(snapshotDocument(doc, markdownType), {
@@ -21,7 +23,6 @@ test("a new markdown document has core meta and a Y.Text content root", () => {
     schemaVersion: 1,
     content: "# Hello",
   });
-  assert.equal(markdownType.title(doc), "Hello");
 });
 
 test("the document is plain Yjs state that a sync provider can carry unchanged", () => {

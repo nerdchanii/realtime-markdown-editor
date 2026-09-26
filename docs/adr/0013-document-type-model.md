@@ -66,7 +66,7 @@ superseded_by: null
 
   | Yjs 루트 | 담당 | 내용 |
   | --- | --- | --- |
-  | `meta` (Y.Map) | core | properties, DocumentState. 모든 타입에 공통이다. |
+  | `meta` (Y.Map) | core | title, properties, DocumentState. 모든 타입에 공통이다. |
   | `content` | 타입 | 본문. markdown 과 code 는 `Y.Text` 다. 앞으로의 rich-text 는 Y.XmlFragment, canvas 와 table 은 Y.Map/Y.Array 다. |
 
 - **core 가 제공하는 것**: 권한(ADR-0012), sync 와 persistence, presence, history 와 checkpoint, 범위와 권위(ADR-0011), 목록과 트리.
@@ -74,8 +74,7 @@ superseded_by: null
 - **type module 이 제공하는 것**
   - 에디터
   - `content` 스키마 버전과 migration
-  - projection: `toText`, `toMarkdown`(가능한 타입만), `extractLinks`, `title`
-  - 제목은 `meta` 에 저장하지 않고 `content` 에서 계산한다. `markdown` 은 본문의 첫 최상위 H1 이다. [user] 2026-09-26
+  - projection: `toText`, `toMarkdown`(가능한 타입만), `extractLinks`
 - **projection 은 서버에서도 계산할 수 있어야 한다.** 브라우저 API 에 의존하지 않는다.
 - **checkpoint snapshot 은 type 을 표시한다** — [agent] G1
   - 형태: `{ type, schemaVersion, content }`

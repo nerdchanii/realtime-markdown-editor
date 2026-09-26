@@ -63,7 +63,7 @@ export function App({ workspace }: AppProps) {
       );
     }
     return (
-      <DocumentView key={doc.guid}>
+      <DocumentView key={doc.guid} doc={doc}>
         <MarkdownEditor doc={doc} />
       </DocumentView>
     );
