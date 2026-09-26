@@ -73,10 +73,9 @@ Realtime markdown editor 에서 Realtime editor(ADE 표면)로 가는 전환 계
 2. [x] **UI 원칙** (G2 방향, G1 세부): [#7](https://github.com/nerdchanii/realtime-markdown-editor/issues/7)
    - [ADR-0014](../adr/0014-ui-principles.md) 를 accepted 로 결정했다(2026-09-26).
    - `DESIGN.md` 를 v0.4.0 으로 다시 썼다.
-   - `pnpm ui:check` ratchet 을 추가했다.
    - 현재 화면 기준 스크린샷을 `docs/design/current-ui/` 에 두었다.
    - 레퍼런스(Linear, Figma, Zed)는 이미지 보드 없이 텍스트 특징으로 정의한다([user] 2026-09-26).
-   - 금지 규칙은 lint(`ui:check`)와 스크린샷 before/after 로 강제한다.
+   - 금지 규칙은 스크린샷 before/after 로 확인한다. 정규식 lint 는 효과가 없어 제거했다([user]). 기계 검증 도구는 [#13](https://github.com/nerdchanii/realtime-markdown-editor/issues/13) 에서 정한다.
 
 ## 단계 3. 핵심 ADR (코드를 바꾸기 전에)
 

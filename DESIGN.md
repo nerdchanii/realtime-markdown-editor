@@ -18,13 +18,13 @@ UI 작업을 하기 전에 이 문서를 읽는다. 결정의 근거와 출처�
 
 ## 2. 절대 규칙
 
-위반하면 PR 을 받지 않는다. 앞의 두 규칙은 `pnpm ui:check` 가 자동으로 검사한다.
+위반하면 PR 을 받지 않는다. 앞의 두 규칙을 기계로 검사하는 방법은 [#13](https://github.com/nerdchanii/realtime-markdown-editor/issues/13) 에서 정한다. 그 전까지는 스크린샷 리뷰로 확인한다.
 
 1. **요소를 테두리 박스나 card 로 감싸지 않는다.**
    - 영역은 배경 톤과 여백으로 구분한다.
    - 테두리는 패널 사이 경계선 1px(`border-top/right/bottom/left`)까지만 쓴다.
-   - `border:` shorthand 와 Tailwind 의 네 변 `border` utility 는 금지다. (`ui/no-box-border`, `ui/no-box-border-utility`)
-2. **색은 theme token 으로만 쓴다.** hex, 색 함수, 이름 색(`white`), Tailwind palette(`bg-red-500`)를 직접 쓰지 않는다. (`ui/no-hardcoded-color`)
+   - [open] border 가 꼭 필요한 곳은 지정한 레이어에서 이유를 적은 예외 주석과 함께 쓰는 방식을 검토한다(#13).
+2. **색은 theme token 으로만 쓴다.** hex, 색 함수, 이름 색(`white`), Tailwind palette(`bg-red-500`)를 직접 쓰지 않는다.
 3. 요청하지 않은 기능, 섹션, 장식을 추가하지 않는다.
 4. 동작하지 않는 기능을 동작하는 것처럼 보여주지 않는다. 기능이 없으면 명시적인 빈 상태를 보여준다.
 5. mock, seed, 개발용 계정과 문구를 제품 화면에 노출하지 않는다.
@@ -89,6 +89,6 @@ UI 작업을 하기 전에 이 문서를 읽는다. 결정의 근거와 출처�
 
 1. 바꿀 화면 하나를 정한다. 한 PR 에서 한 화면을 다룬다.
 2. 변경 전 스크린샷을 찍는다. 다크와 라이트 둘 다 찍고, 기준은 `docs/design/current-ui/` 다.
-3. 변경한다. `pnpm ui:check` 를 통과해야 한다. 가능하면 그 화면의 baseline 위반을 줄인다.
+3. 변경한다. §2 절대 규칙을 지킨다.
 4. PR 에 변경 전후 스크린샷을 붙인다. 사용자 승인을 받은 뒤 다음 화면으로 넘어간다.
 5. 화면이 바뀌었으면 `docs/design/current-ui/` 의 해당 스크린샷을 갱신한다.
