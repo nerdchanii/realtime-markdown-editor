@@ -36,6 +36,8 @@ acceptance path만을 위해 축소해서 정의하지 않는다.
 
 ## 승격 조건
 
+> 승격 제안 (2026-09-26): 전환 정책, workflow executor, Agent 실행 hook 은 [ADR-0017](../../adr/0017-document-workflow-triggers-and-executor.md)(proposed)로 승격 중이다. 방향은 사용자 결정이고 세부는 확정 전이다.
+
 `DocumentState`는 현재 제품 범위에서 `Document`가 가진 value/state다. Workflow가 transition policy,
 ownership/visibility, external hook execution, reverse update를 요구할 때 별도 workflow capability나
 workflow executor로 승격한다.

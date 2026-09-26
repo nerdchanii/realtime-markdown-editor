@@ -21,6 +21,7 @@ supersedes:
   - ADR-0002 (editor integration 항목만. Yjs 와 Hocuspocus 결정은 유지)
   - ADR-0005 (기본 editor surface 조항만)
 superseded_by: null
+partially_superseded_by: ADR-0017
 ---
 
 # ADR-0013: 문서는 타입을 가지며, 첫 타입은 Markdown 텍스트가 정본인 markdown 문서다
@@ -66,9 +67,10 @@ superseded_by: null
 
   | Yjs 루트 | 담당 | 내용 |
   | --- | --- | --- |
-  | `meta` (Y.Map) | core | title, properties, DocumentState. 모든 타입에 공통이다. |
+  | `meta` (Y.Map) | core | title, properties. 모든 타입에 공통이다. ~~DocumentState~~ 는 2026-09-26 개정으로 뺐다(아래 참고). |
   | `content` | 타입 | 본문. markdown 과 code 는 `Y.Text` 다. 앞으로의 rich-text 는 Y.XmlFragment, canvas 와 table 은 Y.Map/Y.Array 다. |
 
+- **개정 (2026-09-26, [user])**: `DocumentState` 는 `meta` 에 두지 않고 Y.Doc 밖(DB)에 둔다. 상태 변경은 API use case 로만 하고, 권한 판정과 이벤트 기록을 그곳에서 한다. 근거와 세부는 [ADR-0017](0017-document-workflow-triggers-and-executor.md)(proposed, 이 항목은 사용자 결정)에 있다.
 - **core 가 제공하는 것**: 권한(ADR-0012), sync 와 persistence, presence, history 와 checkpoint, 범위와 권위(ADR-0011), 목록과 트리.
   core 는 타입을 모른다.
 - **type module 이 제공하는 것**
@@ -152,3 +154,4 @@ superseded_by: null
 | 2026-09-25 | migration 에 client 버전 gate, legacy draft 복구, legacy 루트 호환 기간을 추가(Codex 리뷰 반영, G1) | agent:claude-code |
 | 2026-09-26 | 배포 전이므로 migration 하지 않고 개발 데이터를 버린 뒤 새 구조로 다시 생성한다. 이전 migration 설계를 대체한다 | user |
 | 2026-09-26 | checkpoint 는 type 을 표시한 snapshot 을 쓴다. 타입별 snapshot 계약이 정의되기 전에는 그 타입을 출시하지 않는다(Codex 리뷰 반영) | agent:claude-code |
+| 2026-09-26 | `DocumentState` 를 `meta` 에서 빼고 DB 에 둔다(ADR-0017) | user |

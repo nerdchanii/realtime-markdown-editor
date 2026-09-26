@@ -51,6 +51,8 @@ First skeleton에서 `DocumentState`는 `Document`가 가진 value/state이며 `
 
 Workflow transition policy, publish/draft visibility, ownership-based visibility, external hook execution, reverse update가 필요해지면 별도 workflow capability 또는 workflow executor로 승격한다.
 
+> **승격 (2026-09-26, [user])**: 전환 정책(권한으로 제한), 워크플로우 hook(주인과 트리거 선언), Agent 실행, workflow executor 를 [ADR-0017](0017-document-workflow-triggers-and-executor.md)(proposed)로 승격했다. 방향은 사용자 결정이고 세부는 ADR-0017 에서 정한다. publish/draft visibility 와 ownership-based visibility 는 여전히 보류다.
+
 ## 후보안
 
 ### 1. DocumentState foundation + hooks deferred
@@ -117,3 +119,4 @@ DocumentState는 지금 깊게 구현하지 않더라도 도메인 경계로 중
 | 2026-04-28 | 최초 작성 | nerdchanii |
 | 2026-04-28 | DocumentState foundation과 deferred hooks 정책으로 재정리 | nerdchanii |
 | 2026-04-29 | TF architecture review에 따라 accepted로 승격하고 review bypass/direct state change 원칙 명시 | nerdchanii |
+| 2026-09-26 | 전환 정책, hook, executor 를 ADR-0017(proposed)로 승격했다는 표시 추가 | user |
