@@ -14,8 +14,8 @@ status: active
 | Folder                  | workspace 또는 project owner scope 안에서 document와 하위 folder를 담는 containment node. Document subtype이 아니다.                |
 | FolderKind              | `workspaceRoot`, `projectRoot`, `regular`, `inbox`로 folder policy를 구분하는 value.                                                |
 | Folder path             | Folder tree에서 파생되는 read-model/projection. source of truth가 아니다.                                                           |
-| Document                | 협업 가능한 Markdown file/content 단위. 정확히 하나의 Folder에 속하며 `folderId`를 필수로 가진다.                                   |
-| Markdown body           | 사용자가 작성하는 이식 가능한 body content. Internal properties는 제외한다.                                                         |
+| Document                | 협업 가능한 file/content 단위. 정확히 하나의 Folder에 속하며 `folderId`를 필수로 가진다. (목표, ADR-0013) `type`(`markdown`, `code` 등)을 가진다. 현재 구현은 모두 Markdown 문서다. |
+| Markdown body           | `markdown` 타입 문서의 본문. 이식 가능하며 internal properties는 제외한다. 다른 타입의 본문은 type 별 `content` 다(ADR-0013). |
 | Document property       | Markdown body 밖에 저장되는 `Document` 소유 구조화 metadata. 독립 aggregate가 아니다.                                               |
 | DocumentState           | `draft`, `review`, `saved` 같은 workflow-facing value/state. 현재 제품에서는 직접 변경할 수 있고 transition policy가 없다.          |
 | User                    | 특정 workspace와 독립적인 사람/account identity.                                                                                    |
@@ -31,7 +31,7 @@ status: active
 | Presence                | cursor와 selection을 보여주는 임시 realtime awareness. Domain entity가 아니라 application/provider awareness state다.               |
 | Checkpoint              | metadata를 가진 user-visible historical document state.                                                                             |
 | Autosave                | 지속적인 persistence/sync behavior. User-facing checkpoint가 아니다.                                                                |
-| LinkEdge                | Markdown body의 standard link에서 파생되는 document connection projection.                                                          |
+| LinkEdge                | 문서 본문의 link 에서 파생되는 document connection projection. 추출은 type module 의 `extractLinks` 가 맡는다(목표, ADR-0013). 현재는 Markdown standard link 만 추출한다. |
 | SyncStatus              | offline, reconnecting, pending local edit 같은 application/UI state. `DocumentState`가 아니다.                                      |
 | Collaboration artifact  | sync/history에 필요한 provider-specific 또는 serialized document state. Domain entity가 아니라 adapter/infrastructure concern이다.  |
 | Object artifact         | relational metadata 밖에 저장되는 blob, snapshot, export, large document artifact.                                                  |

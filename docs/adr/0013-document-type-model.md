@@ -76,6 +76,11 @@ superseded_by: null
   - `content` 스키마 버전과 migration
   - projection: `toText`, `toMarkdown`(가능한 타입만), `extractLinks`
 - **projection 은 서버에서도 계산할 수 있어야 한다.** 브라우저 API 에 의존하지 않는다.
+- **checkpoint snapshot 은 type 을 표시한다** — [agent] G1
+  - 형태: `{ type, schemaVersion, content }`
+  - 조회 화면은 type module 이 제공하는 viewer 로 보여준다.
+  - `markdown` 은 지금의 Markdown snapshot 과 같다.
+  - `code` 처럼 Markdown 이 아닌 타입은 Markdown snapshot 계약을 쓰지 않는다. 그 타입의 snapshot 과 viewer 가 정의되기 전에는 출시하지 않는다.
 
 ### 2. 본문 정본 표현 — [user] Markdown 텍스트
 
@@ -121,23 +126,14 @@ superseded_by: null
 ## 결과
 
 - **스키마**
-  - `Document.type` 을 추가한다. 기존 문서를 `markdown` 으로 migration 한다.
+  - `Document.type` 을 추가한다. 새로 만드는 개발 데이터는 모두 `markdown` 타입이다.
   - `markdownBody` 는 server 범위의 projection 컬럼으로 남는다.
-- **기존 Yjs state migration** — [agent] G1, `ratify_by: 2026-10-02`
-  - 정본 `content`(`Y.Text`)는 다음 순서로 채운다.
-    1. 사용자가 실제로 편집한 Tiptap XmlFragment 를 `@tiptap/markdown` 으로 직렬화한 결과. 가장 최신일 가능성이 높다.
-    2. 1이 없으면 `Y.Text "markdown"`
-    3. 2도 없으면 `markdownBody`
-  - 한 번만 실행하는 서버 측 migration 으로 수행한다. migration 전에 state 를 백업한다.
-  - **호환 기간과 client 버전 gate** — migration 뒤에 들어오는 legacy 편집을 잃지 않기 위한 장치다.
-    - collab 연결에 문서 schema 버전을 싣는다. 서버는 migration 된 문서에 옛 client(Tiptap 기반)가 연결하면 거절하고, 업데이트가 필요하다고 알린다.
-      이 gate 이후에는 legacy 루트로 가는 새 온라인 편집이 생기지 않는다.
-    - 새 client 는 IndexedDB draft 를 hydrate 할 때 legacy 루트(`"default"`, `"markdown"`)에 동기화되지 않은 변경이 있는지 확인한다.
-      있으면 `content` 에 자동으로 합치지 않는다. 사용자가 검토할 "복구된 초안"으로 보여준다.
-      텍스트 변환 결과는 CRDT 로 안전하게 병합되지 않기 때문이다.
-    - 서버는 호환 기간 동안 legacy 루트를 지우지 않고 읽기 전용으로 둔다.
-      migration 뒤에 legacy 루트 update 가 들어오면 기록하고 복구 대상으로 표시한다.
-    - legacy 루트 제거는 호환 기간이 끝나고, legacy update 가 한동안 관측되지 않은 뒤에 한다.
+- **기존 데이터: migration 하지 않는다** — [user] 2026-09-26
+  - 제품은 배포된 적이 없다. 그래서 기존 데이터는 로컬 개발 데이터와 seed 뿐이다.
+  - 이 데이터를 옮기지 않고 버린 뒤, 새 구조(`meta`, `content`)로 개발 DB 와 seed 를 다시 만든다.
+  - 그러면 본문이 세 곳(XmlFragment, `Y.Text "markdown"`, `markdownBody`)에서 서로 다를 때 무엇을 고를지라는 문제가 생기지 않는다.
+  - [agent] 개발자 브라우저에 남은 옛 IndexedDB draft 는 읽지 않는다. draft 키에 schema 버전을 넣고, 버전이 다른 draft 는 무시하고 삭제한다.
+  - [agent] 앞으로 배포한 뒤 스키마가 바뀌면 그때 migration 정책(G2)을 따로 정한다.
 - **편집 화면 교체**
   - `features/editor` 의 Tiptap runtime 을 CodeMirror 6 라이브 프리뷰로 교체한다.
   - presence caret 은 CodeMirror awareness 로 옮긴다.
@@ -154,3 +150,5 @@ superseded_by: null
 | 2026-09-25 | 최초 제안 (proposed). 추천은 XmlFragment 정본과 rich-text 첫 타입 | agent:claude-code |
 | 2026-09-25 | Markdown 텍스트 정본, markdown 첫 타입, 라이브 프리뷰, 두 번째 타입 code, rich-text 보류로 accepted | user |
 | 2026-09-25 | migration 에 client 버전 gate, legacy draft 복구, legacy 루트 호환 기간을 추가(Codex 리뷰 반영, G1) | agent:claude-code |
+| 2026-09-26 | 배포 전이므로 migration 하지 않고 개발 데이터를 버린 뒤 새 구조로 다시 생성한다. 이전 migration 설계를 대체한다 | user |
+| 2026-09-26 | checkpoint 는 type 을 표시한 snapshot 을 쓴다. 타입별 snapshot 계약이 정의되기 전에는 그 타입을 출시하지 않는다(Codex 리뷰 반영) | agent:claude-code |

@@ -13,9 +13,12 @@ status: proposed
 
 ## FileSystem mental model
 
-- Folder is a directory/container. Its hierarchy and lifecycle are Postgres source of truth.
-- Document row is the file identity/inode and location. Creation, folder membership, archive/delete,
+- (server 범위) Folder is a directory/container. Its hierarchy and lifecycle are Postgres source of truth.
+- (server 범위) Document row is the file identity/inode and location. Creation, folder membership, archive/delete,
   and permissions are Postgres source of truth.
+- (목표, ADR-0011) `authority: local` workspace 에서는 folder 계층, document identity, 위치, lifecycle 의 정본이 기기에 있다.
+  - [open] 기기에서의 저장 형식과 계층 표현은 local 범위 트랙을 구현하기 전에 정한다. 계층 모델(#6)과 함께 결정한다.
+  - 승격할 때 기기의 계층이 서버로 옮겨진다.
 - Y.Doc is the file's current editable content state. Title, Markdown body, properties, and
   collaborative document metadata are Yjs source of truth after initialization.
 - Postgres document fields are read projections for navigation, list/search, export, and fallback

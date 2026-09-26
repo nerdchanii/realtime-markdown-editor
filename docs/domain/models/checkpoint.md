@@ -20,6 +20,7 @@ Standalone `HistoryModule`은 restore, branching, independent retention/complian
 - 생성 시각과 사용자에게 보이는 message를 가진다.
 - Inspectable content snapshot을 찾기 위한 opaque artifact reference를 가진다.
 - 현재 제품 범위의 inspectable snapshot은 ADR-0003 V1에 따라 Markdown snapshot artifact로 제공된다.
+- (목표, ADR-0013) snapshot 은 `{ type, schemaVersion, content }` 형태로 type 을 표시하고, 조회는 type module 의 viewer 가 맡는다. Markdown 이 아닌 타입은 Markdown snapshot 계약을 쓰지 않는다.
 - Snapshot inspect는 checkpoint metadata를 기준으로 artifact boundary에서 Markdown body를 읽어 read-only response로 반환한다.
 
 ## 경계
