@@ -31,6 +31,12 @@ test("heading marks are hidden on inactive lines and shown on the cursor line", 
   assert.deepEqual(computePreviewRanges(on).lines, [{ at: 0, className: "lp-h1" }]);
 });
 
+test("a closing ATX run is hidden with the space before it", () => {
+  const doc = "## Title ##\n\nbody";
+  const away = stateAt(doc, doc.length);
+  assert.deepEqual(text(away, computePreviewRanges(away).hidden), ["## ", " ##"]);
+});
+
 test("setext headings are styled and hide their underline away from the cursor", () => {
   const doc = "Title\n=====\n\nSub\n---\n\nbody";
   const away = stateAt(doc, doc.length);

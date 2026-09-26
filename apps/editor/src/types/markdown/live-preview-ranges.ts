@@ -70,6 +70,11 @@ function withTrailingSpace(state: EditorState, span: Span): Span {
   return next === " " ? { from: span.from, to: span.to + 1 } : span;
 }
 
+function withLeadingSpace(state: EditorState, span: Span): Span {
+  const prev = state.doc.sliceString(span.from - 1, span.from);
+  return prev === " " ? { from: span.from - 1, to: span.to } : span;
+}
+
 function childSpans(node: SyntaxNodeRef, names: string[]): Span[] {
   const spans: Span[] = [];
   const cursor = node.node.cursor();
@@ -97,14 +102,15 @@ function blockLineStarts({ state, from, to }: Pass, node: SyntaxNodeRef): number
 function addHeading({ state, isActive, result }: Pass, node: SyntaxNodeRef): void {
   const level = node.name.slice(-1);
   result.lines.push({ at: state.doc.lineAt(node.from).from, className: `lp-h${level}` });
-  const [mark] = childSpans(node, ["HeaderMark"]);
-  if (!mark || isActive(mark.from)) return;
+  const [first, ...rest] = childSpans(node, ["HeaderMark"]);
+  if (!first || isActive(first.from)) return;
   if (node.name.startsWith("ATX")) {
-    // Only the leading `#` run; a closing run stays as typed.
-    result.hidden.push(withTrailingSpace(state, mark));
+    // Leading `#` run with its space, and an optional closing run with the space before it.
+    result.hidden.push(withTrailingSpace(state, first));
+    for (const mark of rest) result.hidden.push(withLeadingSpace(state, mark));
   } else {
     // Setext underline (`===` / `---`) on its own line.
-    result.hidden.push(mark);
+    result.hidden.push(first);
   }
 }
 
