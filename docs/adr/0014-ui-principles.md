@@ -1,6 +1,6 @@
 ---
 id: ADR-0014
-title: "ADR-0014: UI 는 Linear 의 밀도, Zed 의 에디터 중심, Figma 의 멀티플레이어를 따르고 규칙은 기계로 검증한다"
+title: "ADR-0014: UI 는 Linear 의 밀도, Zed 의 에디터 중심, Figma 의 멀티플레이어를 따른다"
 status: accepted
 date: 2026-09-26
 gate: G2
@@ -18,7 +18,7 @@ supersedes: []
 superseded_by: null
 ---
 
-# ADR-0014: UI 는 Linear 의 밀도, Zed 의 에디터 중심, Figma 의 멀티플레이어를 따르고 규칙은 기계로 검증한다
+# ADR-0014: UI 는 Linear 의 밀도, Zed 의 에디터 중심, Figma 의 멀티플레이어를 따른다
 
 > **accepted (2026-09-26)**. 에이전트가 질문과 추천안을 만들었고, 사용자가 선택했다. 추적 Issue: #7
 
@@ -43,7 +43,7 @@ superseded_by: null
 - 문서 frontmatter 가 본문 텍스트로 보인다.
 - `DESIGN.md` 가 참조하는 레퍼런스 이미지(Reference 01A/01B/03)는 저장소에 없다.
 
-텍스트 규칙만으로는 지켜지지 않았다. 그래서 이 ADR 은 원칙을 짧게 두고, 지킬 수 있는 것은 기계로 검증한다.
+텍스트 규칙만으로는 지켜지지 않았다. 그래서 이 ADR 은 원칙을 짧게 두고, 스크린샷 리뷰로 확인한다. 기계 검증은 아직 없다. 도구는 [#13](https://github.com/nerdchanii/realtime-markdown-editor/issues/13) 에서 정한다.
 
 ## 결정
 
@@ -81,7 +81,7 @@ superseded_by: null
 - 모든 색은 theme token(CSS custom property)으로만 쓴다. 하드코딩한 색은 테마를 깨뜨린다.
   - 지금 dark toolbar 가 흰색인 이유가 바로 이것이다.
 
-### 5. 검증 — [user] 스크린샷 before/after 와 lint
+### 5. 검증 — [user] 스크린샷 before/after (lint 는 #13)
 
 - **UI 를 바꾸는 PR 에는 변경 전후 스크린샷을 붙인다.** 다크와 라이트 둘 다 필요하다. 화면 단위로 승인받고 다음으로 넘어간다.
   - 기준 스크린샷은 `docs/design/current-ui/` 에 있다. 화면이 바뀌면 이 기준도 갱신한다.
