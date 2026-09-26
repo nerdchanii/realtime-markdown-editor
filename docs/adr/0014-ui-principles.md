@@ -37,11 +37,11 @@ superseded_by: null
 
 ### 현재 화면 (2026-09-26 캡처, `docs/design/current-ui/`)
 
-- `DESIGN.md` 는 card 와 border wrapping 을 금지한다. 그런데 settings 대화상자는 모든 필드, 버튼, 멤버 행을 각각 테두리 박스로 감싼다(`05c-settings-workspace-dark.png`).
+- 당시 `DESIGN.md`(v0.3.2)는 card 와 border wrapping 을 금지했다. 그런데 settings 대화상자는 모든 필드, 버튼, 멤버 행을 각각 테두리 박스로 감싼다(`05c-settings-workspace-dark.png`).
 - dark 테마에서 편집 toolbar 가 흰색으로 남는다. 목록의 inline code 는 거의 보이지 않는다(`04-workspace-dark.png`).
 - 로그인 화면에 "LOCAL SEED ACCOUNTS" 와 seed 계정 버튼이 제품 화면으로 나온다(`01-login-light.png`).
 - 문서 frontmatter 가 본문 텍스트로 보인다.
-- `DESIGN.md` 가 참조하는 레퍼런스 이미지(Reference 01A/01B/03)는 저장소에 없다.
+- v0.3.2 `DESIGN.md`(지금은 [`docs/archive/design/DESIGN-v0.3.2.md`](../archive/design/DESIGN-v0.3.2.md))가 참조한 레퍼런스 이미지(Reference 01A/01B/03)는 저장소에 없었다.
 
 텍스트 규칙만으로는 지켜지지 않았다. 그래서 이 ADR 은 원칙을 짧게 두고, 스크린샷 리뷰로 확인한다. 기계 검증은 아직 없다. 도구는 [#13](https://github.com/nerdchanii/realtime-markdown-editor/issues/13) 에서 정한다.
 
