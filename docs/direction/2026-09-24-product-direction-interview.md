@@ -106,6 +106,7 @@ ADR 로 남기고 여기서는 링크만 추가한다.
   - ADR-0009 는 `proposed` 상태인데 `docs/domain/models/document.md` 가 확정된 것처럼 인용한다.
 - [user] UI 레퍼런스는 **Linear, Figma, Zed 의 중간 어딘가**다.
   (원문: "Liner + firma + zed". 에이전트가 Linear, Figma 로 해석했다.)
+  - [user] 2026-09-25 추가 확인: Linear, Figma, Zed 가 맞다. 추적: [#7](https://github.com/nerdchanii/realtime-markdown-editor/issues/7)
 - [user] UI 를 어떤 식으로 개선해 나가야 할지 **본인도 어렵다고 느낀다.** 레퍼런스 이미지나 목업을
   기준으로 삼는 방식을 선호한다.
 

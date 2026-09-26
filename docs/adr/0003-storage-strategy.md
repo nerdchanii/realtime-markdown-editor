@@ -25,9 +25,15 @@ related_documents:
   - docs/domain/rules/collaboration-boundaries.md
 supersedes: []
 superseded_by: null
+partially_superseded_by: ADR-0011
 ---
 
 # ADR-0003: 저장소 역할은 RDB, S3-compatible object storage, 선택적 realtime support로 분리한다
+
+> **부분 대체 (2026-09-25)**
+>
+> - ADR-0011 이 "IndexedDB 는 열린 page offline 편집 전용"이라는 제한을 넓혔다. 이제 server 범위 캐시와 local 범위 정본까지 포함한다.
+> - Postgres, object storage, Redis 의 역할 분담은 여전히 유효하다.
 
 ## 맥락
 

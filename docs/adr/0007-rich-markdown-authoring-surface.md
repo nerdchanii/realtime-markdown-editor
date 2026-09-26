@@ -1,7 +1,7 @@
 ---
 id: ADR-0007
 title: "ADR-0007: Rich Markdown authoring surface를 기본 에디터로 채택한다"
-status: accepted
+status: superseded
 date: 2026-04-30
 authors:
   - nerdchanii
@@ -21,10 +21,12 @@ related_documents:
   - docs/archive/compliance/feature-acceptance-map.md
   - docs/product/editor/rich-preview.md
 supersedes: []
-superseded_by: null
+superseded_by: ADR-0013
 ---
 
 # ADR-0007: Rich Markdown authoring surface를 기본 에디터로 채택한다
+
+> **superseded (2026-09-25)**: ADR-0013 이 이 결정을 대체한다. 첫 문서 타입인 `markdown` 은 Markdown 텍스트가 정본이며, CodeMirror 기반 라이브 프리뷰로 편집한다.
 
 ## 맥락
 

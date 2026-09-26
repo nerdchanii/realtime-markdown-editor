@@ -46,11 +46,12 @@ Realtime markdown editor 에서 Realtime editor(ADE 표면)로 가는 전환 계
    - `tasks/`, `docs/requirements/`, `docs/compliance/` 를 `docs/archive/` 로 옮겼다.
    - active 문서의 경로 참조를 갱신했다. `ARCHITECTURE.md` 에서 subject framing 을 걷어냈다.
    - 과거 ADR 본문은 당시 기록이므로 고치지 않았다.
-4. [ ] **작업 기록 이전** (G0)
+4. [x] **작업 기록 이전** (G0)
    - [x] `tasks/` 를 저장소 작업 경로에서 뺐다.
    - [x] PR 의 "Decisions" 섹션과 decision log 승격 규칙을 두었다.
-   - [ ] 미결 요구(archive 된 items 2건, backlog 19건)를 GitHub Issue 로 옮긴다. 많은 항목이 과거
-     Markdown 제품 framing 이라 그대로 옮기면 낡은 맥락이 퍼진다. 어떤 항목을 옮길지 사용자 확인이 필요하다.
+   - [x] 미결 요구 21건(archive 된 items 2건, backlog 19건)은 결정 단위 추적 Issue 7개로 묶었다(A안, 사용자 선택 2026-09-25).
+     - 과거 REQ 는 각 Issue 본문에 요구사항이 아닌 "참고 자료"로만 링크했다.
+     - Markdown 타입 세부 기능 4건(metadata parsing, task extraction, property templates, wikilinks)은 옮기지 않았다. 문서 타입 ADR([#5](https://github.com/nerdchanii/realtime-markdown-editor/issues/5)) 뒤에 다시 본다.
 5. [x] **사실 불일치 정리** (G0)
    - `docs/domain/models/document.md` 의 ADR-0009(proposed) 확정 인용을 현재 구현 기준으로 고쳤다.
    - 존재하지 않는 경로 참조를 정리했다.
@@ -69,7 +70,7 @@ Realtime markdown editor 에서 Realtime editor(ADE 표면)로 가는 전환 계
    - 사람과 에이전트가 함께 쓰는 ADE 표면
    - 문서 타입 모델의 방향
    - Non-goals
-2. **UI 원칙** (G2 방향, G1 세부)
+2. **UI 원칙** (G2 방향, G1 세부): [#7](https://github.com/nerdchanii/realtime-markdown-editor/issues/7)
    - Linear, Figma, Zed 레퍼런스 보드(이미지)를 기준으로 삼는다.
    - 금지 규칙(card 와 border wrapping, 요청 없는 표면, 동작하지 않는 placeholder)은 lint 와 스크린샷
      검증으로 강제한다.
@@ -77,15 +78,28 @@ Realtime markdown editor 에서 Realtime editor(ADE 표면)로 가는 전환 계
 
 ## 단계 3. 핵심 ADR (코드를 바꾸기 전에)
 
-| ADR 후보 | 핵심 질문 | 게이트 |
-| --- | --- | --- |
-| 데이터 권위 모델 | 서버 권위 + 로컬 캐시, local-first, 범위별 혼합 중 무엇인가. 개인 범위와 조직 범위의 경계는 어디인가 | G2 |
-| 문서 타입 모델 | 공통 core 와 타입별 editor 의 경계, 첫 타입(rich text 또는 markdown) | G2 |
-| 권한 모델 | 개인 workspace 와 조직 workspace, 역할, 문서 단위 공유, 에이전트 신원(대리인과 독립 참여자) | G2 |
-| 에이전트 참여 프로토콜 | 로컬과 서버 에이전트가 붙는 프로토콜(MCP, sync API), 에이전트 편집 기본 동작(제안 또는 직접 편집) | G2 |
-| Workspace 계층 | Folder 로 파일시스템을 흉내 낼지, 나중의 실제 파일시스템 연동과 어떻게 이어질지. ADR-0006 재검토 | G2 |
+| ADR 후보 | 핵심 질문 | 게이트 | 추적 |
+| --- | --- | --- | --- |
+| 데이터 권위 모델 | 서버 권위 + 로컬 캐시, local-first, 범위별 혼합 중 무엇인가. 개인 범위와 조직 범위의 경계는 어디인가 | G2 | [#2](https://github.com/nerdchanii/realtime-markdown-editor/issues/2) |
+| 문서 타입 모델 | 공통 core 와 타입별 editor 의 경계, 첫 타입(rich text 또는 markdown) | G2 | [#5](https://github.com/nerdchanii/realtime-markdown-editor/issues/5) |
+| 권한 모델 | 개인 workspace 와 조직 workspace, 역할, 문서 단위 공유, 에이전트 신원(대리인과 독립 참여자) | G2 | [#3](https://github.com/nerdchanii/realtime-markdown-editor/issues/3) |
+| 에이전트 참여 프로토콜 | 로컬과 서버 에이전트가 붙는 프로토콜(MCP, sync API), 에이전트 편집 기본 동작(제안 또는 직접 편집) | G2 | [#4](https://github.com/nerdchanii/realtime-markdown-editor/issues/4) |
+| Workspace 계층 | Folder 로 파일시스템을 흉내 낼지, 나중의 실제 파일시스템 연동과 어떻게 이어질지. ADR-0006 재검토 | G2 | [#6](https://github.com/nerdchanii/realtime-markdown-editor/issues/6) |
 
 ADR 은 에이전트가 비교안과 추천안을 `proposed` 로 작성하고, 사용자가 accepted 로 바꾼다.
+
+작성 현황:
+
+- 데이터 권위: [ADR-0011](../adr/0011-data-authority-by-scope.md) **accepted** (2026-09-25).
+  - 범위별 권위를 택했다. local 범위도 바로 도입한다.
+  - 세부 결정: 서버가 읽을 수 있는 sync, 계정 없는 local 사용 허용, 권한 회수 시 sync 차단과 사본 삭제 시도.
+- 권한: [ADR-0012](../adr/0012-authorization-policy-and-principals.md) **accepted** (2026-09-25).
+  - 단일 policy, `owner/admin/editor/viewer` + 자원 grant(다음 단계), 사람과 에이전트 principal 구분.
+  - SSO 는 나중에 한다.
+- 문서 타입: [ADR-0013](../adr/0013-document-type-model.md) **accepted** (2026-09-25).
+  - 첫 타입은 `markdown` 이다. Markdown 텍스트(`Y.Text`)가 정본이고, CodeMirror 라이브 프리뷰로 편집한다.
+  - 두 번째 타입은 `code` 다. rich-text 는 보류한다.
+  - ADR-0007 을 대체한다.
 
 ## 단계 4. 코드 방향 결정과 policy 기반 수정
 

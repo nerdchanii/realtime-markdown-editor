@@ -7,7 +7,9 @@ status: active
 
 ## 계약
 
-`User`는 사람 또는 account를 나타낸다. `WorkspaceMembership`은 해당 user가 한 workspace 안에서 갖는 identity다.
+`User`는 계정을 가진 사람을 나타낸다. `WorkspaceMembership`은 해당 user가 한 workspace 안에서 갖는 identity다.
+
+- (목표, ADR-0012) 계정 없이 local 범위를 쓰는 사람은 `User` 가 아니라 `LocalUser` principal 이다. 로그인하거나 승격할 때 `User` 에 연결된다. 자세한 내용은 `docs/domain/models/principal.md` 에 있다.
 
 ## 책임
 
