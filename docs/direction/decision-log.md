@@ -32,4 +32,5 @@ ADR 로 만들 만큼 크지는 않지만 PR 이 끝난 뒤에도 남아야 하�
 | 2026-09-26 | 협업 엔진은 Yjs 를 유지한다. Loro, Automerge, yrs, Yorkie 와 같은 편집 기록으로 비교했을 때 Yjs 는 타이핑 속도에서 충분히 빠르고, Hocuspocus 와 CodeMirror 바인딩이 검증되어 있다 | G2 | user | user | - | 버전 기록(time travel)이나 아주 큰 문서가 핵심 요구가 되면 Loro 를 다시 본다 | Issue #15 |
 | 2026-09-26 | 기존 web UI 는 재사용하지 않고 새로 짠다. 진행 순서는 로컬 편집(브라우저 저장, 계정 없음) → 동시편집(서버 sync, 협업 인증)이다. 문서 구조는 처음부터 동시편집용 Yjs 구조를 쓴다 | G2 | user | user | - | 로컬 슬라이스가 동시편집 검증을 지나치게 늦추면 | Issue #15 |
 | 2026-09-26 | `apps/editor` 는 React 19 + Vite + CodeMirror 6 + `y-codemirror.next` 로 만든다. local 문서 목록은 id 만 담는 index Y.Doc 에 두고, 제목은 각 문서의 `meta` 에만 둔다(값마다 정본 하나) | G1 | agent:claude-code | pending | 2026-10-03 | 문서 수가 많아져 목록을 열 때 문서를 모두 여는 비용이 문제가 되면 | #15 PR |
+| 2026-09-27 | 문서 제목 입력칸은 ADR-0014 입력 필드 규칙(채워진 배경, focus ring)의 예외다. 본문처럼 편집 표면의 일부로 보고 focus 를 ring 없이 캐럿으로 표시한다 | G1 | user | user | - | 키보드 사용자가 제목 focus 를 알아보기 어렵다는 피드백이 나오면 | #17 PR (Codex 리뷰) |
 | 2026-09-26 | 슬라이스 1 shell 은 탐색기와 에디터 두 영역만 둔다. 오른쪽 패널, 명령 팔레트, 프로필은 들어갈 기능이 생길 때 추가한다(빈 placeholder 금지). 탐색기 접기 단축키는 Ctrl/⌘ + `\` 다 | G1 | agent:claude-code | pending | 2026-10-03 | 3분할 기본(ADR-0014)을 슬라이스 2 전에 보여야 하면 | #15 PR |

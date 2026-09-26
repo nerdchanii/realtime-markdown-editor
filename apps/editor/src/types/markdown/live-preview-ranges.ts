@@ -80,6 +80,25 @@ function childSpans(node: SyntaxNodeRef, names: string[]): Span[] {
   return spans;
 }
 
+function addHeading(
+  state: EditorState,
+  node: SyntaxNodeRef,
+  isActive: (pos: number) => boolean,
+  result: PreviewRanges,
+): void {
+  const level = node.name.slice(-1);
+  result.lines.push({ at: state.doc.lineAt(node.from).from, className: `lp-h${level}` });
+  const [mark] = childSpans(node, ["HeaderMark"]);
+  if (!mark || isActive(mark.from)) return;
+  if (node.name.startsWith("ATX")) {
+    // Only the leading `#` run; a closing run stays as typed.
+    result.hidden.push(withTrailingSpace(state, mark));
+  } else {
+    // Setext underline (`===` / `---`) on its own line.
+    result.hidden.push(mark);
+  }
+}
+
 function addFencedCode(
   state: EditorState,
   node: SyntaxNodeRef,
@@ -108,14 +127,8 @@ export function computePreviewRanges(
     from,
     to,
     enter(node) {
-      const heading = /^ATXHeading([1-6])$/.exec(node.name);
-      if (heading) {
-        result.lines.push({ at: state.doc.lineAt(node.from).from, className: `lp-h${heading[1]}` });
-        if (!isActive(node.from)) {
-          for (const mark of childSpans(node, ["HeaderMark"]).slice(0, 1)) {
-            result.hidden.push(withTrailingSpace(state, mark));
-          }
-        }
+      if (/^(ATX|Setext)Heading[1-6]$/.test(node.name)) {
+        addHeading(state, node, isActive, result);
         return;
       }
       if (node.name === "Blockquote") {

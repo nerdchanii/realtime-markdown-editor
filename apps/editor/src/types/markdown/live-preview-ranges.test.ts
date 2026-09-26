@@ -31,6 +31,20 @@ test("heading marks are hidden on inactive lines and shown on the cursor line", 
   assert.deepEqual(computePreviewRanges(on).lines, [{ at: 0, className: "lp-h1" }]);
 });
 
+test("setext headings are styled and hide their underline away from the cursor", () => {
+  const doc = "Title\n=====\n\nSub\n---\n\nbody";
+  const away = stateAt(doc, doc.length);
+  const ranges = computePreviewRanges(away);
+  assert.deepEqual(text(away, ranges.hidden), ["=====", "---"]);
+  assert.deepEqual(
+    ranges.lines.map((l) => l.className),
+    ["lp-h1", "lp-h2"],
+  );
+
+  const onUnderline = stateAt(doc, doc.indexOf("====="));
+  assert.deepEqual(text(onUnderline, computePreviewRanges(onUnderline).hidden), ["---"]);
+});
+
 test("inline marks hide only away from the cursor line and keep their style", () => {
   const doc = "a **bold** and *em* and `code` and ~~gone~~\n\nnext";
   const away = stateAt(doc, doc.length);
