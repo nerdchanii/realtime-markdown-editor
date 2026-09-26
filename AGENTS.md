@@ -51,9 +51,10 @@ purpose: AI agent용 저장소 지도
   보여준다. 동작하는 척하는 placeholder 를 만들지 않는다.
 - **요청하지 않은 기능, 섹션, 장식을 추가하지 않는다.** 필요해 보이면 제안만 한다.
 - **UI**
-  - editor-first 로 만든다. `DESIGN.md` 를 따른다.
-  - 요소를 card 나 border 로 감싸지 않는다.
-  - UI 를 바꾼 PR 에는 실제 앱 스크린샷을 첨부한다.
+  - `DESIGN.md` 와 ADR-0014 를 따른다. Linear 의 밀도, Zed 의 에디터 중심, Figma 의 멀티플레이어, 다크 우선이다.
+  - 요소를 card 나 border 로 감싸지 않는다. 색은 theme token 으로만 쓴다.
+  - 스타일 lint 는 아직 없다. 도구와 border 예외 방식은 [#13](https://github.com/nerdchanii/realtime-markdown-editor/issues/13) 에서 정한다.
+  - UI 를 바꾼 PR 에는 변경 전후 스크린샷(다크, 라이트)을 첨부한다. 한 PR 에서 한 화면을 다룬다.
 - **완료에는 증거를 붙인다.** 실행한 검증 명령과 결과, UI 는 스크린샷을 남긴다. 테스트 통과만으로
   제품 완료라고 하지 않는다.
 - **도메인과 경계**

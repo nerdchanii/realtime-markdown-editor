@@ -99,7 +99,7 @@ ADR 로 남기고 여기서는 링크만 추가한다.
   - 원하지 않은 것을 추가함
   - **card 형태를 쓰지 말라고 했는데 계속 요소를 border 로 감쌈**
 - [agent] 증거:
-  - `DESIGN.md` 는 card 와 border 금지를 여러 곳에 명시한다(47, 121–146행). 그런데도 반복해서 위반되었다.
+  - 당시 `DESIGN.md`(v0.3.2, 지금은 [`docs/archive/design/DESIGN-v0.3.2.md`](../archive/design/DESIGN-v0.3.2.md))는 card 와 border 금지를 여러 곳에 명시했다(47, 121–146행). 그런데도 반복해서 위반되었다.
     **텍스트 규칙만으로는 지켜지지 않는다**는 뜻이다.
   - `docs/product/ui-capability-gap-log.md` 의 UI-GAP-006, 007(Favorites, DM mock), 013–017
     (mock collaboration, seed fallback)이 그 사례다.

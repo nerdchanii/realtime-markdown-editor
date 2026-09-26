@@ -1,730 +1,94 @@
 ---
 title: DESIGN.md
-version: 0.3.2
-product: Realtime collaborative Markdown editor
-design_intent: IDE-like dense technical writing workspace for collaborative engineering documents
+version: 0.4.0
+based_on:
+  - docs/adr/0014-ui-principles.md
+  - docs/adr/0013-document-type-model.md
+previous_version: docs/archive/design/DESIGN-v0.3.2.md
 ---
 
 # DESIGN.md
 
-## 1. Design Intent
+UI 작업을 하기 전에 이 문서를 읽는다. 결정의 근거와 출처는 ADR-0014(UI 원칙)와 ADR-0013(편집 화면)에 있다.
+이 문서와 ADR 이 충돌하면 ADR 을 따른다.
 
-This product is a dense technical writing workspace for engineering teams.
+## 1. 한 줄 원칙
 
-The UI should feel closer to an IDE or professional documentation tool than a personal note app, dashboard, or marketing SaaS page.
+**Linear 의 밀도와 키보드, Zed 의 에디터 중심, Figma 의 멀티플레이어 존재감.** 다크 우선이다.
 
-The first screen is the collaborative editor itself.
+## 2. 절대 규칙
 
-Primary goals:
+위반하면 PR 을 받지 않는다. 앞의 두 규칙을 기계로 검사하는 방법은 [#13](https://github.com/nerdchanii/realtime-markdown-editor/issues/13) 에서 정한다. 그 전까지는 스크린샷 리뷰로 확인한다.
 
-- Editor-first writing experience.
-- Clear workspace and project context.
-- Dense but readable file navigation.
-- Rich TipTap-based Markdown authoring.
-- Compact history-first inspector.
-- Explicit document save/sync state near the document context.
-- Settings separated by Workspace, Project, and User scope.
+1. **요소를 테두리 박스나 card 로 감싸지 않는다.**
+   - 영역은 배경 톤과 여백으로 구분한다.
+   - 테두리는 패널 사이 경계선 1px(`border-top/right/bottom/left`)까지만 쓴다.
+   - [open] border 가 꼭 필요한 곳은 지정한 레이어에서 이유를 적은 예외 주석과 함께 쓰는 방식을 검토한다(#13).
+2. **색은 theme token 으로만 쓴다.** hex, 색 함수, 이름 색(`white`), Tailwind palette(`bg-red-500`)를 직접 쓰지 않는다.
+3. 요청하지 않은 기능, 섹션, 장식을 추가하지 않는다.
+4. 동작하지 않는 기능을 동작하는 것처럼 보여주지 않는다. 기능이 없으면 명시적인 빈 상태를 보여준다.
+5. mock, seed, 개발용 계정과 문구를 제품 화면에 노출하지 않는다.
 
-## 2. Image Reference Usage
-
-Images are visual references only.
-
-When image references and this document conflict, this DESIGN.md is the source of truth.
-
-Use images for:
-
-- Overall layout direction.
-- Relative panel placement.
-- Density.
-- Visual tone.
-- Component examples.
-
-Do not copy images blindly.
-
-Do not implement:
-
-- Explanatory callout labels from design boards.
-- Rounded cards around every pane.
-- Extra buttons shown only in mockups.
-- Duplicate presence indicators.
-- Decorative details not described in this document.
-- Global app-level bottom status bars or footer chrome if they appear in generated mockups.
-
-Current visual reference set:
-
-- Reference 01A: final workspace proposal image with callouts, showing the intended IDE-like shell, compact top bar, left Explorer, center TipTap editor, right History panel, and profile menu.
-- Reference 01B: duplicate final workspace proposal image, used only to reinforce the same layout and density direction as Reference 01A.
-- Reference 03: decision and follow-up improvement slide, used to confirm the product decisions, deferred scope, settings IA, and current limitation around presence.
-
-Reference-specific guidance:
-
-- Use Reference 01A/01B for pane placement, editor-first density, compact toolbar direction, profile menu placement, and the docs/templates Explorer shape.
-- Use Reference 03 for implementation boundaries: History-only inspector, no Document Details panel, settings split by Workspace / Project / User, and presence as a known first-implementation limitation.
-- Ignore visual callout boxes, connector lines, slide numbers, and presentation-only labels in all references.
-- Treat any reference-level bottom strip as non-binding. This document's no-global-bottom-status-bar rule remains authoritative.
-
-## 3. Product Information Architecture
-
-The main workspace consists of:
+## 3. 레이아웃
 
 ```txt
-Top Bar
-Explorer
-TipTap Editor
-History Inspector
-Settings Panel
++---------------------------------------------------------------+
+| Top bar: Workspace > Project    명령 팔레트(⌘K)    테마 | 프로필 |
++--------------+--------------------------------+---------------+
+| Explorer     | 탭                             | 오른쪽 패널   |
+| (접을 수 있음) | 에디터 (접히지 않음)              | (접을 수 있음)  |
++--------------+--------------------------------+---------------+
 ```
 
-Primary flow:
+- 기본은 3분할이다. **탐색기와 오른쪽 패널은 접을 수 있다.** 에디터는 항상 주인공이다.
+- 패널 접기는 단축키, 명령 팔레트, 패널의 토글로 할 수 있다. 접힌 상태는 사용자별로 기억한다. [agent G1]
+- 전역 하단 status bar 는 두지 않는다. 문서 상태는 문서 헤더 근처에 둔다.
 
-```txt
-Workspace > Project
--> Explorer
--> Document Tabs
--> TipTap Editor
--> History
--> Settings via Profile Menu
-```
+## 4. 표면과 구분 방법
 
-There is no global bottom status bar in the first implementation.
+| 대상 | 구분 방법 |
+| --- | --- |
+| 패널 사이 | 배경 톤 차이. 필요하면 1px 경계선 한 개. |
+| 목록 행(탐색기, 멤버, history) | 여백과 hover·active 배경. 행마다 테두리를 두르지 않는다. |
+| 입력 필드 | 채워진 배경. focus 는 outline 이나 ring 으로 표시한다. [agent G1] |
+| 버튼 | 배경이나 텍스트로 표시한다. 기본 버튼에 테두리를 두르지 않는다. |
+| 떠 있는 표면(메뉴, popover, dialog) | 한 단계 다른 배경, 그림자, radius. 내부 요소를 다시 박스로 감싸지 않는다. [agent G1] |
+| 설정 화면 | 섹션 제목과 여백으로 나눈다. 필드마다 박스를 만들지 않는다. |
 
-If a status bar is used, it belongs only inside the center editor panel and only represents the current document/editor state.
+## 5. 에디터 (ADR-0013)
 
-## 4. Shell Layout
+- `markdown` 문서는 CodeMirror 6 기반 **라이브 프리뷰**로 편집한다.
+  - 서식은 인라인으로 렌더링한다. 커서가 있는 줄에서만 Markdown 기호가 드러난다.
+  - Tiptap WYSIWYG toolbar 는 목표 모델에 없다. 서식 명령은 단축키, 명령 팔레트, 필요할 때 나타나는 작은 도구로 제공한다. [agent G1]
+- 본문은 가운데 정렬된 읽기 좋은 폭(약 760px)을 쓴다. 본문을 card 로 감싸지 않는다.
+- title, properties, 상태는 본문 밖 문서 헤더에 둔다. frontmatter 를 본문 텍스트로 보여주지 않는다.
 
-The app uses a full-height, IDE-like pane layout.
+## 6. 멀티플레이어 (Figma)
 
-```txt
-+--------------------------------------------------------------+
-| Top Bar                                                      |
-+---------------+----------------------------+-----------------+
-| Explorer      | Editor                     | History         |
-|               |                            |                 |
-+---------------+----------------------------+-----------------+
-```
+- 다른 사람과 에이전트의 커서, 선택, 이름표를 편집면 안에 표시한다.
+- **에이전트는 사람과 구분해서 표시한다**(ADR-0012 principal). 표시 방식은 에이전트 참여 결정(#4)에서 구체화한다.
+- 같은 존재 정보를 여러 곳에 중복해서 표시하지 않는다.
 
-Default desktop layout:
+## 7. 테마
 
-- Left Explorer: 260px.
-- Right History Inspector: 280px.
-- Top Bar: 48px.
-- Tab Strip: 40px.
-- Toolbar: 44px.
-- Editor measure: around 760px.
+- 다크가 기준이다. 라이트도 같은 수준으로 동작해야 한다.
+- 모든 표면, 텍스트, 경계선, 강조색은 `apps/web/src/styles/global.css` 의 token 을 쓴다.
+- 새 색이 필요하면 두 테마 모두에 token 을 추가한다.
 
-The center editor should remain the primary work surface.
+## 8. 유지되는 기존 정보 구조 결정
 
-## 5. Pane vs Card Rules
+이전 명세(v0.3.2)에서 가져온 결정이다. 바꾸려면 ADR 이 필요하다.
 
-A pane is a docked workspace region separated by thin dividers.
+- Top bar: 왼쪽에 Workspace > Project, 가운데에 명령과 검색, 오른쪽에 테마 토글과 프로필이 있다. 별도 settings 톱니바퀴와 Share 버튼은 두지 않는다.
+- Settings 는 프로필 메뉴에서 연다. Workspace, Project, User 범위로 나눈다.
+- 오른쪽 패널은 History 를 중심으로 한다. Document Details, Comments, Outline 패널은 기본으로 노출하지 않는다.
+- 탐색기 하단에는 Trash 와 Help 만 둔다.
+- 프로젝트 관련 동작은 프로젝트 행의 `...` 메뉴 안에 둔다.
 
-A card is a grouped or floating content container with radius, padding, and sometimes shadow.
+## 9. UI 작업 절차
 
-The workspace shell is not a card dashboard.
-
-Use panes for:
-
-- Top bar.
-- Explorer.
-- Editor area.
-- History inspector.
-
-Use cards only for:
-
-- Dropdown menus.
-- Popovers.
-- Modals.
-- Settings panels.
-- Code blocks.
-- Quote/callout blocks.
-- Repeated list items only when necessary.
-
-Do not wrap the main editor body in a large rounded card.
-
-Do not create nested cards inside the main workspace.
-
-Do not make Explorer, Editor, and History look like separate floating cards.
-
-## 6. Border and Radius Rules
-
-The app should feel like a docked IDE workspace.
-
-Use subtle 1px borders for:
-
-- Top bar bottom border.
-- Explorer right border.
-- History inspector left border.
-- Tab strip bottom border.
-- Toolbar bottom border.
-- Row separators where needed.
-
-Use radius only for:
-
-- Search inputs.
-- Buttons.
-- Dropdowns.
-- Metadata chips.
-- Profile menu.
-- Project overflow menu.
-- Settings panel.
-- Code blocks.
-- Quote/callout blocks.
-
-Default radius:
-
-```txt
-small controls: 4px
-chips/buttons/inputs: 6px
-modals/popovers: 8px
-```
-
-Avoid:
-
-- Large rounded editor containers.
-- Rounded pane edges between shell panels.
-- Excessive shadows in the main shell.
-- Card-like wrappers around the editor body.
-- App-wide border-wrapped bottom status bars.
-
-## 7. Top Bar
-
-The top bar is compact and functional.
-
-Required structure:
-
-```txt
-Workspace > Project       Command/Search Bar       Theme Toggle | Profile
-```
-
-Rules:
-
-- Show workspace/project hierarchy on the left.
-- Use one centered command/search bar.
-- Do not show a Share button in the first implementation.
-- Do not show collaborator avatars in the top bar.
-- Do not show a standalone settings gear.
-- Settings are accessed from the profile menu.
-- Keep the top bar visually calm and around 48px high.
-
-## 8. Profile Menu
-
-Clicking the profile avatar opens a dropdown.
-
-Required items:
-
-```txt
-Profile
-Settings
-Notifications
-Keyboard Shortcuts
-Sign out
-```
-
-The Settings item opens the main settings panel.
-
-## 9. Explorer
-
-The Explorer is an IDE-like file tree.
-
-It should be dense, readable, and stable.
-
-Required structure:
-
-```txt
-WORKSPACE_ROOT
-`- Projects
-   `- Core Engine
-      |- docs
-      |  |- Overview.md
-      |  |- Architecture.md
-      |  |- Review Plan.md
-      |  |- Runbook.md
-      |  `- Changelog.md
-      `- templates
-         |- PRD Template.md
-         |- ADR Template.md
-         `- Review Template.md
-```
-
-Rules:
-
-- Active document row uses a subtle background highlight and left accent.
-- Project templates are visible inside each project.
-- Project actions are hidden behind the project row overflow menu.
-- Do not permanently expose `+ New from template` beside the folder row.
-- Keep bottom utilities minimal.
-
-Allowed bottom utilities:
-
-```txt
-Trash
-Help & Support
-```
-
-Remove from first implementation:
-
-```txt
-Workspace Settings
-Extensions
-Import
-```
-
-## 10. Project Overflow Menu
-
-The project row has an overflow menu.
-
-Example:
-
-```txt
-Core Engine    ...
-```
-
-Menu items:
-
-```txt
-New document
-New from template
-Manage templates
-Project settings
-Rename project
-Archive project
-```
-
-Project-scoped actions live here.
-
-## 11. Editor
-
-The editor is the primary work surface.
-
-Use TipTap as the rich Markdown authoring layer.
-
-Required structure:
-
-```txt
-Document Tabs
-TipTap Toolbar
-Document Header
-Rich Text Body
-Optional Editor-local Status Strip
-```
-
-Do not implement raw Markdown source mode or split preview in the first implementation.
-
-Do not add a global bottom status bar below the entire app shell.
-
-### Document Tabs
-
-Tabs appear above the toolbar.
-
-They provide multi-document context without turning the app into a full IDE.
-
-### TipTap Toolbar
-
-The toolbar is attached to the editor surface.
-
-Include:
-
-- Heading selector.
-- Bold.
-- Italic.
-- Strike.
-- Inline code.
-- Link.
-- Bulleted list.
-- Ordered list.
-- Task list.
-- Table.
-- Image/media.
-- Code block.
-- Undo / redo.
-- More menu.
-
-The toolbar should feel like a compact editing strip, not a large app header.
-
-### Document Header
-
-The document header includes:
-
-```txt
-Title
-Owner
-Sprint
-Status
-Updated
-Saved / Sync state
-```
-
-Example:
-
-```txt
-Review Plan: Q3 Infrastructure
-
-Owner: Alice
-Sprint: CE Review
-Status: Draft
-Updated: 12m ago
-Synced
-```
-
-Metadata chips should be near the title and must not look like Markdown body content.
-
-Document save/sync state should appear as compact metadata or subtle inline status near the document header by default.
-
-## 12. Rich Text Body
-
-The editor body supports:
-
-- Headings.
-- Paragraphs.
-- Lists.
-- Task lists.
-- Code blocks.
-- Quotes.
-- Inline code.
-- Links.
-- Tables.
-
-The main text area should use a comfortable centered measure.
-
-It should not be wrapped in a large card.
-
-## 13. Collaboration Presence
-
-Presence appears only inside the editor surface.
-
-Allowed:
-
-- Remote cursor label.
-- Remote selection highlight.
-- Small name tag anchored to cursor or selection.
-- Stable collaborator color.
-
-Not allowed:
-
-- Presence avatars in the top bar.
-- Duplicate presence indicators in multiple places.
-- Presence labels that permanently cover editable text.
-- Presence data becoming Markdown content.
-
-### Current Limitation
-
-Current presence only communicates cursor or selection position.
-
-This is acceptable for first implementation, but it is a known limitation.
-
-Future improvements:
-
-- Section-level presence.
-- Comment-aware presence.
-- Better anchored labels.
-- Temporary fade behavior.
-- Reconnecting/offline collaborator state.
-- Presence that communicates reading vs editing intent.
-
-## 14. History Inspector
-
-The right inspector is History only for the first implementation.
-
-Required structure:
-
-```txt
-History
-Today
-- Bob updated overview section
-- Alice added infrastructure definition block
-- Alice shared document
-- Dave added objectives
-
-View all history
-```
-
-Remove from first implementation:
-
-```txt
-Outline tab
-Comments tab
-Document Details
-Collaborators section
-```
-
-Rationale:
-
-- History directly supports revision requirements.
-- Comments and outline can be added later.
-- Document details are not needed in the main editor view.
-- Collaborator count should not require a dedicated inspector section.
-
-## 15. Settings
-
-Settings are opened from:
-
-```txt
-Profile Menu > Settings
-```
-
-Settings use a centered panel or modal with side navigation.
-
-Required side tabs:
-
-```txt
-Workspace
-Project
-User
-```
-
-### Workspace Settings
-
-Sections:
-
-```txt
-General
-Members & Roles
-Templates
-Permissions
-```
-
-Examples:
-
-- Workspace name.
-- Workspace ID.
-- Region.
-- Time zone.
-- Members and roles.
-- Workspace-level template policy.
-- Permission defaults.
-
-### Project Settings
-
-Sections:
-
-```txt
-General
-Document Structure
-Templates
-Review Workflow
-Revision Policy
-Danger Zone
-```
-
-Examples:
-
-- Project name.
-- Project slug/path.
-- Project template folder.
-- Default document template.
-- Review required before publish.
-- Revision retention policy.
-- Archive project.
-
-### User Settings
-
-Sections:
-
-```txt
-Profile
-Editor Preferences
-Theme
-Notifications
-Keyboard Shortcuts
-Sessions
-```
-
-Examples:
-
-- Display name.
-- Avatar.
-- Editor density.
-- Font size.
-- Theme.
-- Notification preferences.
-- Keyboard shortcuts.
-
-## 16. Document State
-
-There is no global bottom status bar.
-
-Document state appears near the document header as compact metadata chips or subtle inline status text.
-
-Allowed document state:
-
-```txt
-Status: Draft / Review / Published
-Saved / Saving
-Synced / Offline / Reconnecting
-Updated timestamp
-```
-
-Examples:
-
-```txt
-Status: Draft
-Saved
-Synced
-Updated: 12m ago
-```
-
-Do not create a bordered app-wide bottom status bar.
-
-Do not reserve persistent bottom chrome across the full layout for word count, character count, or collaborator count.
-
-If additional document/editor state is needed, it may appear as an editor-local status strip inside the center editor panel only.
-
-## 17. Editor-local Status Strip
-
-An editor-local status strip is optional.
-
-It is allowed only when it is scoped to the current document and visually belongs to the center editor panel.
-
-Allowed content:
-
-```txt
-Word count
-Character count
-Saved / Saving
-Synced / Offline / Reconnecting
-Editing mode
-```
-
-Rules:
-
-- It must not span the full app width.
-- It must not extend under the Explorer or History inspector.
-- It must not look like a global application footer.
-- It should use a simple top border or subtle separator, not a rounded bordered container.
-- It should be visually attached to the editor panel.
-- It should not contain workspace-level actions.
-- It should not duplicate presence labels.
-- It should be removable without breaking the shell layout.
-
-Recommended first implementation:
-
-```txt
-Prefer document-header metadata for save/sync state.
-Do not implement the editor-local status strip unless it materially improves usability.
-```
-
-## 18. Sync and Offline States
-
-Supported states:
-
-```txt
-Synced
-Saving
-Offline
-Reconnecting
-Pending local edits
-Merge completed
-```
-
-Examples:
-
-```txt
-Offline · 3 local edits pending
-Reconnecting...
-Synced · local edits merged
-```
-
-Offline and reconnect states should be calm unless data loss is likely.
-
-## 19. Templates
-
-Templates are project-scoped in the first implementation.
-
-Each project may contain a `templates` folder.
-
-Example:
-
-```txt
-Projects
-`- Core Engine
-   |- docs
-   `- templates
-      |- PRD Template.md
-      |- ADR Template.md
-      `- Review Template.md
-```
-
-Template actions are available from the project overflow menu:
-
-```txt
-New from template
-Manage templates
-Project settings
-```
-
-Workspace-level template policy is configured in:
-
-```txt
-Profile Menu > Settings > Workspace > Templates
-```
-
-Project-level template defaults are configured in:
-
-```txt
-Profile Menu > Settings > Project > Templates
-```
-
-## 20. Visual Do / Don't
-
-Do:
-
-- Use IDE-like pane layout.
-- Use thin separators.
-- Use compact spacing.
-- Use clear active row highlights.
-- Use restrained blue accents.
-- Use small metadata chips.
-- Keep the editor central.
-- Keep document state close to the document header.
-- Keep any optional status strip scoped to the center editor panel only.
-
-Do not:
-
-- Turn panes into floating cards.
-- Add rounded borders around every area.
-- Add a Share button by default.
-- Duplicate presence.
-- Add unused Extensions or Import surfaces.
-- Add dashboard-style widgets.
-- Add decorative gradients or marketing visuals.
-- Add a global bottom status bar.
-- Wrap the editor body in a bordered footer-like container.
-- Let status UI span under Explorer or History.
-
-## 21. Deferred Scope
-
-Deferred:
-
-- Raw Markdown source mode.
-- Split preview mode.
-- Outline panel.
-- Comments panel.
-- Import flow.
-- Extensions surface.
-- Document Details panel.
-- Global bottom status bar.
-- Advanced revision compare.
-- Rollback UI.
-- Public sharing.
-- Billing.
-- Mobile-optimized layout.
-
-## 22. Implementation Checklist
-
-Before marking the UI complete, verify:
-
-- Top bar has Workspace > Project, command bar, theme toggle, profile menu.
-- No standalone settings gear exists.
-- Profile menu contains Settings.
-- Settings panel has Workspace / Project / User side tabs.
-- Explorer has docs and templates under the project.
-- Project actions are inside `...`.
-- Sidebar bottom only has Trash and Help & Support.
-- Editor is not wrapped in a large rounded card.
-- TipTap toolbar is compact and attached to editor area.
-- Document state is shown near the document header by default.
-- No global bottom status bar exists.
-- Any optional status strip is scoped to the center editor panel only.
-- Presence appears only inside editor content.
-- Right inspector is History only.
-- Document Details is removed.
+1. 바꿀 화면 하나를 정한다. 한 PR 에서 한 화면을 다룬다.
+2. 변경 전 스크린샷을 찍는다. 다크와 라이트 둘 다 찍고, 기준은 `docs/design/current-ui/` 다.
+3. 변경한다. §2 절대 규칙을 지킨다.
+4. PR 에 변경 전후 스크린샷을 붙인다. 사용자 승인을 받은 뒤 다음 화면으로 넘어간다.
+5. 화면이 바뀌었으면 `docs/design/current-ui/` 의 해당 스크린샷을 갱신한다.
