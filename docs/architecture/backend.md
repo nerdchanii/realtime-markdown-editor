@@ -144,7 +144,8 @@ collab 서버는 API 가 발급한 협업 연결 token 을 검증한 연결에�
   - 서명, 발급자와 대상, 만료, 문서 범위(`documentKey` 와 연결한 문서 이름이 같은지)를 확인한다.
   - 실패하면 연결을 거부한다(permission-denied). token 이 없는 연결도 거부한다.
   - `read` token 은 read-only 연결로 연다. 서버는 그 연결의 문서 변경을 적용하지 않는다.
-  - 연결 context 의 principal 은 token 에서 온다. client 가 보낸 신원은 쓰지 않는다.
+  - 연결 context 의 principal 은 token 에서 온다. 아직 이 principal 을 쓰는 hook 은 없다.
+  - presence(awareness) 신원은 여전히 client 가 싣는다. 서버 강제는 아래 "아직 없는 것"의 후속 작업이다.
 - **설정이 없을 때**: `RME_COLLAB_TOKEN_SECRET` 이 없거나 32자보다 짧으면 API 와 collab 모두 시작하지 않는다.
   `pnpm dev` 는 값이 없으면 실행마다 임의 값을 만들어 두 프로세스에 넘긴다.
 - **아직 없는 것** (ADR-0012 에서 결정됨, 다음 작업)

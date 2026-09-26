@@ -32,7 +32,9 @@ ADR-0012 §1 을 따른다. 구현 위치와 설정은 `docs/architecture/backen
   - `content.write` 가 허용되면 `write`, `content.read` 만 허용되면 `read` 다.
   - archived 문서는 `content.write` 가 거부되므로 `read` 연결만 받는다.
 - `read` 연결은 read-only 로 연다. 그 연결에서 온 문서 변경은 적용하지 않는다.
-- 연결의 principal 은 token 에서 온다. presence 와 작성자 신원을 client 가 정하지 않는다.
+- 연결의 principal 은 token 에서 온다. 서버는 이 principal 을 연결 context 에만 둔다.
+  - (후속, deferred) presence(awareness) 와 작성자 신원을 이 principal 로 강제하는 일은 아직 하지 않았다.
+    지금 client 는 awareness 에 자기 멤버 정보를 직접 싣는다. awareness 슬라이스에서 서버가 강제하거나 검증하게 바꾼다(ADR-0012 §1).
 - 협업 서버(collab)는 API source 를 import 하지 않는다. token 형식은 양쪽 테스트의 고정 벡터로 맞춘다.
 
 ## 제공자 예시
