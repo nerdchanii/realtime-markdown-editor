@@ -21,7 +21,7 @@ status: active
 - Restore는 Markdown body, properties, revisions, checkpoints, artifacts, links/backlinks metadata를
   변경하지 않는다.
 - Future workflow hooks는 raw editor keystrokes가 아니라 명시적인 `DocumentState` change에 붙는다.
-  - 승격 제안: 워크플로우 hook, 전환 권한, 실행기는 [ADR-0017](../../adr/0017-document-workflow-triggers-and-executor.md)(proposed)로 승격 중이다. 방향은 사용자 결정(2026-09-26)이고 세부는 확정 전이다.
+  - (목표, [ADR-0017](../../adr/0017-document-workflow-triggers-and-executor.md) accepted, 아직 구현 전) 워크플로우 hook, 전환 권한, 실행기로 승격했다. 전환은 `document.state.change` 권한으로 제한하고, `DocumentState` 는 Y.Doc 밖(DB)에 두며, 변경은 API use case 로만 한다.
 - 현재 제품 범위에서 `DocumentState`는 `Document`가 가진 value/state로 구현하고 별도 aggregate로 키우지 않는다.
 
 ## MVP 경계

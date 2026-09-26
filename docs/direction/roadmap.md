@@ -104,8 +104,10 @@ ADR 은 에이전트가 비교안과 추천안을 `proposed` 로 작성하고, �
   - 첫 타입은 `markdown` 이다. Markdown 텍스트(`Y.Text`)가 정본이고, CodeMirror 라이브 프리뷰로 편집한다.
   - 두 번째 타입은 `code` 다. rich-text 는 보류한다.
   - ADR-0007 을 대체한다.
-- 에이전트 참여: [ADR-0016](../adr/0016-agent-participation-protocol-and-edit-mode.md) **proposed** (2026-09-26, 사용자 결정 대기).
-- 문서 워크플로우: [ADR-0017](../adr/0017-document-workflow-triggers-and-executor.md) **proposed** (2026-09-26, 방향은 사용자 결정, 세부 대기).
+- 에이전트 참여: [ADR-0016](../adr/0016-agent-participation-protocol-and-edit-mode.md) **accepted** (2026-09-26).
+  - 문서 연산 API + MCP 로 참여한다. 편집은 권한 상한 안에서 고른 모드 단계(수동 / 편집 수락 / 자동 / 자동+크루즈 / 모두 허용)로 반영된다.
+- 문서 워크플로우: [ADR-0017](../adr/0017-document-workflow-triggers-and-executor.md) **accepted** (2026-09-26).
+  - 워크플로우는 주인과 트리거를 선언한다. 상태 전환은 권한으로 제한하고 `DocumentState` 는 DB 에 둔다. 연쇄를 허용하되 상한으로 끊고, 별도 실행기가 실행한다.
 
 ## 단계 4. 코드 방향 결정과 policy 기반 수정
 

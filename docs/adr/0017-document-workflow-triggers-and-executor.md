@@ -1,12 +1,12 @@
 ---
 id: ADR-0017
 title: "ADR-0017: 문서 워크플로우는 주인과 트리거를 선언하고, 상태 전환은 권한으로 제한하며, 별도 실행기가 실행한다"
-status: proposed
+status: accepted
 date: 2026-09-26
 gate: G2
 decided_by: user
-ratified_by: pending
-ratified_at: null
+ratified_by: user
+ratified_at: 2026-09-26
 ratify_by: null
 reversibility: one-way
 revisit_if: >-
@@ -28,11 +28,11 @@ superseded_by: null
 
 # ADR-0017: 문서 워크플로우는 주인과 트리거를 선언하고, 상태 전환은 권한으로 제한하며, 별도 실행기가 실행한다
 
-> **proposed (2026-09-26)**
+> **accepted (2026-09-26)**
 >
 > - 방향은 사용자가 2026-09-26 에 정했다. 아래 "사용자 결정" 절의 여섯 항목은 [user] 결정이다.
-> - 세부 설계와 추천안은 에이전트가 작성했다([agent]). 결정이 필요한 세부는 "사용자가 답할 질문" 절에 모았다.
-> - 세부가 확정될 때까지 ADR 은 proposed 로 둔다. [user] 결정이 아닌 내용은 확정 규칙으로 인용하지 않는다.
+> - 세부 설계와 추천안은 에이전트가 작성했고([agent]), 사용자가 같은 날 추천안 전체를 확정했다. "설계" 절이 확정 내용이다.
+> - 세부 질문의 답은 "결정된 질문" 절에 있다. 추천이 명시되지 않았던 항목은 초안에 가장 가까운 안을 택했고 **(선택)** 으로 표시했다.
 > - 추적 Issue: #4 (에이전트 참여 ADR-0016 과 함께 논의)
 
 ## 맥락
@@ -56,7 +56,7 @@ superseded_by: null
 - [ADR-0013](0013-document-type-model.md) (accepted): `DocumentState` 를 Yjs `meta` Y.Map 에 두었다.
 - [ADR-0011](0011-data-authority-by-scope.md) (accepted) 결정 2: "본문, title, properties, **필요하면** DocumentState 가 모두 Yjs 안의 구분된 field 에 있다."
 - [ADR-0012](0012-authorization-policy-and-principals.md) (accepted): 모든 쓰기는 `authorize(actor, action, resource)` 한 곳에서 판정한다(§1 은 G1 추인 대기). actor 는 `{ principal, onBehalfOf? }` 다.
-- [ADR-0016](0016-agent-participation-protocol-and-edit-mode.md) (proposed): 에이전트 편집은 모드 단계(수동 / 편집 수락 / 자동 / 자동+크루즈 / 모두 허용)를 가진다. 모드 단계 자체는 [user] 결정이고, 나머지는 제안이다.
+- [ADR-0016](0016-agent-participation-protocol-and-edit-mode.md) (accepted): 에이전트는 문서 연산 API 로 참여하고, 편집은 모드 단계(수동 / 편집 수락 / 자동 / 자동+크루즈 / 모두 허용)를 가진다.
 
 ### 현재 구현
 
@@ -88,7 +88,7 @@ superseded_by: null
 4. **`DocumentState` 는 Y.Doc 밖(DB)에 둔다.**
    - 상태 변경은 API use case 로만 한다. 권한 판정과 이벤트 기록(outbox)을 그 use case 에서 한다.
    - ADR-0013 의 `meta` 구조를 이에 맞게 고친다.
-   - local 범위 문서의 상태 위치는 [open] 이다(Q8).
+   - local 범위 문서의 상태 위치는 아래 Q8 에서 정했다.
 5. **연쇄 실행을 허용한다.**
    - 워크플로우가 만든 이벤트로 다른 워크플로우가 실행될 수 있다. 연쇄가 워크플로우의 핵심이다.
    - 의도하지 않은 순환(A→B→A)은 실행 깊이나 횟수 상한으로 끊는다.
@@ -96,7 +96,7 @@ superseded_by: null
    - api, collab 과 나란히 따로 배포한다.
    - 상태 변경 이벤트는 outbox 로 유실 없이 실행기에 전달한다.
 
-## 설계 — [agent] 추천
+## 설계 — [agent] 작성, [user] 2026-09-26 확정
 
 ### 1. 워크플로우 선언
 
@@ -111,19 +111,19 @@ superseded_by: null
 | 에이전트 모드 | 에이전트 동작이면 ADR-0016 의 모드 | 수동(모두 제안으로 남긴다) |
 
 - **트리거의 첫 범위는 `DocumentState` 전환**이다. 기존 규칙대로 키 입력에는 붙지 않는다.
-  문서 생성, checkpoint 생성, 수동 실행, 일정 같은 다른 트리거는 Q1 이다.
+  문서 생성, checkpoint 생성, 수동 실행, 일정 같은 다른 트리거는 요구가 생길 때 추가한다(Q1).
 - **동작의 첫 범위**는 "에이전트 실행"과 "알림"이다. 외부 시스템 연동은 과거 요구사항대로 이 모델이 정해진 뒤 연동 계약을 따로 설계한다.
 
 ### 2. 소유와 실행 권한
 
 - 워크플로우가 실행하는 에이전트의 actor 는 `{ principal: 에이전트, onBehalfOf: 워크플로우 주인 }` 이다.
   - 실효 권한은 (주인의 권한) ∩ (워크플로우가 선언한 적용 범위와 동작) 이다. ADR-0012 의 delegated agent 교집합 규칙과 같다.
-  - 에이전트 모드는 워크플로우가 선언한 모드와 문서가 허용하는 최대 모드 가운데 낮은 쪽이다(허용 최대 모드는 ADR-0016 Q7, 제안).
+  - 에이전트 모드는 워크플로우가 선언한 모드와 문서가 허용하는 최대 모드 가운데 낮은 쪽이다(허용 최대 모드는 ADR-0016 Q7).
 - **실행 기록에는 두 사람을 남긴다.** 트리거한 사람(상태를 바꾼 사람)과 워크플로우 주인이다.
 - **트리거한 사람의 권한이 아니라 주인의 권한으로 실행된다.** GitHub 에서 머지한 사람이 아니라 저장소 설정과 secret 으로 Actions 가 도는 것과 같다.
   - 이 때문에 editor 가 상태를 바꿔 admin 이 만든 워크플로우를 실행시킬 수 있다. 의도된 동작이다.
   - 대신 워크플로우가 할 수 있는 일은 선언한 적용 범위와 동작으로 좁혀진다. 주인은 그 선언을 책임진다.
-  - 워크플로우를 만들거나 고칠 수 있는 사람은 Q3 이다.
+  - 워크플로우를 만들거나 고칠 수 있는 사람은 Q3 에서 정했다.
 
 ### 3. 상태 전환 권한
 
@@ -131,7 +131,7 @@ superseded_by: null
   - ADR-0012 의 역할표에서 `content.write` 에 섞지 않는다. 본문을 쓸 수 있어도 게시 상태로 바꾸지 못하게 할 수 있어야 하기 때문이다.
   - 추천 기본값: editor 이상이 모든 전환을 할 수 있다. 지금 동작(직접 전환 허용)과 같다.
 - 전환별 guard 를 둘 수 있다. 예: `review → saved` 는 admin 만, `saved` 로 가려면 `review` 를 거쳐야 한다.
-  guard 를 어디서 설정하고 어떤 모양으로 둘지는 Q2 다.
+  guard 는 workspace 설정에 둔다(Q2).
 - 워크플로우를 트리거할 수 있는 사람 = 그 전환을 할 수 있는 사람이다. 트리거 권한을 따로 두지 않는다.
 - 에이전트와 외부 시스템도 같은 use case 와 같은 policy 로 상태를 바꾼다. ADR-0004 가 보류한 reverse hook(외부가 상태를 바꾸는 흐름)은 이 경로 위에 올린다.
 
@@ -160,7 +160,7 @@ superseded_by: null
 - 실행기는 api, collab 과 나란히 **별도 프로세스**로 배포한다(앱 이름 초안: `apps/workflow`).
 - outbox 이벤트를 받아 적용 범위와 트리거가 맞는 워크플로우를 찾고, 실행(run)을 만든다.
 - 전달은 **최소 한 번(at-least-once)** 이다. 실행기는 이벤트 id 로 중복 실행을 막는다.
-- 에이전트 동작은 ADR-0016 이 제안한 문서 연산 API(제안)를 통해 문서를 고친다. 그래서 워크플로우의 편집도 같은 policy, 같은 모드, 같은 변경 묶음 기록을 지난다.
+- 에이전트 동작은 ADR-0016 의 문서 연산 API 를 통해 문서를 고친다. 그래서 워크플로우의 편집도 같은 policy, 같은 모드, 같은 변경 묶음 기록을 지난다.
 - 실행기 자신은 서비스 자격증명으로 인증하고, 동작마다 위 2 의 actor 로 권한을 판정받는다. 실행기에게 별도의 넓은 권한을 주지 않는다.
 - 실행 기록(run)은 워크플로우, 트리거 이벤트, 트리거한 사람, 주인, 상태(대기, 실행 중, 성공, 실패, 중단), 인과 정보를 남긴다.
 
@@ -168,9 +168,9 @@ superseded_by: null
 
 - 워크플로우 실행 안에서 일어난 상태 변경도 outbox 이벤트가 되고, 다른 워크플로우를 트리거할 수 있다.
 - 모든 이벤트는 **인과 정보**를 가진다: 처음 사람이 만든 이벤트(root), 부모 실행, 연쇄 깊이.
-- 상한(값은 Q5)
-  - 연쇄 깊이 상한: 예를 들어 5 단계.
-  - root 이벤트 하나에서 파생된 실행 수 상한: 예를 들어 20 회.
+- 상한(Q5)
+  - 연쇄 깊이 상한: 5 단계.
+  - root 이벤트 하나에서 파생된 실행 수 상한: 20 회.
   - 같은 문서에서 같은 워크플로우가 짧은 시간에 반복 실행되는 횟수 상한.
 - 상한에 닿으면 그 실행을 만들지 않고, 실행 기록에 "연쇄 상한으로 중단"을 남기고, 워크플로우 주인에게 알린다.
 - **GitHub 과 반대로 가는 이유**
@@ -178,21 +178,21 @@ superseded_by: null
   - 이 제품에서는 문서 상태의 연쇄 자체가 사용자가 만들 흐름이다. 예: `draft → review` 에서 리뷰 에이전트가 돌고, 리뷰가 통과하면 에이전트가 `saved` 로 바꾸고, `saved` 에서 게시 알림이 나간다. 연쇄를 막으면 이 흐름을 만들 수 없다.
   - 그래서 차단 대신 **인과 사슬을 추적하고 상한으로 끊는다.** 사람이 실행 기록에서 사슬 전체를 볼 수 있게 한다.
 
-## 사용자가 답할 질문
+## 결정된 질문 — [user] 2026-09-26
 
-1. **[open] 트리거 종류**: 첫 범위는 `DocumentState` 전환이다(추천). 문서 생성, checkpoint 생성, 수동 실행, 일정 트리거를 언제 추가할까요?
-2. **[open] 전환 guard**: 기본은 editor 이상이 모든 전환을 할 수 있게 둔다(추천). 전환별 guard(특정 역할만, 거쳐야 하는 상태)를 workspace 설정으로 둘까요, 워크플로우 선언의 일부로 둘까요?
-3. **[open] 워크플로우를 만들 수 있는 사람**: 추천은 admin 이상이 workspace·project 범위 워크플로우를, editor 는 자기에게 권한이 있는 문서·folder 범위 워크플로우만 만드는 것이다. 새 action(`workflow.manage`)을 둘까요?
-4. **[open] 워크플로우 설정 저장 위치**
-   - (a) DB 레코드(추천): 권한 판정과 버전 기록이 쉽다. 편집 UI 가 필요하다.
-   - (b) workspace 안의 설정 문서(GitHub 의 `.github/workflows` 처럼): 문서처럼 편집하고 이력을 남길 수 있다. 문서를 고칠 수 있는 사람이 워크플로우를 바꿀 수 있어 권한 모델이 복잡해진다.
-5. **[open] 연쇄 상한 값**: 깊이 5, root 당 실행 20 회를 초안으로 둘까요? workspace 별로 바꿀 수 있게 할까요?
-6. **[open] 실패와 재시도**: 알림처럼 멱등한 동작은 간격을 늘려 가며 몇 번 자동 재시도하고, 에이전트 실행은 부분 편집이 남을 수 있으니 자동 재시도하지 않고 실패로 표시한 뒤 사람이 다시 실행하게 할까요(추천)?
-7. **[open] 주인이 권한을 잃었을 때**: 추천은 실행할 때마다 주인의 권한을 다시 판정하는 것이다. 권한이 없으면 실행을 거부하고, 워크플로우를 일시 정지하고, workspace admin 에게 알린다. admin 이 새 주인을 지정하면 다시 켠다. 주인이 workspace 를 떠난 경우도 같게 다룰까요?
-8. **[open] local 범위 문서의 상태 위치**: 서버가 없는 local 문서의 `DocumentState` 는 어디에 둘까요?
-   - (a) 기기의 local 저장소(문서 목록 index 같은 곳)에 두고, 승격하거나 sync 할 때 DB 로 옮긴다.
-   - (b) local 문서는 상태와 워크플로우를 지원하지 않는다. 승격한 뒤에만 쓴다.
-9. **[open] 상태 모델**: `draft`, `review`, `saved` 세 상태를 고정으로 둘까요, workspace 가 상태를 정의할 수 있게 할까요?
+모든 질문을 추천안대로 확정했다. **(선택)** 표시는 추천이 명시되지 않아 초안에 가장 가까운 안을 택한 부분이다.
+
+1. **트리거 종류**: 첫 범위는 `DocumentState` 전환이다. **(선택)** 문서 생성, checkpoint 생성, 수동 실행, 일정 트리거는 시점을 정하지 않고 요구가 생길 때 추가한다.
+2. **전환 guard**: 기본은 editor 이상이 모든 전환을 할 수 있다. **(선택)** 전환별 guard 는 workspace 설정(권한 policy 의 일부)에 둔다. 워크플로우 선언에 두면 워크플로우 주인이 전환 권한을 정하게 되어 policy 가 한곳에 모이지 않기 때문이다.
+3. **워크플로우를 만들 수 있는 사람**: admin 이상은 workspace·project 범위, editor 는 자기에게 권한이 있는 문서·folder 범위 워크플로우를 만든다. **(선택)** 이를 위해 `workflow.manage` action 을 새로 둔다.
+4. **워크플로우 설정 저장 위치**: DB 레코드에 둔다. workspace 안의 설정 문서 방식은 쓰지 않는다.
+5. **연쇄 상한 값**: 깊이 5, root 당 실행 20 회. **(선택)** 처음에는 workspace 별로 바꿀 수 없는 고정값이다. 정상 흐름이 자주 끊기면 다시 본다.
+6. **실패와 재시도**: 알림처럼 멱등한 동작은 간격을 늘려 가며 자동 재시도한다(횟수는 구현할 때 G1). 에이전트 실행은 자동 재시도하지 않고 실패로 표시한 뒤 사람이 다시 실행한다.
+7. **주인이 권한을 잃었을 때**: 실행할 때마다 주인의 권한을 다시 판정한다. 권한이 없으면 실행을 거부하고, 워크플로우를 일시 정지하고, workspace admin 에게 알린다. admin 이 새 주인을 지정하면 다시 켠다. 주인이 workspace 를 떠난 경우도 같게 다룬다.
+8. **local 범위 문서의 상태 위치 (선택)**: (b) local 문서는 상태와 워크플로우를 지원하지 않는다. server 범위로 승격한 뒤에 쓴다.
+   - "상태 변경은 API use case 로만 한다"는 결정 4 와 실행기가 서버 프로세스라는 결정 6 에 가장 잘 맞는다.
+   - 지금 `apps/editor` 의 local 문서에도 상태가 없으므로 잃는 기능이 없다.
+9. **상태 모델**: `draft`, `review`, `saved` 세 상태로 고정한다. workspace 가 상태를 정의하는 기능은 두지 않는다.
 
 ## 결과
 
@@ -208,7 +208,7 @@ superseded_by: null
 - 협업 서버: 상태 변경 stateless 알림.
 - 실행기 앱과 실행 기록 저장.
 - `apps/editor`: 상태를 `meta` 에 넣지 않는다. 슬라이스 2 이후 상태 표시가 필요할 때 API 조회와 알림으로 붙인다. 지금 바꿀 코드는 없다.
-- ADR-0016 의 문서 연산 API(제안)가 정해진 뒤 에이전트 동작을 붙인다.
+- ADR-0016 의 문서 연산 API 를 구현한 뒤 에이전트 동작을 붙인다.
 
 ### 후속 작업 (문서)
 
@@ -233,7 +233,7 @@ superseded_by: null
 
 ## 관련 문서
 
-- 기존 결정: [ADR-0004](0004-document-lifecycle-policy.md), [ADR-0011](0011-data-authority-by-scope.md), [ADR-0012](0012-authorization-policy-and-principals.md), [ADR-0013](0013-document-type-model.md), [ADR-0016](0016-agent-participation-protocol-and-edit-mode.md) (proposed)
+- 기존 결정: [ADR-0004](0004-document-lifecycle-policy.md), [ADR-0011](0011-data-authority-by-scope.md), [ADR-0012](0012-authorization-policy-and-principals.md), [ADR-0013](0013-document-type-model.md), [ADR-0016](0016-agent-participation-protocol-and-edit-mode.md)
 - 도메인: [DocumentState](../domain/models/document-state.md), [문서 lifecycle 규칙](../domain/rules/document-lifecycle.md)
 - 제품: [DocumentState](../product/workflow/document-state.md)
 - 참고 자료(요구사항 아님): [워크플로우 hook](../archive/requirements/backlog/REQ-DEFERRED-WORKFLOW-HOOKS.md), [상태와 실행 동작 매핑](../archive/requirements/backlog/REQ-DEFERRED-DOCUMENT-STATE-ACTION-MAPPING.md), [외부 연동](../archive/requirements/backlog/REQ-DEFERRED-EXTERNAL-WORKFLOW-INTEGRATIONS.md)
@@ -243,3 +243,4 @@ superseded_by: null
 | 날짜 | 변경 | 결정자 |
 | --- | --- | --- |
 | 2026-09-26 | 최초 작성 (proposed). 워크플로우 분리, 주인과 트리거 선언, 전환 권한, DocumentState 를 DB 로, 연쇄 허용, 별도 실행기 | user (방향 6 항목) / agent:claude-code (세부 설계와 추천) |
+| 2026-09-26 | 세부 질문 1–9 를 모두 추천안대로 확정하고 accepted 로 바꿨다. 상태 모델은 draft/review/saved 고정. 추천이 명시되지 않은 부분(Q1 추가 시점, Q2 guard 위치, Q3 action, Q5 변경 가능 여부, Q8)은 초안에 가장 가까운 안을 택했다 | user |
