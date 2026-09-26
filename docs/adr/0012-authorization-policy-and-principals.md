@@ -101,6 +101,11 @@ superseded_by: null
 
 ### 1. 단일 policy 함수와 모든 진입점
 
+> **출처**: 이 절(§1)은 [agent] G1 이다. `decided_by: agent:claude-code`, `ratify_by: 2026-10-03`.
+> 사용자는 "권한 모델을 명확히 하고 policy 에 따라 코드를 바꾼다"는 원칙을 말했다(인터뷰 §4).
+> 단일 policy 함수, 서명된 collab token, `onAuthenticate`, internal 서비스 인증은 에이전트가 그 원칙을 구체화한 구현 방식이다.
+> 사용자가 이의를 제기하면 바꾼다.
+
 - 권한 판정은 application 계층의 하나의 policy 로만 한다: `authorize(actor, action, resource)`.
 - HTTP, collab WebSocket, internal API, 앞으로의 에이전트 프로토콜(MCP 등)이 모두 이 policy 를 부른다.
 - 진입점마다 권한 로직을 복제하지 않는다.
@@ -168,6 +173,8 @@ superseded_by: null
   - 사용자 권한이 줄어들면 에이전트 권한도 함께 줄어든다.
 - **member agent**: workspace 에 등록된 독립 참여자다.
   - 자기 역할을 가진다. owner 나 admin 이 등록하고 관리한다.
+  - [agent] G1: member agent 의 역할은 `WorkspaceMembership` 에 저장한다. membership 은 `User` 가 아니라 principal(`User` 또는 member `Agent`)을 참조한다.
+    - delegated agent 는 membership 을 갖지 않는다. 위임한 사용자의 membership 과 부여된 scope 로 권한을 판정한다.
 - **모든 쓰기에는 actor 가 남는다.**
   - actor 형태: `{ principal, onBehalfOf? }`
   - presence, history, audit 에서 사람과 에이전트를 구분해 보여준다.

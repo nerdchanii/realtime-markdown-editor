@@ -23,3 +23,5 @@ ADR 로 만들 만큼 크지는 않지만 PR 이 끝난 뒤에도 남아야 하�
 | 2026-09-25 | LocalUser 계정 연결이 충돌하면(이미 다른 계정에 연결된 경우 등) 자동 병합하지 않고 사용자에게 확인한다 | G1 | agent:claude-code | pending | 2026-10-02 | 연결 흐름을 구현할 때 확인 단계가 과하면 | PR #9 |
 | 2026-09-26 | 옛 schema 버전의 IndexedDB draft 는 읽지 않고 삭제한다(draft 키에 schema 버전 포함) | G1 | agent:claude-code | pending | 2026-10-03 | 개발 중 draft 유실이 문제가 되면 | PR #9 |
 | 2026-09-26 | checkpoint snapshot 은 `{ type, schemaVersion, content }` 형태로 type 을 표시한다. 타입별 snapshot 과 viewer 가 정의되기 전에는 그 타입을 출시하지 않는다 | G1 | agent:claude-code | pending | 2026-10-03 | code 타입 구현에서 다른 형태가 필요하면 | PR #9 |
+| 2026-09-26 | ADR-0012 §1 구현 방식: 단일 `authorize` policy, 서명된 짧은 TTL collab token, `onAuthenticate` 검증, internal 서비스 인증. 사용자가 말한 "policy 에 따른 권한" 원칙을 에이전트가 구체화했다 | G1 | agent:claude-code | pending | 2026-10-03 | 구현 중 token 방식이 Hocuspocus 제약과 맞지 않으면 | PR #9 |
+| 2026-09-26 | member agent 의 역할은 `WorkspaceMembership` 에 저장하고, membership 은 principal(`User` 또는 member `Agent`)을 참조한다 | G1 | agent:claude-code | pending | 2026-10-03 | 에이전트 참여 ADR(#4)에서 다른 모델이 필요해지면 | PR #9 |

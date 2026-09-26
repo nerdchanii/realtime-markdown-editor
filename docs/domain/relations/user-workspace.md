@@ -9,9 +9,17 @@ status: active
 
 Workspace-specific collaboration identity는 `User`가 아니라 `WorkspaceMembership`에서 나온다.
 
+- (목표, ADR-0012) `WorkspaceMembership` 은 principal 을 참조한다: `User` 또는 member `Agent`.
+  - member agent 도 membership 을 통해 역할을 가진다.
+  - delegated agent 와 `LocalUser` 는 membership 을 갖지 않는다.
+    - delegated agent 는 위임한 사용자의 membership 으로 판정한다.
+    - `LocalUser` 는 local 범위의 owner 다.
+- 현재 구현은 `User` 만 membership 을 가진다.
+
 ```mermaid
 classDiagram
   User "1" --> "*" WorkspaceMembership
+  Agent "1" --> "*" WorkspaceMembership : member agent (목표)
   Workspace "1" --> "*" WorkspaceMembership
   WorkspaceMembership ..> Presence : supplies identity
   WorkspaceMembership --> Checkpoint

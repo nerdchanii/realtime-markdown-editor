@@ -24,7 +24,7 @@ Actor     = { principal, onBehalfOf?: User | LocalUser }
 | `User` | 계정을 가진 사람 | server 범위 workspace 에서 `WorkspaceMembership` 의 역할(owner, admin, editor, viewer)과 grant 로 판정한다. |
 | `LocalUser` | 계정 없이 local 범위를 쓰는 기기 사용자. 기기마다 id 가 있다. | local 범위 workspace 의 owner 다. 로그인하거나 sync·승격할 때 `User` 에 연결되고, 작성 기록도 그 `User` 로 옮겨진다. |
 | `Agent` (delegated) | 특정 사용자의 대리인으로 행동하는 AI 에이전트 | 실효 권한은 (그 사용자의 권한) ∩ (사용자가 준 scope) 다. |
-| `Agent` (member) | workspace 에 등록된 독립 참여자 AI 에이전트 | 자기 역할을 가진다. owner 나 admin 이 등록하고 관리한다. |
+| `Agent` (member) | workspace 에 등록된 독립 참여자 AI 에이전트 | `WorkspaceMembership` 으로 자기 역할을 가진다. owner 나 admin 이 등록하고 관리한다. |
 
 ## 규칙
 
