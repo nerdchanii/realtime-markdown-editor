@@ -76,8 +76,8 @@ superseded_by: null
 | UI-003 | 색 literal(hex, 이름 색, 색 함수)은 token 파일(`apps/web/src/styles/tokens.css`)에서만 쓴다. | Stylelint `color-no-hex`, `color-named`, `function-disallowed-list` |
 | UI-004 | `@apply` 를 쓰지 않는다. | Stylelint `at-rule-disallowed-list` |
 | UI-005 | inline `style` 은 `--name` custom property 만 넘긴다. | ESLint `no-restricted-syntax`(AST selector) |
-| UI-006 | Tailwind 가 TSX 에서 utility 를 만들지 않는다. | `@import "tailwindcss" source(none)` |
-| UI-007 | 새 SCSS 파일을 만들지 않는다. 지금 있는 SCSS 파일 26개만 목록으로 허용하고, 파일을 지우면 목록에서도 뺀다. | `pnpm arch:check` |
+| UI-006 | Tailwind 가 TSX 에서 utility 를 만들지 않는다. Tailwind import 는 `global.css` 의 `source(none)` 한 곳뿐이고, utility 를 다시 켜는 `@source`, `@plugin`, `@config` 는 쓰지 않는다. | `pnpm arch:check`, Stylelint `at-rule-disallowed-list` |
+| UI-007 | 새 SCSS 파일을 만들지 않는다. `apps/web` 전체를 검사하고, 지금 있는 SCSS 파일 26개만 목록으로 허용한다. 파일을 지우면 목록에서도 뺀다. | `pnpm arch:check` |
 
 - **기존 위반은 bulk suppression 으로 기록하는 ratchet 이다.**
   - Stylelint 는 `stylelint-suppressions.json`, ESLint 는 `eslint-suppressions.json` 에 기록한다.
@@ -85,6 +85,8 @@ superseded_by: null
     - ESLint 는 이 동작이 기본이다.
     - Stylelint 는 `scripts/lint-css.mjs` 가 기록과 현재 위반을 비교한다.
   - 정리한 뒤에는 `pnpm lint:css --prune` 이나 `eslint --prune-suppressions` 로 기록을 줄인다.
+  - 기록한 개수를 올려서 새 위반을 통과시킬 수 없다. `pnpm suppressions:check` 가 base 브랜치의 기록과 비교해, 파일과 규칙별 개수가 늘면 실패한다. CI 는 base 브랜치를 fetch 해서 이 검사를 돌린다.
+  - 한계: 기록은 개수 기반이다. 위반이 이미 기록된 파일에서 위반 하나를 지우고 같은 규칙의 새 위반 하나를 넣으면 통과한다. 위치 기반 기록은 기존 파일을 고칠 때마다 깨지므로 쓰지 않는다. 이 경우는 PR diff 와 스크린샷 리뷰가 맡고, 기록된 파일은 화면 단위 PR 에서 줄여 없앤다.
 - UI-006 을 켜도 화면은 바뀌지 않는다.
   - 빌드 CSS 를 비교하면, 빠지는 것은 TSX 의 우연한 단어("hidden", "border" 등)에서 생긴 utility 뿐이다.
   - 그 utility 를 class 로 쓰는 곳은 없다.

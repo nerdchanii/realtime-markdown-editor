@@ -68,7 +68,8 @@ export default {
     "function-disallowed-list": [...gradientFunctions, ...colorFunctions], // UI-002, UI-003
     "color-no-hex": true, // UI-003
     "color-named": "never", // UI-003
-    "at-rule-disallowed-list": ["apply"], // UI-004
+    // UI-004: no @apply. UI-006: no directive that makes Tailwind generate utilities again.
+    "at-rule-disallowed-list": ["apply", "source", "plugin", "config"], // UI-004, UI-006
   },
   overrides: [
     {

@@ -74,7 +74,7 @@ function needsCollabTypecheck(file) {
 
 function needsArchitectureCheck(file) {
   return (
-    /^apps\/.+\.(ts|tsx|scss)$/.test(file) ||
+    /^apps\/.+\.(ts|tsx|css|scss)$/.test(file) ||
     /^packages\/.+\.ts$/.test(file) ||
     file === ".dependency-cruiser.cjs" ||
     file === "scripts/check-architecture.mjs" ||
@@ -86,7 +86,7 @@ function needsArchitectureCheck(file) {
 
 function needsCssLint(file) {
   return (
-    /^apps\/web\/src\/.+\.(css|scss)$/.test(file) ||
+    /^apps\/web\/.+\.(css|scss)$/.test(file) ||
     file === "stylelint.config.mjs" ||
     file === "stylelint-suppressions.json" ||
     file === "scripts/lint-css.mjs" ||
@@ -137,10 +137,7 @@ function commandsFor(stagedFiles, prettierFiles, lintFiles) {
     "eslint",
     "--no-warn-ignored",
   ]);
-  pushConditionalCommand(commands, stagedFiles.some(needsFullEslint), "eslint on all files", [
-    "lint",
-  ]);
-  pushConditionalCommand(commands, stagedFiles.some(needsCssLint), "stylelint", ["lint:css"]);
+  pushStyleCommands(commands, stagedFiles);
   pushConditionalCommand(
     commands,
     stagedFiles.some(needsTypecheck),
@@ -164,6 +161,21 @@ function commandsFor(stagedFiles, prettierFiles, lintFiles) {
   ]);
   pushConditionalCommand(commands, stagedFiles.some(needsTest), "workspace tests", ["test"]);
   return commands;
+}
+
+function isSuppressionsFile(file) {
+  return /^(eslint|stylelint)-suppressions\.json$/.test(file);
+}
+
+// Style rule checks (ADR-0015).
+function pushStyleCommands(commands, stagedFiles) {
+  pushConditionalCommand(commands, stagedFiles.some(needsFullEslint), "eslint on all files", [
+    "lint",
+  ]);
+  pushConditionalCommand(commands, stagedFiles.some(needsCssLint), "stylelint", ["lint:css"]);
+  pushConditionalCommand(commands, stagedFiles.some(isSuppressionsFile), "suppression ratchet", [
+    "suppressions:check",
+  ]);
 }
 
 function command(label, executable, args) {

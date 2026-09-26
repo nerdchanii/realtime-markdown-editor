@@ -71,8 +71,8 @@ purpose: AI agent용 저장소 지도
 ```bash
 pnpm install
 pnpm db:generate   # 새 clone 에서는 typecheck, test, build 전에 필요 (Prisma client)
-pnpm check         # typecheck, lint, lint:css, format:check, docs:check, arch:check, test
-pnpm lint:css      # Stylelint(UI-001~004). 기존 위반은 stylelint-suppressions.json, 정리 후 --prune
+pnpm check         # typecheck, lint, lint:css, suppressions:check, format:check, docs:check, arch:check, test
+pnpm lint:css      # Stylelint(UI-001~004, 006). 기존 위반은 stylelint-suppressions.json, 정리 후 --prune
 pnpm docs:check    # 깨진 링크, ADR 형식, proposed ADR 인용, 스타일 규칙 id 대조
 pnpm test:e2e      # Docker(Postgres) 필요
 ```

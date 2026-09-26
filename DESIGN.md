@@ -44,11 +44,12 @@ lint 설정의 규칙 id 와 이 표는 `pnpm docs:check` 가 대조한다.
 | UI-003 | 색 literal(hex, 이름 색, 색 함수)은 token 파일에서만 쓴다. | Stylelint |
 | UI-004 | `@apply` 를 쓰지 않는다. | Stylelint |
 | UI-005 | inline `style` 은 `--name` custom property 만 넘긴다. | ESLint |
-| UI-006 | Tailwind 는 TSX 에서 utility 를 만들지 않는다(`source(none)`). | 빌드 설정 |
+| UI-006 | Tailwind 는 TSX 에서 utility 를 만들지 않는다(`source(none)`). `@source`, `@plugin`, `@config` 를 쓰지 않는다. | `pnpm arch:check`, Stylelint |
 | UI-007 | 새 SCSS 파일을 만들지 않는다. | `pnpm arch:check` |
 
 - 기존 위반은 `stylelint-suppressions.json`, `eslint-suppressions.json` 에 기록되어 있다. 기록은 줄이는 방향으로만 바뀐다.
 - 위반을 정리했으면 `pnpm lint:css --prune`, `pnpm exec eslint . --prune-suppressions` 로 기록을 줄이고 함께 커밋한다.
+- 기록한 개수를 올릴 수는 없다. `pnpm suppressions:check` 가 base 브랜치와 비교한다.
 - border 없이 배경만 다르게 만든 card 는 lint 로 잡지 못한다. 스크린샷 리뷰로 확인한다.
 
 ## 3. 레이아웃

@@ -229,15 +229,20 @@ const legacyScssFiles = new Set([
   "apps/web/src/styles/_variables.scss",
 ]);
 
-function walkScss(dir) {
+const skippedStyleDirs = new Set(["node_modules", "dist"]);
+
+function walkStyles(dir) {
   return readdirSync(dir).flatMap((entry) => {
+    if (skippedStyleDirs.has(entry)) return [];
     const path = join(dir, entry);
-    if (statSync(path).isDirectory()) return walkScss(path);
-    return path.endsWith(".scss") ? [toPosixPath(path)] : [];
+    if (statSync(path).isDirectory()) return walkStyles(path);
+    return /\.(css|scss)$/.test(path) ? [toPosixPath(path)] : [];
   });
 }
 
-const scssFiles = new Set(walkScss("apps/web/src"));
+// The whole web package is scanned, so a stylesheet outside src/ cannot slip past the checks.
+const styleFiles = walkStyles("apps/web");
+const scssFiles = new Set(styleFiles.filter((file) => file.endsWith(".scss")));
 for (const file of scssFiles) {
   if (!legacyScssFiles.has(file)) {
     failures.push(`UI-007: write styles in plain CSS, not SCSS (ADR-0015): ${file}`);
@@ -246,6 +251,19 @@ for (const file of scssFiles) {
 for (const file of legacyScssFiles) {
   if (!scssFiles.has(file)) {
     failures.push(`UI-007: remove the deleted SCSS file from legacyScssFiles: ${file}`);
+  }
+}
+
+// UI-006 (ADR-0015): Tailwind is imported once, with automatic source detection turned off.
+const tailwindEntry = "apps/web/src/styles/global.css";
+const tailwindImport = /@import\s+["']tailwindcss["'][^;]*;/g;
+for (const file of styleFiles) {
+  const imports = readFileSync(file, "utf8").match(tailwindImport) ?? [];
+  const expected = file === tailwindEntry ? ['@import "tailwindcss" source(none);'] : [];
+  if (JSON.stringify(imports) !== JSON.stringify(expected)) {
+    failures.push(
+      `UI-006: only ${tailwindEntry} may import Tailwind, exactly as \`@import "tailwindcss" source(none);\`: ${file}`,
+    );
   }
 }
 
