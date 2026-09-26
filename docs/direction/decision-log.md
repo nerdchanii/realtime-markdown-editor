@@ -26,5 +26,5 @@ ADR 로 만들 만큼 크지는 않지만 PR 이 끝난 뒤에도 남아야 하�
 | 2026-09-26 | ADR-0012 §1 구현 방식: 단일 `authorize` policy, 서명된 짧은 TTL collab token, `onAuthenticate` 검증, internal 서비스 인증. 사용자가 말한 "policy 에 따른 권한" 원칙을 에이전트가 구체화했다 | G1 | agent:claude-code | pending | 2026-10-03 | 구현 중 token 방식이 Hocuspocus 제약과 맞지 않으면 | PR #9 |
 | 2026-09-26 | member agent 의 역할은 `WorkspaceMembership` 에 저장하고, membership 은 principal(`User` 또는 member `Agent`)을 참조한다 | G1 | agent:claude-code | pending | 2026-10-03 | 에이전트 참여 ADR(#4)에서 다른 모델이 필요해지면 | PR #9 |
 | 2026-09-26 | ADR-0014 세부: 입력 필드는 채워진 배경과 focus ring 으로 구분한다. 떠 있는 표면은 배경, 그림자, radius 로 구분하고 내부 박스는 쓰지 않는다. 패널 접힘은 단축키와 명령 팔레트로도 조작하고 사용자별로 기억한다 | G1 | agent:claude-code | pending | 2026-10-03 | 스크린샷 리뷰에서 입력이나 표면 구분이 약하다고 판단되면 | #7 PR |
-| 2026-09-26 | UI lint 는 ratchet 이다. 현재 위반 188건을 파일별 baseline 으로 두고, 새 위반과 증가를 막는다. baseline 은 낮추는 방향으로만 갱신한다 | G1 | agent:claude-code | pending | 2026-10-03 | 규칙이 정당한 코드를 과하게 막으면 | #7 PR |
+| 2026-09-26 | UI lint 는 ratchet 이다. 현재 위반 190건을 파일별 baseline 으로 두고, 새 위반과 증가를 막는다. baseline 은 낮추는 방향으로만 갱신한다 | G1 | agent:claude-code | pending | 2026-10-03 | 규칙이 정당한 코드를 과하게 막으면 | #7 PR |
 | 2026-09-26 | markdown 편집 화면에서 Tiptap 식 고정 toolbar 를 두지 않는다. 서식 명령은 단축키, 명령 팔레트, 필요할 때 나타나는 작은 도구로 제공한다 | G1 | agent:claude-code | pending | 2026-10-03 | 라이브 프리뷰 구현에서 고정 toolbar 가 필요하다고 판단되면 | #7 PR |

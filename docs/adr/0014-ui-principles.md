@@ -90,9 +90,11 @@ superseded_by: null
   - `ui/no-box-border-utility`: 같은 박스를 Tailwind `border`, `border-2`, `border-[..]` utility 로 두르는 것.
     - `hover:border` 같은 variant 접두사도 잡는다.
     - CSS 는 `@apply` 를, TS/TSX 는 모든 문자열 literal 을 검사한다. 여러 줄로 나뉜 class 표현식도 포함된다.
-  - `ui/no-hardcoded-color`: CSS/SCSS 변수 정의 밖의 hex 색과 색 함수(`rgb`, `hsl`, `oklch`, `lab` 등)
+  - `ui/no-hardcoded-color`: 고정 색을 잡는다.
+    - CSS/SCSS 변수 정의 밖의 hex 색, 색 함수(`rgb`, `hsl`, `oklch`, `lab` 등), 색 속성에 쓴 이름 색(`white` 등)
+    - Tailwind palette utility(`bg-red-500`, `text-white`). 색 utility 는 token utility(`bg-rme-*`)만 쓴다.
 - [agent] lint 는 ratchet 이다.
-  - 지금 있는 위반 188건은 파일별 baseline(`scripts/ui-rules-baseline.json`)에 기록했다.
+  - 지금 있는 위반 190건은 파일별 baseline(`scripts/ui-rules-baseline.json`)에 기록했다.
   - 어떤 파일도 baseline 을 넘을 수 없고, 새 파일은 0건에서 시작한다.
   - baseline 은 낮추는 방향(`--update-baseline`)으로만 갱신된다.
   - 정당한 예외는 해당 줄에 `ui-allow: <이유>` 주석을 단다. 리뷰에서 이유를 확인한다.
@@ -109,7 +111,7 @@ superseded_by: null
   - 이전 상세 명세(v0.3.2)는 `docs/archive/design/DESIGN-v0.3.2.md` 로 옮긴다.
   - 편집 화면은 ADR-0013(CodeMirror 라이브 프리뷰)을 따른다.
 - 현재 화면의 위반은 이 ADR 기준의 UI 결함으로 Issue 에 기록한다. 화면 단위 PR 로 고친다.
-- baseline 위반 188건은 해당 화면을 고칠 때 줄여 나간다.
+- baseline 위반 190건은 해당 화면을 고칠 때 줄여 나간다.
 
 ## 변경 이력
 

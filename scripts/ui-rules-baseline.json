@@ -43,7 +43,7 @@
   },
   "apps/web/src/features/editor/CollaboratorStack.tsx": {
     "ui/no-box-border": 2,
-    "ui/no-hardcoded-color": 1
+    "ui/no-hardcoded-color": 2
   },
   "apps/web/src/features/editor/adapters/tiptap-yjs-runtime.ts": {
     "ui/no-hardcoded-color": 3
@@ -80,7 +80,7 @@
   },
   "apps/web/src/styles/global.css": {
     "ui/no-box-border": 22,
-    "ui/no-box-border-utility": 2,
-    "ui/no-hardcoded-color": 72
+    "ui/no-hardcoded-color": 73,
+    "ui/no-box-border-utility": 2
   }
 }

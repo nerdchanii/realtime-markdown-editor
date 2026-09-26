@@ -7,8 +7,9 @@ import { fileURLToPath } from "node:url";
 //   background and spacing; only side dividers (border-top/right/bottom/left) are allowed.
 // - ui/no-box-border-utility: the same box drawn with Tailwind `border` utilities, including
 //   variant-prefixed (`hover:border`) and multiline class expressions.
-// - ui/no-hardcoded-color: hex or CSS color functions (rgb, hsl, oklch, ...) outside CSS custom
-//   property definitions break theming.
+// - ui/no-hardcoded-color: fixed colors break theming. Counts hex, CSS color functions (rgb, hsl,
+//   oklch, ...) and named colors (`white`) outside CSS custom property definitions, and Tailwind
+//   palette utilities (`bg-red-500`, `text-white`) instead of theme token utilities (`bg-rme-*`).
 // Existing violations are recorded per file in the baseline. A file may never exceed its baseline,
 // and new files start at zero. `--update-baseline` may only lower counts; `--init-baseline` works
 // only when no baseline exists yet.
@@ -30,19 +31,41 @@ const stringLiteral = /"(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*'|`(?:[^`\\]|\\.)*`
 const colorValue =
   /#[0-9a-fA-F]{3,8}\b|(?<![-a-zA-Z0-9.$])(?:rgba?|hsla?|hwb|lab|lch|oklab|oklch|color)\(/g;
 
+const namedColors =
+  "white|black|red|green|blue|yellow|orange|purple|pink|gray|grey|silver|maroon|navy|teal|olive|" +
+  "lime|aqua|fuchsia|cyan|magenta|brown|gold|indigo|violet|crimson|coral|salmon|tomato|khaki|" +
+  "beige|ivory|lavender|plum|orchid|tan|turquoise|skyblue|steelblue|slategray|slategrey|" +
+  "lightgray|lightgrey|darkgray|darkgrey|dimgray|dimgrey|gainsboro|whitesmoke|snow|linen";
+const namedColorValue = new RegExp(
+  "(?<![-\\w])(?:color|background(?:-color)?|backgroundColor|border(?:-(?:top|right|bottom|left))?(?:-color)?|" +
+    "border(?:Top|Right|Bottom|Left)?Color|fill|stroke|outline(?:-color)?|outlineColor|caret-color|caretColor|" +
+    "accent-color|accentColor|text-decoration-color|textDecorationColor)\\s*:\\s*[^;,}\\n]*?(?<![-\\w])" +
+    `(?:${namedColors})(?![-\\w])`,
+  "gi",
+);
+const paletteUtility = new RegExp(
+  "(?<![^\\s\"'`{(,:!])(?:bg|text|border(?:-[trblxyse])?|ring|ring-offset|outline|divide|fill|stroke|" +
+    "from|via|to|placeholder|caret|accent|decoration|shadow)-(?:white|black|(?:slate|gray|zinc|" +
+    "neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|" +
+    "purple|fuchsia|pink|rose)-\\d{2,3})(?:\\/\\d+)?(?![-\\w])",
+  "g",
+);
+
 const lineRules = {
   "ui/no-box-border": (line) =>
     (line.match(/(?<![-\w])border\s*:\s*["'`]?(?!\s*(?:0|none|transparent)\b)[^;,\n}]+/g) ?? [])
       .length,
   "ui/no-hardcoded-color": (line) =>
-    /(--|\$)[\w-]+\s*:/.test(line) ? 0 : (line.match(colorValue) ?? []).length,
+    /(--|\$)[\w-]+\s*:/.test(line)
+      ? 0
+      : (line.match(colorValue) ?? []).length + (line.match(namedColorValue) ?? []).length,
 };
 
-function countBoxBorderUtilities(path, text) {
+function countUtilities(path, text, utility) {
   const pattern = /\.(css|scss)$/.test(path) ? applyRule : stringLiteral;
   let count = 0;
   for (const match of text.matchAll(pattern)) {
-    count += (match[0].match(boxBorderUtility) ?? []).length;
+    count += (match[0].match(utility) ?? []).length;
   }
   return count;
 }
@@ -66,7 +89,9 @@ function countViolations(path) {
       counts[rule] = (counts[rule] ?? 0) + count(line);
     }
   }
-  counts["ui/no-box-border-utility"] = countBoxBorderUtilities(path, lines.join("\n"));
+  const text = lines.join("\n");
+  counts["ui/no-box-border-utility"] = countUtilities(path, text, boxBorderUtility);
+  counts["ui/no-hardcoded-color"] += countUtilities(path, text, paletteUtility);
   return counts;
 }
 
