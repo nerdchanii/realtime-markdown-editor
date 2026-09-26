@@ -15,12 +15,13 @@ Frontend architecture는 editor-first product experience를 유지한다. 사용
 기존 `apps/web` 을 대체할 새 앱이다. 아래 경계를 따른다. 이 문서의 나머지 절은 `apps/web` 설명이다.
 
 - `core/`: 타입을 모르는 문서 core(ADR-0013)
-  - `document.ts`: `meta` 와 type module 계약
+  - `document.ts`: `meta` 와 type module 계약. 제목은 type module 의 `title` projection 이다.
   - `local-workspace.ts`: local 범위(ADR-0011) 저장. 문서마다 Y.Doc 하나를 `y-indexeddb` 로 저장한다.
   - `hooks.ts`: React 연결
-- `types/<type>/`: type module. `markdown` 은 `content`(Y.Text), projection, CodeMirror 라이브 프리뷰를 가진다.
+- `types/<type>/`: type module. `markdown` 은 `content`(Y.Text), projection(제목은 첫 H1), CodeMirror 라이브 프리뷰를 가진다.
+  - `types/registry.ts`: `DocumentType` 에서 type module 을 찾는다.
   - 라이브 프리뷰 규칙은 DOM 없이 테스트할 수 있게 `live-preview-ranges.ts` 에 둔다.
-- `features/`: `editor`, `document`(제목 헤더), `explorer`(문서 목록)
+- `features/`: `editor`, `document`(문서 영역), `explorer`(문서 목록)
 - `layouts/shell/`: 앱 shell. border 를 쓸 수 있는 레이아웃 레이어다(ADR-0015 UI-001).
 - `app/`: 조립만 한다. 도메인 규칙을 두지 않는다.
 - 다른 앱(`apps/api`, `apps/collab`, `apps/web`)의 소스를 import 하지 않는다(`arch:check`).

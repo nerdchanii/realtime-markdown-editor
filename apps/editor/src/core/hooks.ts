@@ -1,7 +1,7 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
 import type * as Y from "yjs";
 
-import { metaMap, readMeta, type DocumentMeta } from "./document";
+import type { TypeModule } from "./document";
 import type { DocumentEntry, LocalWorkspace } from "./local-workspace";
 
 export function useDocumentList(workspace: LocalWorkspace): DocumentEntry[] {
@@ -24,26 +24,27 @@ export function useOpenDocument(workspace: LocalWorkspace, id: string | null): Y
   return opened && opened.id === id ? opened.doc : null;
 }
 
-export function useDocumentMeta(doc: Y.Doc | null): DocumentMeta | null {
+// Core does not know the content root, so it listens to every document update and lets the type
+// module project the title.
+export function useDocumentTitle(doc: Y.Doc | null, module: TypeModule): string {
   return useSyncExternalStore(
     (onChange) => {
       if (!doc) return () => undefined;
-      const meta = metaMap(doc);
-      meta.observe(onChange);
-      return () => meta.unobserve(onChange);
+      doc.on("update", onChange);
+      return () => doc.off("update", onChange);
     },
-    () => (doc ? metaSnapshot(doc) : null),
+    () => (doc ? titleSnapshot(doc, module) : ""),
   );
 }
 
-// useSyncExternalStore needs a stable snapshot between changes.
-const snapshots = new WeakMap<Y.Doc, { key: string; meta: DocumentMeta | null }>();
+// Parsing runs only when the text changed, not on every render.
+const titles = new WeakMap<Y.Doc, { text: string; title: string }>();
 
-function metaSnapshot(doc: Y.Doc): DocumentMeta | null {
-  const meta = readMeta(doc);
-  const key = JSON.stringify(meta);
-  const cached = snapshots.get(doc);
-  if (cached?.key === key) return cached.meta;
-  snapshots.set(doc, { key, meta });
-  return meta;
+function titleSnapshot(doc: Y.Doc, module: TypeModule): string {
+  const text = module.toText(doc);
+  const cached = titles.get(doc);
+  if (cached?.text === text) return cached.title;
+  const title = module.title(doc);
+  titles.set(doc, { text, title });
+  return title;
 }

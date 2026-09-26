@@ -1,9 +1,10 @@
 import * as Y from "yjs";
 
 // Document core (ADR-0013). A document is one Y.Doc with two roots:
-// - `meta` (Y.Map): owned by core, shared by every type (type, schemaVersion, title, createdAt).
+// - `meta` (Y.Map): owned by core, shared by every type (type, schemaVersion, createdAt).
 // - `content`: owned by the type module (markdown: Y.Text).
-// Core never reads `content` directly; it goes through the type module.
+// Core never reads `content` directly; it goes through the type module. The title is a projection
+// of `content` (the markdown type uses the first H1), so it is not stored in `meta`.
 
 export const META_ROOT = "meta";
 export const CONTENT_ROOT = "content";
@@ -13,7 +14,6 @@ export type DocumentType = "markdown";
 export interface DocumentMeta {
   type: DocumentType;
   schemaVersion: number;
-  title: string;
   createdAt: string;
 }
 
@@ -23,6 +23,8 @@ export interface TypeModule {
   // Projections must work without browser APIs so a server can compute them too.
   toText(doc: Y.Doc): string;
   toMarkdown?(doc: Y.Doc): string;
+  // Empty when the document has no title yet.
+  title(doc: Y.Doc): string;
 }
 
 export interface DocumentSnapshot {
@@ -42,7 +44,6 @@ export function initDocument(doc: Y.Doc, module: TypeModule, now: Date): void {
     const meta = metaMap(doc);
     meta.set("type", module.type);
     meta.set("schemaVersion", module.schemaVersion);
-    meta.set("title", "");
     meta.set("createdAt", now.toISOString());
   });
 }
@@ -52,18 +53,12 @@ export function readMeta(doc: Y.Doc): DocumentMeta | null {
   const type = meta.get("type");
   const schemaVersion = meta.get("schemaVersion");
   if (type !== "markdown" || typeof schemaVersion !== "number") return null;
-  const title = meta.get("title");
   const createdAt = meta.get("createdAt");
   return {
     type,
     schemaVersion,
-    title: typeof title === "string" ? title : "",
     createdAt: typeof createdAt === "string" ? createdAt : "",
   };
-}
-
-export function setTitle(doc: Y.Doc, title: string): void {
-  metaMap(doc).set("title", title);
 }
 
 export function snapshotDocument(doc: Y.Doc, module: TypeModule): DocumentSnapshot {

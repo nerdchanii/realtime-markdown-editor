@@ -1,39 +1,5 @@
 .document {
-  display: flex;
-  flex-direction: column;
   height: 100%;
-}
-
-.document__header {
-  width: 100%;
-  max-width: 760px;
-  margin: 0 auto;
-  padding: 40px 32px 8px;
-}
-
-.document__title {
-  width: 100%;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: var(--color-text);
-  font: inherit;
-  font-size: 30px;
-  font-weight: 700;
-  line-height: 1.25;
-}
-
-.document__title::placeholder {
-  color: var(--color-text-faint);
-}
-
-.document__title:focus-visible {
-  box-shadow: none;
-}
-
-.document__body {
-  flex: 1;
-  min-height: 0;
 }
 
 .document-empty {

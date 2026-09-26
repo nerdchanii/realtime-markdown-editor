@@ -12,12 +12,13 @@ status: proposed
 - (목표, ADR-0013) `Document` 는 `type` 을 가진다. 첫 타입은 `markdown`, 두 번째는 `code` 다.
   - type 은 만들 때 정하고 바꾸지 않는다.
 - (목표, ADR-0013) Y.Doc 은 두 루트로 나뉜다.
-  - `meta` (Y.Map): title, properties, DocumentState. core 가 관리한다.
+  - `meta` (Y.Map): properties, DocumentState. core 가 관리한다.
   - `content`: type 이 관리한다. `markdown` 타입은 `Y.Text` 가 유일한 본문 정본이다.
-- (목표, ADR-0013) projection(`toText`, `toMarkdown`, `extractLinks`)은 type module 이 제공한다. 서버에서도 계산할 수 있어야 한다.
+- (목표, ADR-0013) projection(`toText`, `toMarkdown`, `extractLinks`, `title`)은 type module 이 제공한다. 서버에서도 계산할 수 있어야 한다.
+- 제목은 저장하지 않는 projection 이다. `markdown` 타입의 제목은 본문의 첫 최상위 H1 이고, 없으면 비어 있다.
 - 구현 상태: 새 앱 `apps/editor`(local 범위, #15)가 `type`, `meta`/`content` 구조를 구현했다.
-  - 지금의 `meta` 는 `type`, `schemaVersion`, `title`, `createdAt` 이다. properties 와 DocumentState 는 아직 없다.
-  - projection 은 `toText`, `toMarkdown` 만 있다.
+  - 지금의 `meta` 는 `type`, `schemaVersion`, `createdAt` 이다. properties 와 DocumentState 는 아직 없다.
+  - projection 은 `toText`, `toMarkdown`, `title` 만 있다.
   - 기존 `apps/web` 과 API 는 아직 이전 구조다.
 - [open] local 범위 문서는 `Folder` 없이 평평한 목록에 속한다. 아래의 "모든 `Document` 는 하나의 `Folder` 에 속한다"는 규칙이 local 범위에도 적용될지는 workspace 계층 결정(#6)에서 정한다.
 
@@ -31,8 +32,9 @@ status: proposed
 - (목표, ADR-0011) `authority: local` workspace 에서는 folder 계층, document identity, 위치, lifecycle 의 정본이 기기에 있다.
   - [open] 기기에서의 저장 형식과 계층 표현은 local 범위 트랙을 구현하기 전에 정한다. 계층 모델(#6)과 함께 결정한다.
   - 승격할 때 기기의 계층이 서버로 옮겨진다.
-- Y.Doc is the file's current editable content state. Title, Markdown body, properties, and
-  collaborative document metadata are Yjs source of truth after initialization.
+- Y.Doc is the file's current editable content state. Markdown body, properties, and
+  collaborative document metadata are Yjs source of truth after initialization. Title is derived
+  from the body.
 - Postgres document fields are read projections for navigation, list/search, export, and fallback
   bootstrap.
 - Checkpoint artifacts are immutable file snapshots stored behind the artifact storage boundary.
@@ -41,7 +43,7 @@ status: proposed
 
 - Collaborative document identity를 소유한다.
 - 본문 `content` 를 소유한다. `markdown` 타입에서는 Markdown body 다.
-- Title과 body 밖에 저장되는 `DocumentProperty`를 소유한다.
+- Body 밖에 저장되는 `DocumentProperty`를 소유한다. Title 은 body 에서 계산한다.
 - User-visible history를 위한 `Checkpoint`와 연결된다.
 - `DocumentState` value를 가진다.
 - link/backlink projection 의 source 가 된다. 추출 방식은 type 별로 다르다.
@@ -55,7 +57,7 @@ status: proposed
 - `LinkEdge`는 `Document`에서 직접 mutation하는 entity가 아니라 Markdown body에서 파생되는 read model이다.
 - `SyncStatus`는 application/UI state이며 `DocumentState`가 아니다.
 - `Document`는 `Folder` subtype이 아니고, `Folder`도 `Document` subtype이 아니다.
-- (목표, ADR-0011 / ADR-0013) title, properties, 본문의 write 정본은 Yjs 다. Postgres 는 read projection 이다.
+- (목표, ADR-0011 / ADR-0013) properties 와 본문의 write 정본은 Yjs 다. title 은 본문에서 계산한다. Postgres 는 read projection 이다.
 - 현재 구현은 아직 목표 모델과 다르다.
   - title 과 properties 는 product API 로 Postgres 에 직접 저장한다.
   - 본문은 Tiptap XmlFragment 와 `Y.Text "markdown"` 두 형태로 존재한다.

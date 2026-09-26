@@ -4,7 +4,6 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { markdownContent, markdownType } from "../types/markdown/module";
-import { readMeta, setTitle } from "./document";
 import { LocalWorkspace } from "./local-workspace";
 
 test("documents and their content survive reopening the local workspace", async () => {
@@ -14,7 +13,6 @@ test("documents and their content survive reopening the local workspace", async 
 
   const entry = await first.createDocument(markdownType, new Date("2026-09-26T00:00:00Z"));
   const doc = await first.openDocument(entry.id);
-  setTitle(doc, "Plan");
   markdownContent(doc).insert(0, "# Plan\n\n- ship slice 1");
   await first.destroy();
 
@@ -22,7 +20,7 @@ test("documents and their content survive reopening the local workspace", async 
   await second.ready();
   assert.deepEqual(second.list(), [entry]);
   const reopened = await second.openDocument(entry.id);
-  assert.equal(readMeta(reopened)?.title, "Plan");
+  assert.equal(markdownType.title(reopened), "Plan");
   assert.equal(markdownContent(reopened).toString(), "# Plan\n\n- ship slice 1");
   await second.destroy();
 });

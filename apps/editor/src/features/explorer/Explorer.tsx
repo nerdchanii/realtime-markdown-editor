@@ -1,5 +1,6 @@
-import { useDocumentMeta, useOpenDocument } from "../../core/hooks";
+import { useDocumentTitle, useOpenDocument } from "../../core/hooks";
 import type { DocumentEntry, LocalWorkspace } from "../../core/local-workspace";
+import { typeModules } from "../../types/registry";
 
 import "./explorer.css";
 
@@ -29,7 +30,7 @@ export function Explorer({ workspace, entries, selectedId, onSelect, onCreate }:
             <li key={entry.id}>
               <ExplorerItem
                 workspace={workspace}
-                id={entry.id}
+                entry={entry}
                 selected={entry.id === selectedId}
                 onSelect={onSelect}
               />
@@ -43,20 +44,20 @@ export function Explorer({ workspace, entries, selectedId, onSelect, onCreate }:
 
 interface ExplorerItemProps {
   workspace: LocalWorkspace;
-  id: string;
+  entry: DocumentEntry;
   selected: boolean;
   onSelect: (id: string) => void;
 }
 
-function ExplorerItem({ workspace, id, selected, onSelect }: ExplorerItemProps) {
-  const meta = useDocumentMeta(useOpenDocument(workspace, id));
-  const title = meta?.title.trim();
+function ExplorerItem({ workspace, entry, selected, onSelect }: ExplorerItemProps) {
+  const doc = useOpenDocument(workspace, entry.id);
+  const title = useDocumentTitle(doc, typeModules[entry.type]);
   return (
     <button
       type="button"
       className="explorer__item"
       aria-current={selected}
-      onClick={() => onSelect(id)}
+      onClick={() => onSelect(entry.id)}
     >
       {title ? title : <span className="explorer__untitled">제목 없음</span>}
     </button>
