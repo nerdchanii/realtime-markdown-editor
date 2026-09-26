@@ -78,6 +78,14 @@ API 빌드는 contracts 패키지의 `src`를 직접 컴파일하지 않고 패�
 데이터를 적용한 뒤 API, 협업 서버, 웹 앱을 함께 실행합니다. `<your-username>`은 PostgreSQL 역할 이름으로
 바꿉니다. `DATABASE_URL`을 생략하면 현재 OS 사용자로 `127.0.0.1:5432`에 접속합니다.
 
+새 로컬 에디터(`apps/editor`, #15)는 서버 없이 실행됩니다. 문서는 이 브라우저의 IndexedDB 에만 저장됩니다.
+
+```bash
+pnpm dev:editor   # http://127.0.0.1:5174
+```
+
+기존 앱(`apps/web`)은 서버와 DB 가 필요합니다.
+
 ```bash
 POSTGRES_HOST_PORT=5432 \
 DATABASE_URL=postgresql://<your-username>@127.0.0.1:5432/realtime_markdown_editor \

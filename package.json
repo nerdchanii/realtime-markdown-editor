@@ -13,6 +13,7 @@
     "dev:api": "pnpm --filter @rme/api dev",
     "dev:collab": "pnpm --filter @rme/collab dev",
     "dev:web": "pnpm --filter @rme/web dev",
+    "dev:editor": "pnpm --filter @rme/editor dev",
     "db:up": "node scripts/db-bootstrap.mjs",
     "db:migrate": "node scripts/db-bootstrap.mjs --migrate",
     "db:seed:dev": "node scripts/seed-local-product.mjs",

@@ -65,6 +65,16 @@ module.exports = {
       },
     },
     {
+      name: "editor-does-not-import-other-apps",
+      severity: "error",
+      from: {
+        path: "^apps/editor/src/",
+      },
+      to: {
+        path: "^apps/(api|collab|web)/",
+      },
+    },
+    {
       name: "web-imports-feature-public-api",
       severity: "error",
       from: {
