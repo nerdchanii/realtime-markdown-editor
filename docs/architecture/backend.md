@@ -60,7 +60,7 @@ ownership follows the table below.
 | Checkpoints/history              | `GET /documents/:documentId/checkpoints`, `POST /documents/:documentId/checkpoints`, `GET /documents/checkpoints/:checkpointId/snapshot`              | `DocumentsModule`     | `POST /documents/:documentId/checkpoints` is the canonical checkpoint creation route. The server resolves current author membership and current Markdown content.                                                            |
 | Markdown export                  | `POST /documents/:documentId/export`                                                                                                                  | `DocumentsModule`     | The server resolves current Markdown body and properties, then returns frontmatter plus body as the portable file boundary.                                                                                                  |
 | Image upload                     | `POST /documents/:documentId/images`                                                                                                                  | `DocumentsModule`     | Returns an editor-insertable image reference without exposing object-storage provider internals.                                                                                                                             |
-| Collaboration session            | `POST /documents/:documentId/collaboration-sessions`                                                                                                  | `CollaborationModule` | Issues provider-neutral realtime session data. It must not create checkpoints or expose provider-specific Yjs/Hocuspocus state.                                                                                              |
+| Collaboration session            | `POST /documents/:documentId/collaboration-sessions`                                                                                                  | `CollaborationModule` | Issues provider-neutral realtime session data and a short-TTL signed connection token (`connection`). It must not create checkpoints or expose provider-specific Yjs/Hocuspocus state. |
 
 The following existing routes are retired from the product contract:
 
@@ -125,6 +125,31 @@ runtime startable for targeted debugging:
 - `pnpm dev:api`
 - `pnpm dev:collab`
 - `pnpm dev:web`
+
+### 협업 연결 인증 (ADR-0012 §1)
+
+collab 서버는 API 가 발급한 협업 연결 token 을 검증한 연결에만 문서를 연다.
+
+- **발급**: `POST /documents/:documentId/collaboration-sessions`
+  - API 는 session cookie 에서 요청 문서가 속한 workspace 의 멤버십을 고른다. 암묵적인 첫 번째 멤버십은 쓰지 않는다.
+  - `authorize(actor, action, resource)` policy(`modules/identity/domain/authorization-policy.ts`)로 접근 수준을 정한다.
+    - `content.write` 가 허용되면 `write`, `content.read` 만 허용되면 `read` 다.
+    - viewer 와 archived 문서는 `read` 다. 둘 다 허용되지 않으면 403 이고 token 을 만들지 않는다.
+  - 응답의 `connection` 에 `token`, `expiresAt`, `access` 를 싣는다.
+- **token**: HS256 JWT 다. `RME_COLLAB_TOKEN_SECRET` 으로 서명하고 API 와 collab 이 이 값을 공유한다.
+  - claim 은 문서(`documentId`, `documentKey`), principal(`sub`, `principalKind`, `membershipId`, `workspaceId`), `access`, `iat`, `exp` 다.
+  - TTL 기본값은 120초이고 `RME_COLLAB_TOKEN_TTL_SECONDS` 로 바꿀 수 있다(최대 900초).
+- **검증**: collab 의 Hocuspocus `onAuthenticate`(`apps/collab/src/auth/`)
+  - 서명, 발급자와 대상, 만료, 문서 범위(`documentKey` 와 연결한 문서 이름이 같은지)를 확인한다.
+  - 실패하면 연결을 거부한다(permission-denied). token 이 없는 연결도 거부한다.
+  - `read` token 은 read-only 연결로 연다. 서버는 그 연결의 문서 변경을 적용하지 않는다.
+  - 연결 context 의 principal 은 token 에서 온다. client 가 보낸 신원은 쓰지 않는다.
+- **설정이 없을 때**: `RME_COLLAB_TOKEN_SECRET` 이 없거나 32자보다 짧으면 API 와 collab 모두 시작하지 않는다.
+  `pnpm dev` 는 값이 없으면 실행마다 임의 값을 만들어 두 프로세스에 넘긴다.
+- **아직 없는 것** (ADR-0012 에서 결정됨, 다음 작업)
+  - 연결 중 권한 회수 시 연결 끊기와 token 갱신 때 policy 재판정
+  - internal API(`/collaboration/internal/*`) 서비스 인증
+  - presence(awareness) 신원을 token principal 로 강제하기
 
 ## Deferred Promotion Triggers
 

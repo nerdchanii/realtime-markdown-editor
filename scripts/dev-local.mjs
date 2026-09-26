@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { execFileSync } from "node:child_process";
+import { randomBytes } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -22,6 +23,11 @@ const runtimeEnv = {
   ...process.env,
   DATABASE_URL: bootstrapPlan.databaseUrl,
 };
+// API 와 collab 은 같은 협업 연결 token 서명 값을 써야 한다. env 에 없으면 이번 실행에만 쓸 임의 값을 만든다.
+// 값은 출력하지 않는다. 고정 기본값은 두지 않는다.
+if (!runtimeEnv.RME_COLLAB_TOKEN_SECRET) {
+  runtimeEnv.RME_COLLAB_TOKEN_SECRET = randomBytes(32).toString("base64url");
+}
 
 run("node", ["scripts/db-bootstrap.mjs", "--migrate", ...(envFile ? ["--env-file", envFile] : [])]);
 run("node", ["scripts/seed-local-product.mjs"], runtimeEnv);
