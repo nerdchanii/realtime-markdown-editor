@@ -71,13 +71,13 @@ superseded_by: null
 
 | id | 규칙 | 강제 방법 |
 | --- | --- | --- |
-| UI-001 | border 폭과 스타일은 0/none 만 허용한다. 레이아웃 CSS 에서는 한쪽 변 `1px solid var(--token)` 을 허용하고, 에디터 본문 CSS 에서는 제한하지 않는다. | Stylelint `declaration-property-value-disallowed-list`, `property-disallowed-list` |
+| UI-001 | border 폭과 스타일은 0/none 만 허용한다. 레이아웃 CSS 에서는 한쪽 변 shorthand `border-<side>: 1px solid var(--token)` 만 허용하고(변별 longhand 는 금지), 에디터 본문 CSS 에서는 제한하지 않는다. | Stylelint `declaration-property-value-disallowed-list`, `property-disallowed-list` |
 | UI-002 | 가짜 border 를 막는다. `box-shadow`, `outline`, `background-image` 는 `none` 이나 token(`var(--…)`)만 쓰고, gradient 함수는 token 파일에서만 쓴다. | Stylelint `declaration-property-value-allowed-list`, `function-disallowed-list` |
 | UI-003 | 색 literal(hex, 이름 색, 색 함수)은 token 파일(`apps/web/src/styles/tokens.css`)에서만 쓴다. | Stylelint `color-no-hex`, `color-named`, `function-disallowed-list` |
 | UI-004 | `@apply` 를 쓰지 않는다. | Stylelint `at-rule-disallowed-list` |
 | UI-005 | inline `style` 은 `--name` custom property 만 넘긴다. | ESLint `no-restricted-syntax`(AST selector) |
 | UI-006 | Tailwind 가 TSX 에서 utility 를 만들지 않는다. | `@import "tailwindcss" source(none)` |
-| UI-007 | 새 SCSS 파일을 만들지 않는다. 기존 Tiptap 과 전역 partial 경로만 허용한다. | `pnpm arch:check` |
+| UI-007 | 새 SCSS 파일을 만들지 않는다. 지금 있는 SCSS 파일 26개만 목록으로 허용하고, 파일을 지우면 목록에서도 뺀다. | `pnpm arch:check` |
 
 - **기존 위반은 bulk suppression 으로 기록하는 ratchet 이다.**
   - Stylelint 는 `stylelint-suppressions.json`, ESLint 는 `eslint-suppressions.json` 에 기록한다.

@@ -61,6 +61,11 @@ const inlineStyleRule = [
     selector: `${inlineStyle} > :not(ObjectExpression, TSAsExpression, TSSatisfiesExpression)`,
     message: inlineStyleMessage,
   },
+  // A type cast is allowed only around an object literal, whose keys the selectors below check.
+  {
+    selector: `${inlineStyle} > :matches(TSAsExpression, TSSatisfiesExpression) > .expression:not(ObjectExpression)`,
+    message: inlineStyleMessage,
+  },
   { selector: `${inlineStyle} ObjectExpression > SpreadElement`, message: inlineStyleMessage },
   {
     selector: `${inlineStyle} ObjectExpression > Property[key.type!='Literal']`,

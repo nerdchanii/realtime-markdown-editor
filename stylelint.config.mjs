@@ -24,6 +24,11 @@ const layoutBorders = {
   "/^border(-width|-style)?$/": nonZero,
   "/^border-(block|inline)/": nonZero,
 };
+// In layout CSS a divider is written only as one `border-<side>: 1px solid var(--token)` shorthand.
+const layoutBorderLonghands = [
+  "/^border-image/",
+  "/^border-(top|right|bottom|left)-(width|style|color)$/",
+];
 
 // UI-002: no fake borders. Rings, outlines and background images come from tokens only.
 const tokenOnlySurfaces = {
@@ -74,6 +79,7 @@ export default {
       files: layoutFiles,
       rules: {
         "declaration-property-value-disallowed-list": layoutBorders, // UI-001
+        "property-disallowed-list": layoutBorderLonghands, // UI-001
         "declaration-property-value-allowed-list": {
           ...tokenOnlySurfaces,
           "/^border-(top|right|bottom|left)$/": ["0", "none", `/^1px solid var\\(--[\\w-]+\\)$/`],
