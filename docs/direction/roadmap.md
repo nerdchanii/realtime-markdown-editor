@@ -70,7 +70,11 @@ Realtime markdown editor 에서 Realtime editor(ADE 표면)로 가는 전환 계
    - 사람과 에이전트가 함께 쓰는 ADE 표면
    - 문서 타입 모델의 방향
    - Non-goals
-2. **UI 원칙** (G2 방향, G1 세부): [#7](https://github.com/nerdchanii/realtime-markdown-editor/issues/7)
+2. [x] **UI 원칙** (G2 방향, G1 세부): [#7](https://github.com/nerdchanii/realtime-markdown-editor/issues/7)
+   - [ADR-0014](../adr/0014-ui-principles.md) 를 accepted 로 결정했다(2026-09-26).
+   - `DESIGN.md` 를 v0.4.0 으로 다시 썼다.
+   - `pnpm ui:check` ratchet 을 추가했다.
+   - 현재 화면 기준 스크린샷을 `docs/design/current-ui/` 에 두었다.
    - Linear, Figma, Zed 레퍼런스 보드(이미지)를 기준으로 삼는다.
    - 금지 규칙(card 와 border wrapping, 요청 없는 표면, 동작하지 않는 placeholder)은 lint 와 스크린샷
      검증으로 강제한다.

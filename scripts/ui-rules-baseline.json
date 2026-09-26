@@ -1,0 +1,85 @@
+{
+  "apps/web/src/app/product-workspace-providers.ts": {
+    "ui/no-hardcoded-color": 1
+  },
+  "apps/web/src/components/tiptap-node/code-block-node/code-block-node.scss": {
+    "ui/no-box-border": 2
+  },
+  "apps/web/src/components/tiptap-node/image-upload-node/image-upload-node.scss": {
+    "ui/no-box-border": 2,
+    "ui/no-hardcoded-color": 2
+  },
+  "apps/web/src/components/tiptap-node/list-node/list-node.scss": {
+    "ui/no-box-border": 1
+  },
+  "apps/web/src/components/tiptap-node/paragraph-node/paragraph-node.scss": {
+    "ui/no-hardcoded-color": 1
+  },
+  "apps/web/src/components/tiptap-ui/color-highlight-button/color-highlight-button.scss": {
+    "ui/no-box-border": 1
+  },
+  "apps/web/src/components/tiptap-ui/color-highlight-button/use-color-highlight.ts": {
+    "ui/no-box-border": 10,
+    "ui/no-hardcoded-color": 10
+  },
+  "apps/web/src/components/tiptap-ui-primitive/badge/badge.scss": {
+    "ui/no-box-border": 1
+  },
+  "apps/web/src/components/tiptap-ui-primitive/card/card.scss": {
+    "ui/no-box-border": 1
+  },
+  "apps/web/src/components/tiptap-ui-primitive/input/input.scss": {
+    "ui/no-box-border": 1
+  },
+  "apps/web/src/components/tiptap-ui-primitive/toolbar/toolbar.scss": {
+    "ui/no-box-border": 1
+  },
+  "apps/web/src/components/tiptap-ui-primitive/tooltip/tooltip.scss": {
+    "ui/no-hardcoded-color": 1
+  },
+  "apps/web/src/features/document/DocumentPropertyDisplay.tsx": {
+    "ui/no-box-border": 1,
+    "ui/no-hardcoded-color": 9
+  },
+  "apps/web/src/features/editor/CollaboratorStack.tsx": {
+    "ui/no-box-border": 2,
+    "ui/no-hardcoded-color": 1
+  },
+  "apps/web/src/features/editor/adapters/tiptap-yjs-runtime.ts": {
+    "ui/no-hardcoded-color": 3
+  },
+  "apps/web/src/features/editor/editor-workspace-fallbacks.ts": {
+    "ui/no-hardcoded-color": 2
+  },
+  "apps/web/src/features/editor/index.tsx": {
+    "ui/no-box-border": 1,
+    "ui/no-hardcoded-color": 1
+  },
+  "apps/web/src/features/editor/styles.ts": {
+    "ui/no-box-border": 1
+  },
+  "apps/web/src/features/history/index.tsx": {
+    "ui/no-box-border": 2,
+    "ui/no-hardcoded-color": 7
+  },
+  "apps/web/src/features/workspace/DeleteNodeButton.tsx": {
+    "ui/no-hardcoded-color": 1
+  },
+  "apps/web/src/features/workspace/WorkspaceNodeView.tsx": {
+    "ui/no-hardcoded-color": 3
+  },
+  "apps/web/src/features/workspace/node-view-styles.ts": {
+    "ui/no-box-border": 1,
+    "ui/no-hardcoded-color": 10
+  },
+  "apps/web/src/features/workspace/styles.ts": {
+    "ui/no-hardcoded-color": 4
+  },
+  "apps/web/src/styles/_variables.scss": {
+    "ui/no-hardcoded-color": 8
+  },
+  "apps/web/src/styles/global.css": {
+    "ui/no-box-border": 22,
+    "ui/no-hardcoded-color": 72
+  }
+}

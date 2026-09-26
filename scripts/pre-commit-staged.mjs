@@ -88,6 +88,14 @@ function needsDocsCheck(file) {
   return /\.md$/.test(file) || file === "scripts/check-docs.mjs";
 }
 
+function needsUiCheck(file) {
+  return (
+    /^apps\/web\/src\/.+\.(css|scss|ts|tsx)$/.test(file) ||
+    file === "scripts/check-ui-rules.mjs" ||
+    file === "scripts/ui-rules-baseline.json"
+  );
+}
+
 function needsTest(file) {
   return (
     /^apps\/.+\.(ts|tsx)$/.test(file) ||
@@ -137,6 +145,7 @@ function commandsFor(stagedFiles, prettierFiles, lintFiles) {
   pushConditionalCommand(commands, stagedFiles.some(needsDocsCheck), "docs integrity check", [
     "docs:check",
   ]);
+  pushConditionalCommand(commands, stagedFiles.some(needsUiCheck), "UI rule ratchet", ["ui:check"]);
   pushConditionalCommand(commands, stagedFiles.some(needsTest), "workspace tests", ["test"]);
   return commands;
 }
