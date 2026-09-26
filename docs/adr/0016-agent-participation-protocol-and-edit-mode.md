@@ -374,8 +374,7 @@ Yjs update 에는 작성자가 없다. 그래서 "누가 썼는가"를 어디에
 - 문서 연산 use case 와 MCP adapter.
 - 제안 모델, 변경 묶음 모델, 되돌리기.
 - 모드 단계, 허용 최대 모드, 서버 위험도 규칙, 크루즈의 종료와 중단.
-- `docs/domain/` 갱신: 변경 묶음과 제안 모델, `content.suggest` action, 권한과 모드의 두 축, principal 문서의 편집 모드 규칙.
-  domain model 변경이므로 plan 과 함께 진행한다.
+- domain 문서는 accepted 와 함께 반영했다: [`docs/domain/models/agent-edit.md`](../domain/models/agent-edit.md)(변경 묶음, 제안, `content.suggest`, 편집 모드, min(권한, 모드), 허용 최대 모드), [`glossary.md`](../domain/glossary.md), [`principal.md`](../domain/models/principal.md).
 
 ### 트레이드오프와 설계 부담
 
@@ -420,3 +419,4 @@ Yjs update 에는 작성자가 없다. 그래서 "누가 썼는가"를 어디에
 | 2026-09-26 | 워크플로우가 에이전트를 실행하는 시작 방식과 ADR-0017 링크를 추가 | agent:claude-code |
 | 2026-09-26 | 남은 질문 Q1–Q5, Q7–Q13 을 모두 추천안대로 확정하고 accepted 로 바꿨다. 추천이 명시되지 않은 Q3, Q9 일부, Q10, Q12 는 초안에 가장 가까운 안을 택했다 | user |
 | 2026-09-27 | 모드 단계를 단조롭게 개정: 높은 단계는 낮은 단계가 바로 할 수 있는 것을 모두 포함한다. 편집 수락은 안전한 본문 편집만, 자동은 본문 전부와 안전한 구조 변경까지 바로 반영한다(Codex 리뷰 반영) | user |
+| 2026-09-27 | 에이전트 편집 개념을 domain 모델(`agent-edit.md`), glossary, principal 에 반영했다(Codex 리뷰 반영) | user |

@@ -19,6 +19,9 @@ status: active
 | Document property       | Markdown body 밖에 저장되는 `Document` 소유 구조화 metadata. 독립 aggregate가 아니다.                                               |
 | DocumentState           | `draft`, `review`, `saved` 로 고정된 workflow-facing value/state. (목표, ADR-0017) 정본은 범위별 문서 레코드(server 는 DB, local 은 기기 저장소)이고 Y.Doc 밖에 있다. 전환은 `document.state.change` 권한과 workspace 의 전환별 guard 로 판정한다. 현재 구현은 권한 구분 없이 직접 바꾼다. |
 | Workflow | (목표, ADR-0017) 상태 전환에 반응해 동작을 실행하는 선언. owner, scope, trigger, actions, 에이전트 모드를 가진다. server 범위에만 있다. |
+| ChangeBundle | (목표, ADR-0016) 에이전트 요청 한 번으로 생긴 편집 전체. 제안, 직접 편집, 되돌리기, 이력, audit 의 공통 단위다. checkpoint 와 다른 이력 항목이다. |
+| Suggestion | (목표, ADR-0016) 아직 문서에 들어가지 않은 변경 묶음. 사람이 수락하면 반영된다. `content.suggest` 권한으로 만든다. |
+| EditMode | (목표, ADR-0016) 에이전트 편집의 확인 강도. 수동, 편집 수락, 자동, 자동+크루즈, 모두 허용 다섯 단계이고 높은 단계가 낮은 단계를 포함한다. 실제 동작은 min(권한, 모드)이고 문서의 허용 최대 모드를 넘지 못한다. |
 | WorkflowRun | (목표, ADR-0017) 워크플로우 한 번의 실행 기록. 트리거한 사람, owner, 상태, 인과 정보(root, 깊이)를 가진다. |
 | User                    | 특정 workspace와 독립적인 사람/account identity.                                                                                    |
 | WorkspaceMembership     | 한 workspace 안에서 user가 갖는 identity. member display name/color를 포함한다.                                                     |

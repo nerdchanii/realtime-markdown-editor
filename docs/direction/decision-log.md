@@ -10,6 +10,7 @@ ADR 로 만들 만큼 크지는 않지만 PR 이 끝난 뒤에도 남아야 하�
 
 - `decided_by`: `user` 또는 `agent:<도구>`
 - `ratified_by`: `user`, `lazy-consensus`, `pending`
+- 날짜는 한국 시간(KST) 기준이다. git 커밋 시각(UTC)과 하루 어긋나 보일 수 있다.
 - G1 은 `ratify_by` 날짜까지 사용자가 이의를 제기하지 않으면 `lazy-consensus` 로 확정한다.
 
 | 날짜 | 결정 | 게이트 | decided_by | ratified_by | ratify_by | revisit_if | 출처 |
