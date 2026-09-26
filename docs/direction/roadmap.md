@@ -104,6 +104,7 @@ ADR 은 에이전트가 비교안과 추천안을 `proposed` 로 작성하고, �
   - 첫 타입은 `markdown` 이다. Markdown 텍스트(`Y.Text`)가 정본이고, CodeMirror 라이브 프리뷰로 편집한다.
   - 두 번째 타입은 `code` 다. rich-text 는 보류한다.
   - ADR-0007 을 대체한다.
+- 에이전트 참여: [ADR-0016](../adr/0016-agent-participation-protocol-and-edit-mode.md) **proposed** (2026-09-26, 사용자 결정 대기).
 
 ## 단계 4. 코드 방향 결정과 policy 기반 수정
 
