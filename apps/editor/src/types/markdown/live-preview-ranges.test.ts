@@ -59,6 +59,27 @@ test("inline marks hide only away from the cursor line and keep their style", ()
   assert.deepEqual(computePreviewRanges(on).hidden, []);
 });
 
+test("marks of an inline node that spans lines follow their own line", () => {
+  const doc = "*first\nsecond*\n\nnext";
+  const onSecond = stateAt(doc, doc.indexOf("second"));
+  assert.deepEqual(text(onSecond, computePreviewRanges(onSecond).hidden), ["*"]);
+  assert.equal(computePreviewRanges(onSecond).hidden[0]?.from, 0);
+});
+
+test("block line styles stay inside the requested range", () => {
+  const body = Array.from({ length: 50 }, (_, i) => `line ${i}`).join("\n");
+  const doc = `\`\`\`\n${body}\n\`\`\`\n\nend`;
+  const state = stateAt(doc, doc.length);
+  const from = state.doc.line(20).from;
+  const to = state.doc.line(24).to;
+  const ranges = computePreviewRanges(state, from, to);
+  assert.deepEqual(
+    ranges.lines.map((l) => state.doc.lineAt(l.at).number),
+    [20, 21, 22, 23, 24],
+  );
+  assert.deepEqual(ranges.hidden, []);
+});
+
 test("links show their text and hide brackets and URL away from the cursor", () => {
   const doc = "see [docs](https://example.com) here\n\nnext";
   const away = stateAt(doc, doc.length);
