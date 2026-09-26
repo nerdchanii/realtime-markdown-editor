@@ -137,6 +137,7 @@ collab 서버는 API 가 발급한 협업 연결 token 을 검증한 연결에�
     - viewer 와 archived 문서는 `read` 다. 둘 다 허용되지 않으면 403 이고 token 을 만들지 않는다.
   - 응답의 `connection` 에 `token`, `expiresAt`, `access` 를 싣는다.
 - **token**: HS256 JWT 다. `RME_COLLAB_TOKEN_SECRET` 으로 서명하고 API 와 collab 이 이 값을 공유한다.
+  - 대칭 서명을 쓰는 이유: 협업 token 을 검증하는 곳은 collab 하나뿐이다. collab 밖에서 검증해야 하면 비대칭 키로 바꾼다.
   - claim 은 문서(`documentId`, `documentKey`), principal(`sub`, `principalKind`, `membershipId`, `workspaceId`), `access`, `iat`, `exp` 다.
   - TTL 기본값은 120초이고 `RME_COLLAB_TOKEN_TTL_SECONDS` 로 바꿀 수 있다(최대 900초).
 - **검증**: collab 의 Hocuspocus `onAuthenticate`(`apps/collab/src/auth/`)
