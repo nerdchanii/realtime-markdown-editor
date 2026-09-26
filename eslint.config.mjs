@@ -1,3 +1,4 @@
+import eslintComments from "@eslint-community/eslint-plugin-eslint-comments";
 import js from "@eslint/js";
 import importPlugin from "eslint-plugin-import";
 import jsxA11y from "eslint-plugin-jsx-a11y";
@@ -47,6 +48,28 @@ const legacyMockImportFiles = [
   "apps/web/src/app/product-workspace-view-model.ts",
   "apps/web/src/features/editor/index.tsx",
   "apps/web/src/features/editor/useMockMarkdownDocument.ts",
+];
+
+// UI-005 (ADR-0015): inline `style` may only pass CSS custom properties (`--name`) to stylesheets.
+// Visual styles belong in CSS, where stylelint enforces UI-001..UI-004.
+const inlineStyle = "JSXAttribute[name.name='style'] > JSXExpressionContainer";
+const inlineStyleMessage =
+  "UI-005: inline style may only set CSS custom properties (`--name`). Put visual styles in CSS.";
+const inlineStyleRule = [
+  "error",
+  {
+    selector: `${inlineStyle} > :not(ObjectExpression, TSAsExpression, TSSatisfiesExpression)`,
+    message: inlineStyleMessage,
+  },
+  { selector: `${inlineStyle} ObjectExpression > SpreadElement`, message: inlineStyleMessage },
+  {
+    selector: `${inlineStyle} ObjectExpression > Property[key.type!='Literal']`,
+    message: inlineStyleMessage,
+  },
+  {
+    selector: `${inlineStyle} ObjectExpression > Property[key.type='Literal'][key.value!=/^--/]`,
+    message: inlineStyleMessage,
+  },
 ];
 
 const frameworkAndProviderImports = [
@@ -214,6 +237,7 @@ export default [
   {
     files: reactFiles,
     plugins: {
+      "@eslint-community/eslint-comments": eslintComments,
       "jsx-a11y": jsxA11y,
       react,
       "react-hooks": reactHooks,
@@ -241,6 +265,9 @@ export default [
       "react/no-children-prop": "error",
       "react/no-danger": "error",
       "react/react-in-jsx-scope": "off",
+      "no-restricted-syntax": inlineStyleRule,
+      // UI exceptions are path overrides in config, never inline disable comments (ADR-0015).
+      "@eslint-community/eslint-comments/no-restricted-disable": ["error", "no-restricted-syntax"],
     },
   },
 ];

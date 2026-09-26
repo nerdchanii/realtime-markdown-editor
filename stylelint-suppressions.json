@@ -1,0 +1,97 @@
+{
+  "apps/web/src/styles/_variables.scss": {
+    "color-no-hex": {
+      "count": 20
+    },
+    "function-disallowed-list": {
+      "count": 149
+    }
+  },
+  "apps/web/src/styles/global.css": {
+    "at-rule-disallowed-list": {
+      "count": 40
+    },
+    "color-named": {
+      "count": 7
+    },
+    "color-no-hex": {
+      "count": 85
+    },
+    "declaration-property-value-allowed-list": {
+      "count": 12
+    },
+    "declaration-property-value-disallowed-list": {
+      "count": 34
+    },
+    "function-disallowed-list": {
+      "count": 19
+    }
+  },
+  "apps/web/src/components/tiptap-node/code-block-node/code-block-node.scss": {
+    "declaration-property-value-disallowed-list": {
+      "count": 2
+    }
+  },
+  "apps/web/src/components/tiptap-node/image-node/image-node.scss": {
+    "declaration-property-value-allowed-list": {
+      "count": 2
+    }
+  },
+  "apps/web/src/components/tiptap-node/image-upload-node/image-upload-node.scss": {
+    "declaration-property-value-disallowed-list": {
+      "count": 3
+    },
+    "function-disallowed-list": {
+      "count": 2
+    }
+  },
+  "apps/web/src/components/tiptap-node/list-node/list-node.scss": {
+    "declaration-property-value-disallowed-list": {
+      "count": 1
+    }
+  },
+  "apps/web/src/components/tiptap-node/paragraph-node/paragraph-node.scss": {
+    "declaration-property-value-allowed-list": {
+      "count": 5
+    },
+    "declaration-property-value-disallowed-list": {
+      "count": 5
+    },
+    "function-disallowed-list": {
+      "count": 1
+    }
+  },
+  "apps/web/src/components/tiptap-ui/color-highlight-button/color-highlight-button.scss": {
+    "declaration-property-value-disallowed-list": {
+      "count": 1
+    }
+  },
+  "apps/web/src/components/tiptap-ui-primitive/badge/badge.scss": {
+    "declaration-property-value-disallowed-list": {
+      "count": 1
+    }
+  },
+  "apps/web/src/components/tiptap-ui-primitive/card/card.scss": {
+    "declaration-property-value-disallowed-list": {
+      "count": 2
+    }
+  },
+  "apps/web/src/components/tiptap-ui-primitive/input/input.scss": {
+    "declaration-property-value-disallowed-list": {
+      "count": 1
+    }
+  },
+  "apps/web/src/components/tiptap-ui-primitive/toolbar/toolbar.scss": {
+    "declaration-property-value-disallowed-list": {
+      "count": 3
+    }
+  },
+  "apps/web/src/components/tiptap-ui-primitive/tooltip/tooltip.scss": {
+    "declaration-property-value-allowed-list": {
+      "count": 1
+    },
+    "function-disallowed-list": {
+      "count": 1
+    }
+  }
+}

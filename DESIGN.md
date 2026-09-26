@@ -1,15 +1,16 @@
 ---
 title: DESIGN.md
-version: 0.4.0
+version: 0.5.0
 based_on:
   - docs/adr/0014-ui-principles.md
   - docs/adr/0013-document-type-model.md
+  - docs/adr/0015-plain-css-and-style-lint.md
 previous_version: docs/archive/design/DESIGN-v0.3.2.md
 ---
 
 # DESIGN.md
 
-UI 작업을 하기 전에 이 문서를 읽는다. 결정의 근거와 출처는 ADR-0014(UI 원칙)와 ADR-0013(편집 화면)에 있다.
+UI 작업을 하기 전에 이 문서를 읽는다. 결정의 근거와 출처는 ADR-0014(UI 원칙), ADR-0015(스타일 방식과 lint), ADR-0013(편집 화면)에 있다.
 이 문서와 ADR 이 충돌하면 ADR 을 따른다.
 
 ## 1. 한 줄 원칙
@@ -18,16 +19,37 @@ UI 작업을 하기 전에 이 문서를 읽는다. 결정의 근거와 출처�
 
 ## 2. 절대 규칙
 
-위반하면 PR 을 받지 않는다. 앞의 두 규칙을 기계로 검사하는 방법은 [#13](https://github.com/nerdchanii/realtime-markdown-editor/issues/13) 에서 정한다. 그 전까지는 스크린샷 리뷰로 확인한다.
+위반하면 PR 을 받지 않는다. 스타일 규칙은 [ADR-0015](docs/adr/0015-plain-css-and-style-lint.md) 에 따라 lint 가 검사한다(`pnpm lint`, `pnpm lint:css`, `pnpm arch:check`).
 
 1. **요소를 테두리 박스나 card 로 감싸지 않는다.**
    - 영역은 배경 톤과 여백으로 구분한다.
-   - 테두리는 패널 사이 경계선 1px(`border-top/right/bottom/left`)까지만 쓴다.
-   - [open] border 가 꼭 필요한 곳은 지정한 레이어에서 이유를 적은 예외 주석과 함께 쓰는 방식을 검토한다(#13).
-2. **색은 theme token 으로만 쓴다.** hex, 색 함수, 이름 색(`white`), Tailwind palette(`bg-red-500`)를 직접 쓰지 않는다.
-3. 요청하지 않은 기능, 섹션, 장식을 추가하지 않는다.
-4. 동작하지 않는 기능을 동작하는 것처럼 보여주지 않는다. 기능이 없으면 명시적인 빈 상태를 보여준다.
-5. mock, seed, 개발용 계정과 문구를 제품 화면에 노출하지 않는다.
+   - border 는 두 곳에서만 쓴다.
+     - 레이아웃 CSS(`apps/web/src/layouts/**/*.css`)의 패널 경계선: 한쪽 변, 1px, token 색
+     - 에디터 본문 CSS(`apps/web/src/features/editor/editor-content.css`)의 문서 요소: 표, 구분선, code block 등
+   - 예외는 lint 설정 override 로만 만든다. 코드 안의 disable 주석은 무시되거나 오류가 된다.
+2. **색은 theme token 으로만 쓴다.** 색 literal 은 token 파일(`apps/web/src/styles/tokens.css`)에서만 정의한다.
+3. **스타일은 plain CSS 로 쓴다.** semantic class 에 CSS 를 쓰고, 새 SCSS, Tailwind utility, `@apply` 는 쓰지 않는다.
+4. 요청하지 않은 기능, 섹션, 장식을 추가하지 않는다.
+5. 동작하지 않는 기능을 동작하는 것처럼 보여주지 않는다. 기능이 없으면 명시적인 빈 상태를 보여준다.
+6. mock, seed, 개발용 계정과 문구를 제품 화면에 노출하지 않는다.
+
+### 스타일 규칙표
+
+lint 설정의 규칙 id 와 이 표는 `pnpm docs:check` 가 대조한다.
+
+| id | 규칙 | 강제 |
+| --- | --- | --- |
+| UI-001 | border 는 위의 두 곳에서만 쓴다. | Stylelint |
+| UI-002 | `box-shadow`, `outline`, `background-image` 는 `none` 이나 `var(--token)` 만 쓴다. gradient 는 token 파일에서만 쓴다. 가짜 border 를 막기 위한 규칙이다. | Stylelint |
+| UI-003 | 색 literal(hex, 이름 색, 색 함수)은 token 파일에서만 쓴다. | Stylelint |
+| UI-004 | `@apply` 를 쓰지 않는다. | Stylelint |
+| UI-005 | inline `style` 은 `--name` custom property 만 넘긴다. | ESLint |
+| UI-006 | Tailwind 는 TSX 에서 utility 를 만들지 않는다(`source(none)`). | 빌드 설정 |
+| UI-007 | 새 SCSS 파일을 만들지 않는다. | `pnpm arch:check` |
+
+- 기존 위반은 `stylelint-suppressions.json`, `eslint-suppressions.json` 에 기록되어 있다. 기록은 줄이는 방향으로만 바뀐다.
+- 위반을 정리했으면 `pnpm lint:css --prune`, `pnpm exec eslint . --prune-suppressions` 로 기록을 줄이고 함께 커밋한다.
+- border 없이 배경만 다르게 만든 card 는 lint 로 잡지 못한다. 스크린샷 리뷰로 확인한다.
 
 ## 3. 레이아웃
 
@@ -89,6 +111,6 @@ UI 작업을 하기 전에 이 문서를 읽는다. 결정의 근거와 출처�
 
 1. 바꿀 화면 하나를 정한다. 한 PR 에서 한 화면을 다룬다.
 2. 변경 전 스크린샷을 찍는다. 다크와 라이트 둘 다 찍고, 기준은 `docs/design/current-ui/` 다.
-3. 변경한다. §2 절대 규칙을 지킨다.
+3. 변경한다. §2 절대 규칙을 지키고 lint 를 통과한다. 가능하면 그 화면의 suppression 기록을 줄인다.
 4. PR 에 변경 전후 스크린샷을 붙인다. 사용자 승인을 받은 뒤 다음 화면으로 넘어간다.
 5. 화면이 바뀌었으면 `docs/design/current-ui/` 의 해당 스크린샷을 갱신한다.

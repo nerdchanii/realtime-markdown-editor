@@ -198,6 +198,24 @@ for (const file of walk("apps/web/src")) {
   }
 }
 
+// UI-007 (ADR-0015): styles are plain CSS. SCSS stays only in legacy Tiptap components and the
+// global partials that are removed with them.
+const legacyScssPattern = /^apps\/web\/src\/(components\/tiptap-[^/]+\/.+|styles\/_[^/]+)\.scss$/;
+
+function walkScss(dir) {
+  return readdirSync(dir).flatMap((entry) => {
+    const path = join(dir, entry);
+    if (statSync(path).isDirectory()) return walkScss(path);
+    return path.endsWith(".scss") ? [toPosixPath(path)] : [];
+  });
+}
+
+for (const file of walkScss("apps/web/src")) {
+  if (!legacyScssPattern.test(file)) {
+    failures.push(`UI-007: write styles in plain CSS, not SCSS (ADR-0015): ${file}`);
+  }
+}
+
 if (failures.length > 0) {
   console.error(failures.join("\n"));
   process.exit(1);

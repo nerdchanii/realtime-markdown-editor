@@ -75,7 +75,10 @@ Realtime markdown editor 에서 Realtime editor(ADE 표면)로 가는 전환 계
    - `DESIGN.md` 를 v0.4.0 으로 다시 썼다.
    - 현재 화면 기준 스크린샷을 `docs/design/current-ui/` 에 두었다.
    - 레퍼런스(Linear, Figma, Zed)는 이미지 보드 없이 텍스트 특징으로 정의한다([user] 2026-09-26).
-   - 금지 규칙은 스크린샷 before/after 로 확인한다. 정규식 lint 는 효과가 없어 제거했다([user]). 기계 검증 도구는 [#13](https://github.com/nerdchanii/realtime-markdown-editor/issues/13) 에서 정한다.
+   - 금지 규칙은 스크린샷 before/after 로 확인한다. 정규식 lint 는 효과가 없어 제거했다([user]).
+   - [x] 스타일 방식과 AST lint: [ADR-0015](../adr/0015-plain-css-and-style-lint.md) accepted (2026-09-26, [#13](https://github.com/nerdchanii/realtime-markdown-editor/issues/13)).
+     - plain CSS + token, border 는 두 레이어, 예외는 lint 설정으로만
+     - Stylelint, ESLint, bulk suppression ratchet
 
 ## 단계 3. 핵심 ADR (코드를 바꾸기 전에)
 

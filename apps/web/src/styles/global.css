@@ -1,4 +1,5 @@
-@import "tailwindcss";
+/* UI-006 (ADR-0015): no Tailwind utilities from TSX. Styles are plain CSS on semantic classes. */
+@import "tailwindcss" source(none);
 
 @theme inline {
   --color-rme-background: var(--color-background);

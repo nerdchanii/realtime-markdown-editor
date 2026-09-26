@@ -8,6 +8,8 @@ import { fileURLToPath } from "node:url";
 //    and an accepted G2 ADR must be ratified by the user.
 // 3. Active docs outside docs/adr and docs/direction may cite a proposed ADR only on a line
 //    that marks it as proposed ("proposed" or "제안").
+// 4. Style rule ids (UI-###) in the DESIGN.md rules table and in the enforcing configs match
+//    (ADR-0015), so the documented rules and the enforced rules cannot drift apart.
 
 const repoRoot = fileURLToPath(new URL("..", import.meta.url));
 const skippedDirs = new Set([".git", "node_modules", ".worktrees", "dist", "build", ".pnpm-store"]);
@@ -100,10 +102,40 @@ function checkProposedCitations(repoPath, text, proposedIds, errors) {
   });
 }
 
+const styleRuleSources = [
+  "stylelint.config.mjs",
+  "eslint.config.mjs",
+  "scripts/check-architecture.mjs",
+  "apps/web/src/styles/global.css",
+];
+
+function styleRuleIds(text) {
+  return new Set(text.match(/\bUI-\d{3}\b/g) ?? []);
+}
+
+function checkStyleRuleIds(errors) {
+  const table = readFileSync(join(repoRoot, "DESIGN.md"), "utf8")
+    .split("\n")
+    .filter((line) => /^\|\s*UI-\d{3}\s*\|/.test(line))
+    .join("\n");
+  const documented = styleRuleIds(table);
+  const enforced = new Set();
+  for (const source of styleRuleSources) {
+    for (const id of styleRuleIds(readFileSync(join(repoRoot, source), "utf8"))) enforced.add(id);
+  }
+  for (const id of documented) {
+    if (!enforced.has(id)) errors.push(`DESIGN.md: ${id} is documented but not enforced anywhere`);
+  }
+  for (const id of enforced) {
+    if (!documented.has(id)) errors.push(`${id} is enforced but missing from the DESIGN.md table`);
+  }
+}
+
 function main() {
   const errors = [];
   const adrs = readAdrs();
   adrs.forEach((adr) => checkAdr(adr, errors));
+  checkStyleRuleIds(errors);
   const proposedIds = adrs
     .filter(({ fields }) => fields.status === "proposed" && fields.id)
     .map(({ fields }) => fields.id);
