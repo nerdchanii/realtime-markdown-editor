@@ -39,6 +39,7 @@ export class PrismaCollaborationSessionRepository implements CollaborationSessio
       currentMember: mapMember(currentMember),
       allowedMembers: memberships.map(mapMember),
       sync: syncStateFromRecord(document),
+      documentArchived: Boolean(document.archivedAt),
     };
   }
 
@@ -60,6 +61,7 @@ export class PrismaCollaborationSessionRepository implements CollaborationSessio
       currentMember: mapMember(currentMember),
       allowedMembers: memberships.map(mapMember),
       sync: syncStateFromRecord(document),
+      documentArchived: Boolean(document.archivedAt),
     };
   }
 }

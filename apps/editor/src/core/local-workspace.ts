@@ -11,6 +11,7 @@ import { initDocument, type DocumentType, type TypeModule } from "./document";
 // one source of truth per value.
 
 export const WORKSPACE_AUTHORITY = "local";
+const DEFAULT_NAMESPACE = "rme-local";
 
 export interface DocumentEntry {
   id: string;
@@ -31,7 +32,7 @@ export class LocalWorkspace {
   private readonly documents = new Map<string, OpenDocument>();
   private cachedList: DocumentEntry[] | null = null;
 
-  constructor(private readonly namespace = "rme-local") {
+  constructor(private readonly namespace = DEFAULT_NAMESPACE) {
     this.indexPersistence = new IndexeddbPersistence(`${namespace}:index`, this.index);
     // Registered first, so the cache is cleared before any subscriber reads the list.
     this.entries.observe(() => {
@@ -39,7 +40,18 @@ export class LocalWorkspace {
     });
   }
 
+  // Opens the workspace, or rejects when this browser cannot use IndexedDB (blocked site data,
+  // unavailable storage). y-indexeddb never settles `whenSynced` and leaves an unhandled rejection
+  // when its database fails to open, so storage is checked before any persistence is attached.
+  static async open(namespace?: string): Promise<LocalWorkspace> {
+    await probeIndexedDb(`${namespace ?? DEFAULT_NAMESPACE}:probe`);
+    const workspace = new LocalWorkspace(namespace);
+    await workspace.ready();
+    return workspace;
+  }
+
   async ready(): Promise<void> {
+    await this.indexPersistence._db;
     await this.indexPersistence.whenSynced;
   }
 
@@ -87,4 +99,17 @@ export class LocalWorkspace {
     this.documents.set(id, open);
     return open;
   }
+}
+
+// Uses its own database: opening a y-indexeddb database here first would create it without the
+// stores y-indexeddb adds on upgrade.
+function probeIndexedDb(name: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(name);
+    request.onsuccess = () => {
+      request.result.close();
+      resolve();
+    };
+    request.onerror = () => reject(request.error ?? new Error("IndexedDB failed to open"));
+  });
 }

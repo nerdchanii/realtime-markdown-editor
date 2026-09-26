@@ -8,13 +8,14 @@
     "build": "tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json",
     "start": "node dist/main.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "node --test"
+    "test": "tsx --test \"src/**/*.spec.ts\" \"test/**/*.test.mjs\""
   },
   "dependencies": {
     "@hocuspocus/server": "^3.2.3",
     "yjs": "^13.6.20"
   },
   "devDependencies": {
+    "@hocuspocus/provider": "^3.4.4",
     "tsc-alias": "^1.8.16"
   }
 }

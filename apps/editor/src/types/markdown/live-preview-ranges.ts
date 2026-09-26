@@ -70,6 +70,11 @@ function withTrailingSpace(state: EditorState, span: Span): Span {
   return next === " " ? { from: span.from, to: span.to + 1 } : span;
 }
 
+function withLeadingSpace(state: EditorState, span: Span): Span {
+  const prev = state.doc.sliceString(span.from - 1, span.from);
+  return prev === " " ? { from: span.from - 1, to: span.to } : span;
+}
+
 function childSpans(node: SyntaxNodeRef, names: string[]): Span[] {
   const spans: Span[] = [];
   const cursor = node.node.cursor();
@@ -80,6 +85,46 @@ function childSpans(node: SyntaxNodeRef, names: string[]): Span[] {
   return spans;
 }
 
+// Shared by the per-node helpers. `from`/`to` is the range being decorated (usually a viewport).
+interface Pass {
+  state: EditorState;
+  from: number;
+  to: number;
+  isActive: (pos: number) => boolean;
+  result: PreviewRanges;
+}
+
+// Line starts of a block, clipped to the pass range so a large block costs only what is visible.
+function blockLineStarts({ state, from, to }: Pass, node: SyntaxNodeRef): number[] {
+  return lineStarts(state, Math.max(node.from, from), Math.min(node.to, to));
+}
+
+function addHeading({ state, isActive, result }: Pass, node: SyntaxNodeRef): void {
+  const level = node.name.slice(-1);
+  result.lines.push({ at: state.doc.lineAt(node.from).from, className: `lp-h${level}` });
+  const [first, ...rest] = childSpans(node, ["HeaderMark"]);
+  if (!first || isActive(first.from)) return;
+  if (node.name.startsWith("ATX")) {
+    // Leading `#` run with its space, and an optional closing run with the space before it.
+    result.hidden.push(withTrailingSpace(state, first));
+    for (const mark of rest) result.hidden.push(withLeadingSpace(state, mark));
+  } else {
+    // Setext underline (`===` / `---`) on its own line.
+    result.hidden.push(first);
+  }
+}
+
+function addFencedCode(pass: Pass, node: SyntaxNodeRef): void {
+  const { from, to, isActive, result } = pass;
+  for (const at of blockLineStarts(pass, node)) {
+    result.lines.push({ at, className: "lp-codeblock" });
+  }
+  // Fences and the language tag show only on the line that holds the cursor.
+  for (const mark of childSpans(node, ["CodeMark", "CodeInfo"])) {
+    if (mark.to >= from && mark.from <= to && !isActive(mark.from)) result.hidden.push(mark);
+  }
+}
+
 export function computePreviewRanges(
   state: EditorState,
   from = 0,
@@ -88,23 +133,18 @@ export function computePreviewRanges(
   const result: PreviewRanges = { hidden: [], styled: [], lines: [], rules: [] };
   const active = activeLines(state);
   const isActive = (pos: number) => active.has(state.doc.lineAt(pos).number);
+  const pass: Pass = { state, from, to, isActive, result };
 
   syntaxTree(state).iterate({
     from,
     to,
     enter(node) {
-      const heading = /^ATXHeading([1-6])$/.exec(node.name);
-      if (heading) {
-        result.lines.push({ at: state.doc.lineAt(node.from).from, className: `lp-h${heading[1]}` });
-        if (!isActive(node.from)) {
-          for (const mark of childSpans(node, ["HeaderMark"]).slice(0, 1)) {
-            result.hidden.push(withTrailingSpace(state, mark));
-          }
-        }
+      if (/^(ATX|Setext)Heading[1-6]$/.test(node.name)) {
+        addHeading(pass, node);
         return;
       }
       if (node.name === "Blockquote") {
-        for (const at of lineStarts(state, node.from, node.to)) {
+        for (const at of blockLineStarts(pass, node)) {
           result.lines.push({ at, className: "lp-quote" });
         }
         return;
@@ -114,9 +154,7 @@ export function computePreviewRanges(
         return;
       }
       if (node.name === "FencedCode") {
-        for (const at of lineStarts(state, node.from, node.to)) {
-          result.lines.push({ at, className: "lp-codeblock" });
-        }
+        addFencedCode(pass, node);
         return false;
       }
       if (node.name === "HorizontalRule") {
@@ -136,7 +174,8 @@ export function computePreviewRanges(
           result.styled.push({ from: open.to, to: close.from, className: "lp-link" });
       }
       const marks = hiddenMarks[node.name];
-      if (marks && !isActive(node.from)) result.hidden.push(...childSpans(node, marks));
+      // Each mark follows its own line: inline nodes can span lines.
+      if (marks) result.hidden.push(...childSpans(node, marks).filter((m) => !isActive(m.from)));
       return;
     },
   });

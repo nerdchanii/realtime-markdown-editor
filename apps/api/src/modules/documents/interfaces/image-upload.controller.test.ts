@@ -17,6 +17,9 @@ import {
 } from "@/modules/documents/use-cases/upload-document-image-use-case.js";
 import type { ApiErrorResponseDto } from "@rme/contracts";
 
+// AppModule 은 협업 연결 token 설정 없이 시작하지 않는다. 테스트 전용 값이다.
+process.env.RME_COLLAB_TOKEN_SECRET ??= "rme-test-collab-token-signing-0123456789";
+
 test("ImageUploadController forwards multipart file bytes to the upload use case", async () => {
   const useCase = new FakeUploadDocumentImageUseCase();
   const controller = createController(useCase);

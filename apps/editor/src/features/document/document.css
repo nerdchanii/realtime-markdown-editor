@@ -27,6 +27,8 @@
   color: var(--color-text-faint);
 }
 
+/* The title is part of the editing surface: like the body, focus shows as the caret, not a ring
+   (decision log 2026-09-27). */
 .document__title:focus-visible {
   box-shadow: none;
 }
