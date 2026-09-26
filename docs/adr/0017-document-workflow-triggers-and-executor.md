@@ -89,6 +89,7 @@ superseded_by: null
    - 상태 변경은 API use case 로만 한다. 권한 판정과 이벤트 기록(outbox)을 그 use case 에서 한다.
    - ADR-0013 의 `meta` 구조를 이에 맞게 고친다.
    - local 범위 문서의 상태 위치는 아래 Q8 에서 정했다.
+   - [user] 2026-09-26 보완: **상태의 정본은 데이터 정본(ADR-0011 의 workspace 범위 권위)을 따른다.** server 문서는 DB, local 문서는 기기 저장소의 문서 레코드다. 어느 범위든 Y.Doc 에 넣지 않는다.
 5. **연쇄 실행을 허용한다.**
    - 워크플로우가 만든 이벤트로 다른 워크플로우가 실행될 수 있다. 연쇄가 워크플로우의 핵심이다.
    - 의도하지 않은 순환(A→B→A)은 실행 깊이나 횟수 상한으로 끊는다.
@@ -137,8 +138,11 @@ superseded_by: null
 
 ### 4. `DocumentState` 의 위치와 전달
 
-- **정본은 DB 의 문서 행**이다. Y.Doc 에 두지 않는다.
-- **변경 경로는 API use case 하나**다(`ChangeDocumentState`).
+- **정본은 데이터 정본을 따른다** — [user] 2026-09-26, [ADR-0011](0011-data-authority-by-scope.md) 의 범위별 권위와 같다.
+  - server 범위 문서: DB 의 문서 행.
+  - local 범위 문서: 기기 저장소(IndexedDB)의 문서 레코드(local workspace index 쪽). 아래 "local 범위 문서" 참고.
+  - 어느 범위든 Y.Doc 에 두지 않는다.
+- **변경 경로는 use case 하나**다(`ChangeDocumentState`). 저장은 포트 뒤에 있고, server 는 DB adapter, local 은 local 저장 adapter 로 실행한다. 아래 1–3 은 server 범위의 흐름이다.
   1. `authorize(actor, "document.state.change", document)` 와 전환 guard 를 판정한다.
   2. 같은 DB 트랜잭션에서 상태를 바꾸고 outbox 에 이벤트를 쓴다. 이벤트에는 문서, 이전 상태, 다음 상태, actor, 인과 정보(아래 6)가 들어간다.
   3. 커밋 뒤 outbox relay 가 실행기와 협업 서버에 이벤트를 전달한다.
@@ -151,9 +155,16 @@ superseded_by: null
   - Y.Doc 안의 값은 연결된 어느 클라이언트든 map 을 set 해서 바꿀 수 있다. 서버가 update 를 받기 전에 전환 guard 를 판정할 수 없다.
   - 트리거 이벤트를 CRDT update 에서 추출해야 하고, 오프라인 병합 결과로 전환이 뒤늦게 생기면 "누가 언제 바꿨나"가 흐려진다.
   - 권한 판정, 상태 변경, 이벤트 기록을 한 트랜잭션으로 묶어야 이벤트가 유실되지 않는다.
+  - local 에서도 Y.Doc 에 넣지 않는다. Y.Doc 에 있으면 승격할 때 누구나 바꿀 수 있는 상태 값이 함께 서버로 올라가기 때문이다.
+- **local 범위 문서** — [user] 2026-09-26
+  - 같은 `ChangeDocumentState` use case 를 local 저장 adapter 로 실행한다.
+  - 권한 판정은 항상 허용이다. local 범위에는 기기 주인 한 명만 있다(ADR-0012 §4).
+  - outbox 는 두지 않는다. local 문서에서는 워크플로우를 실행하지 않는다. 실행기가 서버 프로세스이기 때문이다.
+  - 기기 안 실행기는 ADR-0016 Q3 과 맞춰 데스크톱 패키징 뒤에 다시 본다. 그 전까지 local 은 상태 변경과 표시만 한다.
+  - **승격**: local 에서 server 로 승격하면 상태 값을 그대로 옮긴다. 이 이동은 워크플로우를 트리거하지 않는다. 예를 들어 `review` 상태로 승격해도 `review` 트리거가 소급 실행되지 않는다.
 - **대가**
-  - 상태 변경은 서버에 연결되어 있어야 한다. 오프라인에서는 상태를 바꿀 수 없다. 본문 편집은 그대로 오프라인에서 된다.
-  - 문서 정보가 두 경로(Y.Doc 과 API)로 나뉜다. title 과 properties 는 Y.Doc, 상태는 API 다.
+  - server 범위 문서의 상태 변경은 서버에 연결되어 있어야 한다. 오프라인에서는 상태를 바꿀 수 없다. 본문 편집은 그대로 오프라인에서 된다. local 문서는 오프라인에서도 상태를 바꿀 수 있다.
+  - 문서 정보가 두 경로로 나뉜다. title 과 properties 는 Y.Doc, 상태는 문서 레코드(server 는 API, local 은 기기 저장소)다.
 
 ### 5. 실행기
 
@@ -189,9 +200,12 @@ superseded_by: null
 5. **연쇄 상한 값**: 깊이 5, root 당 실행 20 회. **(선택)** 처음에는 workspace 별로 바꿀 수 없는 고정값이다. 정상 흐름이 자주 끊기면 다시 본다.
 6. **실패와 재시도**: 알림처럼 멱등한 동작은 간격을 늘려 가며 자동 재시도한다(횟수는 구현할 때 G1). 에이전트 실행은 자동 재시도하지 않고 실패로 표시한 뒤 사람이 다시 실행한다.
 7. **주인이 권한을 잃었을 때**: 실행할 때마다 주인의 권한을 다시 판정한다. 권한이 없으면 실행을 거부하고, 워크플로우를 일시 정지하고, workspace admin 에게 알린다. admin 이 새 주인을 지정하면 다시 켠다. 주인이 workspace 를 떠난 경우도 같게 다룬다.
-8. **local 범위 문서의 상태 위치 (선택)**: (b) local 문서는 상태와 워크플로우를 지원하지 않는다. server 범위로 승격한 뒤에 쓴다.
-   - "상태 변경은 API use case 로만 한다"는 결정 4 와 실행기가 서버 프로세스라는 결정 6 에 가장 잘 맞는다.
-   - 지금 `apps/editor` 의 local 문서에도 상태가 없으므로 잃는 기능이 없다.
+8. **local 범위 문서의 상태 위치 — [user] 2026-09-26 (정정)**: local 문서도 상태를 지원한다.
+   - 상태의 정본은 데이터 정본(ADR-0011)을 따른다. local 문서는 기기 저장소의 문서 레코드에 두고, Y.Doc 밖에 둔다.
+   - 같은 `ChangeDocumentState` use case 를 local 저장 adapter 로 실행한다. 권한은 항상 허용이고 outbox 는 없다.
+   - local 문서에서는 워크플로우를 실행하지 않는다. 기기 안 실행기는 데스크톱 패키징 뒤에 다시 본다(ADR-0016 Q3 과 같은 시점).
+   - 승격할 때 상태 값을 그대로 옮기고, 이 이동은 워크플로우를 트리거하지 않는다.
+   - 처음 반영에서는 "local 문서는 상태를 지원하지 않는다"로 잘못 적었다. 사용자가 승인한 추천과 달라서 정정했다.
 9. **상태 모델**: `draft`, `review`, `saved` 세 상태로 고정한다. workspace 가 상태를 정의하는 기능은 두지 않는다.
 
 ## 결과
@@ -200,14 +214,14 @@ superseded_by: null
 
 - [user] `meta` Y.Map 에서 `DocumentState` 를 뺀다. `meta` 에는 title, properties 와 core 식별 정보(type, schemaVersion 등)만 둔다.
 - ADR-0013 본문의 표에 개정 표시를 달고 이 ADR 로 링크했다.
-- ADR-0011 결정 2 는 DocumentState 를 "필요하면" Yjs 에 둔다고 했으므로 이 결정과 충돌하지 않는다.
+- ADR-0011 결정 2 는 DocumentState 를 "필요하면" Yjs 에 둔다고 했다. 이 ADR 로 두 범위 모두 Y.Doc 밖에 두게 되었으므로 ADR-0011 에 개정 표시를 달았다. 범위별로 정본이 다른 원칙은 ADR-0011 그대로다.
 
 ### 후속 작업 (코드)
 
 - 서버: `ChangeDocumentState` use case, `document.state.change` action, outbox 테이블과 relay.
 - 협업 서버: 상태 변경 stateless 알림.
 - 실행기 앱과 실행 기록 저장.
-- `apps/editor`: 상태를 `meta` 에 넣지 않는다. 슬라이스 2 이후 상태 표시가 필요할 때 API 조회와 알림으로 붙인다. 지금 바꿀 코드는 없다.
+- `apps/editor`: 상태를 `meta` 에 넣지 않는다. local 문서의 상태는 local workspace 의 문서 레코드에 두고 `ChangeDocumentState` 의 local adapter 로 바꾼다. server 문서는 API 조회와 알림으로 붙인다. 지금 바꿀 코드는 없다(상태 기능을 붙일 때 한다).
 - ADR-0016 의 문서 연산 API 를 구현한 뒤 에이전트 동작을 붙인다.
 
 ### 후속 작업 (문서)
@@ -244,3 +258,4 @@ superseded_by: null
 | --- | --- | --- |
 | 2026-09-26 | 최초 작성 (proposed). 워크플로우 분리, 주인과 트리거 선언, 전환 권한, DocumentState 를 DB 로, 연쇄 허용, 별도 실행기 | user (방향 6 항목) / agent:claude-code (세부 설계와 추천) |
 | 2026-09-26 | 세부 질문 1–9 를 모두 추천안대로 확정하고 accepted 로 바꿨다. 상태 모델은 draft/review/saved 고정. 추천이 명시되지 않은 부분(Q1 추가 시점, Q2 guard 위치, Q3 action, Q5 변경 가능 여부, Q8)은 초안에 가장 가까운 안을 택했다 | user |
+| 2026-09-26 | Q8 정정: local 문서도 상태를 지원한다. 상태 정본은 데이터 정본(ADR-0011)을 따르며 local 은 기기 저장소의 문서 레코드(Y.Doc 밖)다. 같은 use case 를 local adapter 로 실행하고, 권한은 항상 허용, outbox 와 워크플로우는 없다. 승격 때 상태를 옮기되 트리거하지 않는다 | user |
