@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import os from "node:os";
 import test from "node:test";
 
 import {
@@ -57,7 +58,7 @@ test("Postgres quoting helpers escape identifiers and literals", () => {
   assert.equal(quotePostgresLiteral("rme_'quoted'"), "'rme_''quoted'''");
 });
 
-test("buildPgIsReadyArgs checks the maintenance database in the container", () => {
+test("buildPgIsReadyArgs checks the maintenance database on the local server", () => {
   assert.deepEqual(buildPgIsReadyArgs("postgres"), [
     "pg_isready",
     "-U",
@@ -67,13 +68,14 @@ test("buildPgIsReadyArgs checks the maintenance database in the container", () =
   ]);
 });
 
-test("buildBootstrapPlan defaults to the main local database", () => {
-  assert.deepEqual(buildBootstrapPlan({}), {
+test("buildBootstrapPlan defaults to the main local database as the current OS user", () => {
+  const currentUser = os.userInfo().username;
+  assert.deepEqual(buildBootstrapPlan({ env: {} }), {
     databaseName: "realtime_markdown_editor",
-    databaseUrl: "postgresql://postgres:postgres@127.0.0.1:5432/realtime_markdown_editor",
+    databaseUrl: `postgresql://${currentUser}@127.0.0.1:5432/realtime_markdown_editor`,
     migrate: false,
     postgresHostPort: "5432",
-    postgresUser: "postgres",
+    postgresUser: currentUser,
   });
 });
 
@@ -93,7 +95,7 @@ test("buildBootstrapPlan derives host port and database names from DATABASE_URL"
   );
 });
 
-test("buildBootstrapPlan lets POSTGRES_HOST_PORT make Compose and Prisma agree", () => {
+test("buildBootstrapPlan lets POSTGRES_HOST_PORT override the DATABASE_URL port", () => {
   assert.deepEqual(
     buildBootstrapPlan({
       envText: [
