@@ -195,6 +195,12 @@ for (const file of walk("apps/web/src")) {
   const content = readFileSync(file, "utf8");
   for (const specifier of importSpecifiersFor(file, content)) {
     failures.push(...frontendSpecifierFailuresFor(file, specifier));
+    // UI-006: code must not create another Tailwind entry (e.g. `import "tailwindcss/utilities.css"`).
+    if (/^tailwindcss(\/|$)/.test(specifier)) {
+      failures.push(
+        `UI-006: do not import Tailwind from code; global.css is the only entry: ${file}`,
+      );
+    }
   }
 }
 

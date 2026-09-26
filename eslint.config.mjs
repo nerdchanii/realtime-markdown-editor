@@ -58,13 +58,15 @@ const inlineStyleMessage =
 // UI-005 also covers imperative DOM styling. Only `style.setProperty("--name", value)` may pass values.
 const domStyleMessage =
   "UI-005: do not style DOM nodes from code. Toggle a class, or pass a value with style.setProperty('--name', value).";
+// Matches both `node.style` and computed `node["style"]` access.
+const named = (path, name) => `:matches([${path}.name='${name}'], [${path}.value='${name}'])`;
 const domStyleSelectors = [
-  "AssignmentExpression > MemberExpression.left[object.property.name='style']",
-  "AssignmentExpression > MemberExpression.left[property.name='style']",
-  "AssignmentExpression > MemberExpression.left[property.name='cssText']",
-  "CallExpression[callee.property.name='setAttribute'][arguments.0.value='style']",
-  "CallExpression[callee.object.name='Object'][callee.property.name='assign'] > MemberExpression.arguments:first-child[property.name='style']",
-  "CallExpression[callee.property.name='setProperty'][callee.object.property.name='style'] > .arguments:first-child:not(Literal[value=/^--/])",
+  `AssignmentExpression > MemberExpression.left${named("object.property", "style")}`,
+  `AssignmentExpression > MemberExpression.left${named("property", "style")}`,
+  `AssignmentExpression > MemberExpression.left${named("property", "cssText")}`,
+  `CallExpression${named("callee.property", "setAttribute")}[arguments.0.value='style']`,
+  `CallExpression[callee.object.name='Object']${named("callee.property", "assign")} > MemberExpression.arguments:first-child${named("property", "style")}`,
+  `CallExpression${named("callee.property", "setProperty")}${named("callee.object.property", "style")} > .arguments:first-child:not(Literal[value=/^--/])`,
 ];
 const inlineStyleRule = [
   "error",
