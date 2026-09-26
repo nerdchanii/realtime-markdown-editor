@@ -14,7 +14,11 @@ export type CollabRuntimeConfig = {
   publicRealtimeUrl: string;
   enableLiveYjsPersistenceFallback: boolean;
   liveYjsPersistence: LiveYjsPersistenceConfig;
+  /** API 와 공유하는 협업 연결 token 서명 값이다. 없으면 collab 서버가 시작하지 않는다. */
+  collabTokenSigningSecret: string;
 };
+
+const MIN_TOKEN_SIGNING_SECRET_LENGTH = 32;
 
 const BOOLEAN_VALUES = new Map([
   ["1", true],
@@ -49,7 +53,18 @@ export function readCollabRuntimeConfig(env: NodeJS.ProcessEnv): CollabRuntimeCo
         fileURLToPath(new URL("../.data/live-yjs", import.meta.url)),
       ),
     },
+    collabTokenSigningSecret: readTokenSigningSecret(env.RME_COLLAB_TOKEN_SECRET),
   };
+}
+
+function readTokenSigningSecret(value: string | undefined): string {
+  const trimmed = value?.trim() ?? "";
+  if (trimmed.length < MIN_TOKEN_SIGNING_SECRET_LENGTH) {
+    throw new Error(
+      `RME_COLLAB_TOKEN_SECRET must be set to at least ${MIN_TOKEN_SIGNING_SECRET_LENGTH} characters.`,
+    );
+  }
+  return trimmed;
 }
 
 function readBoolean(value: string | undefined, fallback: boolean): boolean {

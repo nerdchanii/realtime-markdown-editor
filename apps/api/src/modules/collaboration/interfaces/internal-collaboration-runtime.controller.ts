@@ -8,10 +8,10 @@ import {
   Param,
   Put,
 } from "@nestjs/common";
-import type { CollaborationSessionResponseDto } from "@rme/contracts";
 
+import type { RuntimeCollaborationSessionResponseDto } from "@/modules/collaboration/interfaces/collaboration-session.dto.js";
 import { decodeDocumentKey } from "@/modules/collaboration/interfaces/document-key-codec.js";
-import { mapCollaborationSessionToResponseDto } from "@/modules/collaboration/interfaces/collaboration-session.mapper.js";
+import { mapRuntimeCollaborationSessionToResponseDto } from "@/modules/collaboration/interfaces/collaboration-session.mapper.js";
 import {
   ProductCollaborationDocumentNotFoundError,
   type CollaborationDocumentKey,
@@ -56,12 +56,12 @@ export class InternalCollaborationRuntimeController {
   @Get("document-sessions/:encodedDocumentKey")
   async getDocumentSession(
     @Param("encodedDocumentKey") encodedDocumentKey: string,
-  ): Promise<CollaborationSessionResponseDto> {
+  ): Promise<RuntimeCollaborationSessionResponseDto> {
     const documentKey = decodeDocumentKey(encodedDocumentKey);
     const session = await this.loadRuntimeSession.execute({ documentKey });
     if (!session) throw new NotFoundException("Collaboration session not found.");
 
-    return mapCollaborationSessionToResponseDto(session);
+    return mapRuntimeCollaborationSessionToResponseDto(session);
   }
 
   @Get("yjs-documents/:encodedDocumentKey/state")

@@ -1,6 +1,7 @@
 import { Server } from "@hocuspocus/server";
 import * as Y from "yjs";
 
+import { createConnectionAuthenticator } from "./auth/authenticate-connection.js";
 import type { CollabRuntimeConfig } from "./config.js";
 import {
   createHttpDocumentContentProjectionClient,
@@ -35,6 +36,10 @@ export function createHocuspocusRuntime(
 ): Server {
   return new Server({
     ...createServerConfig(config),
+    // 모든 연결은 API 가 발급한 협업 token 을 검증받아야 문서를 열 수 있다(ADR-0012 §1).
+    onAuthenticate: createConnectionAuthenticator({
+      signingSecret: config.collabTokenSigningSecret,
+    }),
     onLoadDocument: (payload: HocuspocusDocumentPayload) =>
       loadRuntimeDocument(payload, dependencies),
     onStoreDocument: (payload: HocuspocusDocumentPayload) =>

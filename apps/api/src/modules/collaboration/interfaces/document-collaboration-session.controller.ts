@@ -1,32 +1,24 @@
-import {
-  Controller,
-  ForbiddenException,
-  Headers,
-  Inject,
-  Param,
-  Post,
-  UnauthorizedException,
-} from "@nestjs/common";
-import type { CollaborationSessionResponseDto } from "@rme/contracts";
+import { Controller, ForbiddenException, Headers, Inject, Param, Post } from "@nestjs/common";
+import type { DocumentId } from "@rme/contracts";
 
-import { mapCollaborationSessionToResponseDto } from "@/modules/collaboration/interfaces/collaboration-session.mapper.js";
+import type { CollaborationSessionResponseDto } from "@/modules/collaboration/interfaces/collaboration-session.dto.js";
+import { mapIssuedCollaborationSessionToResponseDto } from "@/modules/collaboration/interfaces/collaboration-session.mapper.js";
 import type {
   CollaborationDocumentId,
   CollaborationMembershipId,
+  CollaborationUserId,
+  CollaborationWorkspaceId,
 } from "@/modules/collaboration/ports/collaboration-session-repository.js";
 import { IssueCollaborationSessionUseCase } from "@/modules/collaboration/use-cases/issue-collaboration-session-use-case.js";
-import {
-  AuthSessionService,
-  currentMembershipId,
-} from "@/modules/identity/use-cases/auth-session-service.js";
+import { ProductApiAccessService } from "@/modules/identity/use-cases/product-api-access-service.js";
 
 @Controller("documents")
 export class DocumentCollaborationSessionController {
   constructor(
     @Inject(IssueCollaborationSessionUseCase)
     private readonly issueCollaborationSession: IssueCollaborationSessionUseCase,
-    @Inject(AuthSessionService)
-    private readonly authSessions: AuthSessionService,
+    @Inject(ProductApiAccessService)
+    private readonly access: ProductApiAccessService,
   ) {}
 
   @Post(":documentId/collaboration-sessions")
@@ -34,18 +26,24 @@ export class DocumentCollaborationSessionController {
     @Param("documentId") documentId: string,
     @Headers("cookie") cookieHeader: string | undefined,
   ): Promise<CollaborationSessionResponseDto> {
-    const authSession = await this.authSessions.resolveSession(cookieHeader);
-    if (!authSession) throw new UnauthorizedException("Authentication is required.");
+    // 문서가 속한 workspace 의 멤버십을 세션에서 고른다. 다른 workspace 의 멤버십이나
+    // 암묵적인 첫 번째 멤버십은 쓰지 않는다.
+    const { membership } = await this.access.requireDocumentAccess(
+      cookieHeader,
+      documentId as DocumentId,
+    );
 
-    const membershipId = currentMembershipId(authSession);
-    if (!membershipId) throw new ForbiddenException("Workspace membership is required.");
-
-    const session = await this.issueCollaborationSession.execute({
+    const issued = await this.issueCollaborationSession.execute({
       documentId: documentId as CollaborationDocumentId,
-      currentMembershipId: membershipId as CollaborationMembershipId,
+      membership: {
+        id: membership.id as string as CollaborationMembershipId,
+        userId: membership.userId as string as CollaborationUserId,
+        workspaceId: membership.workspaceId as string as CollaborationWorkspaceId,
+        role: membership.role,
+      },
     });
-    if (!session) throw new ForbiddenException("Workspace membership is required.");
+    if (!issued) throw new ForbiddenException("Document collaboration access is not permitted.");
 
-    return mapCollaborationSessionToResponseDto(session);
+    return mapIssuedCollaborationSessionToResponseDto(issued);
   }
 }
