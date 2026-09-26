@@ -59,11 +59,14 @@ test("quotes, code blocks and rules get line styles", () => {
   const doc = "> quoted\n\n```js\nlet a\n```\n\n---\n\nend";
   const away = stateAt(doc, doc.length);
   const ranges = computePreviewRanges(away);
-  assert.deepEqual(text(away, ranges.hidden), ["> "]);
+  assert.deepEqual(text(away, ranges.hidden), ["> ", "```", "js", "```"]);
   assert.deepEqual(
     ranges.lines.map((l) => l.className),
     ["lp-quote", "lp-codeblock", "lp-codeblock", "lp-codeblock"],
   );
+
+  const onFence = stateAt(doc, doc.indexOf("```js") + 1);
+  assert.deepEqual(text(onFence, computePreviewRanges(onFence).hidden), ["> ", "```"]);
   assert.deepEqual(text(away, ranges.rules), ["---"]);
 
   const onRule = stateAt(doc, doc.indexOf("---"));

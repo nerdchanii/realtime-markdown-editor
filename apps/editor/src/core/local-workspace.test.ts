@@ -42,3 +42,21 @@ test("the list is newest first and notifies subscribers", async () => {
   unsubscribe();
   await workspace.destroy();
 });
+
+test("open resolves a ready workspace", async () => {
+  const workspace = await LocalWorkspace.open("test-open");
+  assert.deepEqual(workspace.list(), []);
+  await workspace.destroy();
+});
+
+test("opening the workspace rejects when IndexedDB is unavailable", async () => {
+  const original = indexedDB.open.bind(indexedDB);
+  indexedDB.open = () => {
+    throw new DOMException("blocked", "SecurityError");
+  };
+  try {
+    await assert.rejects(LocalWorkspace.open("test-blocked"));
+  } finally {
+    indexedDB.open = original;
+  }
+});

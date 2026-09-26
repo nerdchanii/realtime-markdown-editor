@@ -80,6 +80,21 @@ function childSpans(node: SyntaxNodeRef, names: string[]): Span[] {
   return spans;
 }
 
+function addFencedCode(
+  state: EditorState,
+  node: SyntaxNodeRef,
+  isActive: (pos: number) => boolean,
+  result: PreviewRanges,
+): void {
+  for (const at of lineStarts(state, node.from, node.to)) {
+    result.lines.push({ at, className: "lp-codeblock" });
+  }
+  // Fences and the language tag show only on the line that holds the cursor.
+  for (const mark of childSpans(node, ["CodeMark", "CodeInfo"])) {
+    if (!isActive(mark.from)) result.hidden.push(mark);
+  }
+}
+
 export function computePreviewRanges(
   state: EditorState,
   from = 0,
@@ -114,9 +129,7 @@ export function computePreviewRanges(
         return;
       }
       if (node.name === "FencedCode") {
-        for (const at of lineStarts(state, node.from, node.to)) {
-          result.lines.push({ at, className: "lp-codeblock" });
-        }
+        addFencedCode(state, node, isActive, result);
         return false;
       }
       if (node.name === "HorizontalRule") {
