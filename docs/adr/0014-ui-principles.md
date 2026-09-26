@@ -87,8 +87,10 @@ superseded_by: null
   - 기준 스크린샷은 `docs/design/current-ui/` 에 있다. 화면이 바뀌면 이 기준도 갱신한다.
 - **lint**: `pnpm ui:check`(`scripts/check-ui-rules.mjs`)가 두 규칙을 검사한다. pre-commit, `pnpm check`, CI 에서 모두 실행된다.
   - `ui/no-box-border`: `border:` shorthand 로 네 변을 모두 두르는 선언
-  - `ui/no-box-border-utility`: 같은 박스를 Tailwind `border`, `border-2`, `border-[..]` utility 로 두르는 것. `@apply` 나 class 문자열 안에서 검사한다.
-  - `ui/no-hardcoded-color`: CSS/SCSS 변수 정의 밖의 hex 나 rgb 색
+  - `ui/no-box-border-utility`: 같은 박스를 Tailwind `border`, `border-2`, `border-[..]` utility 로 두르는 것.
+    - `hover:border` 같은 variant 접두사도 잡는다.
+    - CSS 는 `@apply` 를, TS/TSX 는 모든 문자열 literal 을 검사한다. 여러 줄로 나뉜 class 표현식도 포함된다.
+  - `ui/no-hardcoded-color`: CSS/SCSS 변수 정의 밖의 hex 색과 색 함수(`rgb`, `hsl`, `oklch`, `lab` 등)
 - [agent] lint 는 ratchet 이다.
   - 지금 있는 위반 188건은 파일별 baseline(`scripts/ui-rules-baseline.json`)에 기록했다.
   - 어떤 파일도 baseline 을 넘을 수 없고, 새 파일은 0건에서 시작한다.
