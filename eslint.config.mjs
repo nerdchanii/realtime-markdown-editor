@@ -10,7 +10,7 @@ const sourceFiles = ["apps/**/*.{ts,tsx}", "packages/**/*.ts", "e2e/**/*.ts", "s
 
 const productionFiles = ["apps/**/*.{ts,tsx}", "packages/**/*.ts", "scripts/**/*.mjs"];
 const testFiles = ["**/*.spec.{ts,tsx}", "**/*.test.{ts,tsx}", "**/*.smoke.ts", "e2e/**/*.ts"];
-const reactFiles = ["apps/web/src/**/*.{ts,tsx}"];
+const reactFiles = ["apps/web/src/**/*.{ts,tsx}", "apps/editor/src/**/*.{ts,tsx}"];
 const adapterFiles = ["apps/**/adapters/**/*.{ts,tsx}"];
 const useCaseFiles = ["apps/**/use-cases/**/*.{ts,tsx}"];
 const apiDomainFiles = ["apps/api/src/modules/**/domain/**/*.ts"];

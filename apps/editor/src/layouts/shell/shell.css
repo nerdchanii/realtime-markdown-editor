@@ -1,0 +1,71 @@
+/* App shell (ADR-0014): explorer | editor. Panels are separated by tone plus one 1px divider. */
+.shell {
+  display: grid;
+  grid-template-rows: 40px 1fr;
+  height: 100%;
+}
+
+.shell__topbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-divider);
+}
+
+.shell__workspace {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-weight: 600;
+}
+
+.shell__workspace-note {
+  font-weight: 400;
+  color: var(--color-text-faint);
+}
+
+.shell__spacer {
+  flex: 1;
+}
+
+.shell__action {
+  height: 26px;
+  padding: 0 8px;
+  border-radius: var(--radius);
+  color: var(--color-text-muted);
+}
+
+.shell__action:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text);
+}
+
+.shell__body {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  min-height: 0;
+}
+
+.shell__body--explorer-closed {
+  grid-template-columns: 0 1fr;
+}
+
+.shell__explorer {
+  min-width: 0;
+  overflow: auto;
+  background: var(--color-surface);
+  border-right: 1px solid var(--color-divider);
+}
+
+.shell__body--explorer-closed .shell__explorer {
+  visibility: hidden;
+}
+
+.shell__main {
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--color-bg);
+}

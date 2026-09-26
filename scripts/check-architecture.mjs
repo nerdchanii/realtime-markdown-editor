@@ -191,7 +191,7 @@ for (const file of walk("apps/api/src/modules")) {
   failures.push(...domainImportFailuresFor(file, readFileSync(file, "utf8")));
 }
 
-for (const file of walk("apps/web/src")) {
+for (const file of [...walk("apps/web/src"), ...walk("apps/editor/src")]) {
   const content = readFileSync(file, "utf8");
   for (const specifier of importSpecifiersFor(file, content)) {
     failures.push(...frontendSpecifierFailuresFor(file, specifier));
@@ -247,7 +247,7 @@ function walkStyles(dir) {
 }
 
 // The whole web package is scanned, so a stylesheet outside src/ cannot slip past the checks.
-const styleFiles = walkStyles("apps/web");
+const styleFiles = [...walkStyles("apps/web"), ...walkStyles("apps/editor")];
 const scssFiles = new Set(styleFiles.filter((file) => file.endsWith(".scss")));
 for (const file of scssFiles) {
   if (!legacyScssFiles.has(file)) {
