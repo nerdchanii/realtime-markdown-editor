@@ -3,10 +3,13 @@ import { existsSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
+import os from "node:os";
 
 const scriptPath = fileURLToPath(import.meta.url);
 const repoRoot = resolve(dirname(scriptPath), "..");
-const defaultDatabaseUrl = "postgresql://postgres:postgres@127.0.0.1:5432/realtime_markdown_editor";
+const currentUser = os.userInfo().username;
+const defaultDatabaseUrl = `postgresql://${currentUser}@127.0.0.1:5432/realtime_markdown_editor`;
+const defaultPostgresHost = "127.0.0.1";
 const defaultPostgresHostPort = "5432";
 const defaultReadyTimeoutMs = 30_000;
 const defaultReadyIntervalMs = 1_000;
@@ -45,8 +48,12 @@ export function quotePostgresLiteral(value) {
   return `'${value.replaceAll("'", "''")}'`;
 }
 
-export function buildPgIsReadyArgs(postgresUser) {
-  return ["pg_isready", "-U", postgresUser, "-d", "postgres"];
+export function buildPostgresConnectionArgs({ postgresHost, postgresHostPort, postgresUser }) {
+  return ["-h", postgresHost, "-p", postgresHostPort, "-U", postgresUser];
+}
+
+export function buildPgIsReadyArgs(connection) {
+  return ["pg_isready", ...buildPostgresConnectionArgs(connection), "-d", "postgres"];
 }
 
 export function buildBootstrapPlan({ env = process.env, envText = null, migrate = false } = {}) {
@@ -60,8 +67,9 @@ export function buildBootstrapPlan({ env = process.env, envText = null, migrate 
     databaseName: databaseNameFromDatabaseUrl(databaseUrl),
     databaseUrl,
     migrate,
+    postgresHost: parsed.hostname || defaultPostgresHost,
     postgresHostPort,
-    postgresUser: decodeURIComponent(parsed.username || "postgres"),
+    postgresUser: decodeURIComponent(parsed.username || currentUser),
   };
 }
 
@@ -70,12 +78,9 @@ function main() {
   const envFile = readOptionValue("--env-file");
   const plan = buildBootstrapPlan(buildPlanInput({ envFile, migrate }));
 
-  const composeEnv = { ...process.env, POSTGRES_HOST_PORT: plan.postgresHostPort };
-  compose(["up", "-d", "postgres"], { env: composeEnv });
-  const containerId = readPostgresContainerId(composeEnv);
-
-  waitForPostgres({ containerId, postgresUser: plan.postgresUser });
-  ensureDatabase({ containerId, databaseName: plan.databaseName, postgresUser: plan.postgresUser });
+  const postgresEnv = buildPostgresClientEnv(plan.databaseUrl);
+  waitForLocalPostgres({ connection: plan, postgresEnv });
+  ensureDatabase({ connection: plan, databaseName: plan.databaseName, postgresEnv });
   console.log(`Postgres is ready; ensured database ${plan.databaseName}.`);
 
   runMigrationsIfRequested(plan);
@@ -107,17 +112,6 @@ function readEnvTextForPlan(envFile) {
   return readLocalEnvText();
 }
 
-function readPostgresContainerId(composeEnv) {
-  const containerId = compose(["ps", "-q", "postgres"], {
-    encoding: "utf8",
-    env: composeEnv,
-  }).trim();
-  if (!containerId) {
-    throw new Error("Docker Compose did not return a postgres container id.");
-  }
-  return containerId;
-}
-
 function runMigrationsIfRequested(plan) {
   if (!plan.migrate) return;
   execFileSync("pnpm", ["--filter", "@rme/api", "db:migrate:deploy"], {
@@ -135,42 +129,30 @@ function readLocalEnvText() {
   return "";
 }
 
-function ensureDatabase({ containerId, databaseName, postgresUser }) {
+function ensureDatabase({ connection, databaseName, postgresEnv }) {
+  const psqlArgs = ["psql", ...buildPostgresConnectionArgs(connection), "-d", "postgres"];
   const existsSql = `SELECT 1 FROM pg_database WHERE datname = ${quotePostgresLiteral(databaseName)}`;
-  const exists = dockerExec(containerId, [
-    "psql",
-    "-U",
-    postgresUser,
-    "-d",
-    "postgres",
-    "-tAc",
-    existsSql,
-  ])
+  const exists = localExec([...psqlArgs, "-tAc", existsSql], { env: postgresEnv })
     .trim()
     .includes("1");
 
   if (exists) return;
 
-  dockerExec(
-    containerId,
+  localExec(
     [
-      "psql",
-      "-U",
-      postgresUser,
-      "-d",
-      "postgres",
+      ...psqlArgs,
       "-v",
       "ON_ERROR_STOP=1",
       "-c",
       `CREATE DATABASE ${quotePostgresIdentifier(databaseName)}`,
     ],
-    { stdio: "inherit" },
+    { env: postgresEnv, stdio: "inherit" },
   );
 }
 
-function waitForPostgres({
-  containerId,
-  postgresUser,
+function waitForLocalPostgres({
+  connection,
+  postgresEnv,
   timeoutMs = defaultReadyTimeoutMs,
   intervalMs = defaultReadyIntervalMs,
 }) {
@@ -179,7 +161,7 @@ function waitForPostgres({
 
   while (Date.now() - startedAt < timeoutMs) {
     try {
-      dockerExec(containerId, buildPgIsReadyArgs(postgresUser), { stdio: "ignore" });
+      localExec(buildPgIsReadyArgs(connection), { env: postgresEnv, stdio: "ignore" });
       return;
     } catch (error) {
       lastError = error;
@@ -191,18 +173,16 @@ function waitForPostgres({
   throw new Error(`Postgres did not become ready within ${seconds}s.`, { cause: lastError });
 }
 
-function compose(args, options = {}) {
-  return execFileSync("docker", ["compose", ...args], {
-    cwd: repoRoot,
-    env: options.env ?? process.env,
-    stdio: options.stdio ?? "pipe",
-    encoding: options.encoding,
-  });
+// The password travels only through the child process env, never through argv or logs.
+function buildPostgresClientEnv(databaseUrl) {
+  const password = decodeURIComponent(new URL(databaseUrl).password);
+  return password ? { ...process.env, PGPASSWORD: password } : process.env;
 }
 
-function dockerExec(containerId, args, options = {}) {
-  return execFileSync("docker", ["exec", containerId, ...args], {
+function localExec(args, options = {}) {
+  return execFileSync(args[0], args.slice(1), {
     cwd: repoRoot,
+    env: options.env ?? process.env,
     stdio: options.stdio ?? "pipe",
     encoding: options.encoding ?? "utf8",
   });

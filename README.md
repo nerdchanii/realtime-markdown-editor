@@ -35,7 +35,7 @@ DocumentState와 문서 속성은 앞으로 문서 자동화, 검토 흐름, 외
 
 - Node.js 24 이상
 - pnpm `10.28.2`
-- Docker / Docker Compose
+- PostgreSQL 16 이상 (로컬 설치, 기본 `127.0.0.1:5432`)
 
 Node.js 24 이상과 pnpm이 설치되어 있으면 별도 버전 매니저 없이 바로 실행할 수 있습니다.
 저장소 설정상 공식 지원 범위는 Node `>=24`입니다.
@@ -74,12 +74,13 @@ API 빌드는 contracts 패키지의 `src`를 직접 컴파일하지 않고 패�
 
 ## 로컬 실행
 
-아래 명령은 PostgreSQL 컨테이너를 띄우고, 마이그레이션과 로컬 초기 데이터를 적용한 뒤 API,
-협업 서버, 웹 앱을 함께 실행합니다.
+로컬 PostgreSQL이 실행 중이어야 합니다. 아래 명령은 데이터베이스가 없으면 만들고, 마이그레이션과 로컬 초기
+데이터를 적용한 뒤 API, 협업 서버, 웹 앱을 함께 실행합니다. `<your-username>`은 PostgreSQL 역할 이름으로
+바꿉니다. `DATABASE_URL`을 생략하면 현재 OS 사용자로 `127.0.0.1:5432`에 접속합니다.
 
 ```bash
-POSTGRES_HOST_PORT=55432 \
-DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:55432/realtime_markdown_editor \
+POSTGRES_HOST_PORT=5432 \
+DATABASE_URL=postgresql://<your-username>@127.0.0.1:5432/realtime_markdown_editor \
 COLLAB_PORT=4001 \
 RME_COLLAB_PUBLIC_URL=ws://127.0.0.1:4001 \
 pnpm dev
@@ -113,16 +114,16 @@ UI의 빠른 로그인은 Alice/Bob만 보여주지만, Carol/Dana도 이메일�
 ## 검증
 
 ```bash
-POSTGRES_HOST_PORT=55432 \
-DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:55432/realtime_markdown_editor \
+POSTGRES_HOST_PORT=5432 \
+DATABASE_URL=postgresql://<your-username>@127.0.0.1:5432/realtime_markdown_editor \
 COLLAB_PORT=4001 \
 RME_COLLAB_PUBLIC_URL=ws://127.0.0.1:4001 \
 pnpm check
 ```
 
 ```bash
-POSTGRES_HOST_PORT=55432 \
-DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:55432/realtime_markdown_editor \
+POSTGRES_HOST_PORT=5432 \
+DATABASE_URL=postgresql://<your-username>@127.0.0.1:5432/realtime_markdown_editor \
 COLLAB_PORT=4001 \
 RME_COLLAB_PUBLIC_URL=ws://127.0.0.1:4001 \
 pnpm test:e2e
