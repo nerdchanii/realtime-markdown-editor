@@ -61,12 +61,11 @@ test("Postgres quoting helpers escape identifiers and literals", () => {
 test("buildPgIsReadyArgs targets the host and port from the bootstrap plan", () => {
   assert.deepEqual(
     buildPgIsReadyArgs({
-      postgresHost: "127.0.0.1",
-      postgresHost: "127.0.0.1",
+      postgresHost: "db.internal",
       postgresHostPort: "55433",
       postgresUser: "postgres",
     }),
-    ["pg_isready", "-h", "127.0.0.1", "-p", "55433", "-U", "postgres", "-d", "postgres"],
+    ["pg_isready", "-h", "db.internal", "-p", "55433", "-U", "postgres", "-d", "postgres"],
   );
 });
 
