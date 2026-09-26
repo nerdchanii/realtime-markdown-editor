@@ -9,6 +9,7 @@ const scriptPath = fileURLToPath(import.meta.url);
 const repoRoot = resolve(dirname(scriptPath), "..");
 const currentUser = os.userInfo().username;
 const defaultDatabaseUrl = `postgresql://${currentUser}@127.0.0.1:5432/realtime_markdown_editor`;
+const defaultPostgresHost = "127.0.0.1";
 const defaultPostgresHostPort = "5432";
 const defaultReadyTimeoutMs = 30_000;
 const defaultReadyIntervalMs = 1_000;
@@ -47,8 +48,12 @@ export function quotePostgresLiteral(value) {
   return `'${value.replaceAll("'", "''")}'`;
 }
 
-export function buildPgIsReadyArgs(postgresUser) {
-  return ["pg_isready", "-U", postgresUser, "-d", "postgres"];
+export function buildPostgresConnectionArgs({ postgresHost, postgresHostPort, postgresUser }) {
+  return ["-h", postgresHost, "-p", postgresHostPort, "-U", postgresUser];
+}
+
+export function buildPgIsReadyArgs(connection) {
+  return ["pg_isready", ...buildPostgresConnectionArgs(connection), "-d", "postgres"];
 }
 
 export function buildBootstrapPlan({ env = process.env, envText = null, migrate = false } = {}) {
@@ -62,6 +67,7 @@ export function buildBootstrapPlan({ env = process.env, envText = null, migrate 
     databaseName: databaseNameFromDatabaseUrl(databaseUrl),
     databaseUrl,
     migrate,
+    postgresHost: parsed.hostname || defaultPostgresHost,
     postgresHostPort,
     postgresUser: decodeURIComponent(parsed.username || currentUser),
   };
@@ -72,9 +78,9 @@ function main() {
   const envFile = readOptionValue("--env-file");
   const plan = buildBootstrapPlan(buildPlanInput({ envFile, migrate }));
 
-  // Check if PostgreSQL is running locally
-  waitForLocalPostgres({ postgresUser: plan.postgresUser });
-  ensureDatabase({ databaseName: plan.databaseName, postgresUser: plan.postgresUser });
+  const postgresEnv = buildPostgresClientEnv(plan.databaseUrl);
+  waitForLocalPostgres({ connection: plan, postgresEnv });
+  ensureDatabase({ connection: plan, databaseName: plan.databaseName, postgresEnv });
   console.log(`Postgres is ready; ensured database ${plan.databaseName}.`);
 
   runMigrationsIfRequested(plan);
@@ -123,9 +129,10 @@ function readLocalEnvText() {
   return "";
 }
 
-function ensureDatabase({ databaseName, postgresUser }) {
+function ensureDatabase({ connection, databaseName, postgresEnv }) {
+  const psqlArgs = ["psql", ...buildPostgresConnectionArgs(connection), "-d", "postgres"];
   const existsSql = `SELECT 1 FROM pg_database WHERE datname = ${quotePostgresLiteral(databaseName)}`;
-  const exists = localExec(["psql", "-U", postgresUser, "-d", "postgres", "-tAc", existsSql])
+  const exists = localExec([...psqlArgs, "-tAc", existsSql], { env: postgresEnv })
     .trim()
     .includes("1");
 
@@ -133,22 +140,19 @@ function ensureDatabase({ databaseName, postgresUser }) {
 
   localExec(
     [
-      "psql",
-      "-U",
-      postgresUser,
-      "-d",
-      "postgres",
+      ...psqlArgs,
       "-v",
       "ON_ERROR_STOP=1",
       "-c",
       `CREATE DATABASE ${quotePostgresIdentifier(databaseName)}`,
     ],
-    { stdio: "inherit" },
+    { env: postgresEnv, stdio: "inherit" },
   );
 }
 
 function waitForLocalPostgres({
-  postgresUser,
+  connection,
+  postgresEnv,
   timeoutMs = defaultReadyTimeoutMs,
   intervalMs = defaultReadyIntervalMs,
 }) {
@@ -157,7 +161,7 @@ function waitForLocalPostgres({
 
   while (Date.now() - startedAt < timeoutMs) {
     try {
-      localExec(buildPgIsReadyArgs(postgresUser), { stdio: "ignore" });
+      localExec(buildPgIsReadyArgs(connection), { env: postgresEnv, stdio: "ignore" });
       return;
     } catch (error) {
       lastError = error;
@@ -169,9 +173,16 @@ function waitForLocalPostgres({
   throw new Error(`Postgres did not become ready within ${seconds}s.`, { cause: lastError });
 }
 
+// The password travels only through the child process env, never through argv or logs.
+function buildPostgresClientEnv(databaseUrl) {
+  const password = decodeURIComponent(new URL(databaseUrl).password);
+  return password ? { ...process.env, PGPASSWORD: password } : process.env;
+}
+
 function localExec(args, options = {}) {
   return execFileSync(args[0], args.slice(1), {
     cwd: repoRoot,
+    env: options.env ?? process.env,
     stdio: options.stdio ?? "pipe",
     encoding: options.encoding ?? "utf8",
   });
