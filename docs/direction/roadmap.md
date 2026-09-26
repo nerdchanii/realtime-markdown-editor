@@ -107,7 +107,13 @@ ADR 은 에이전트가 비교안과 추천안을 `proposed` 로 작성하고, �
 
 ## 단계 4. 코드 방향 결정과 policy 기반 수정
 
-- 단계 3 이 끝난 뒤, 기존 코드를 점진적으로 진화시킬지 core 만 남기고 교체할지 결정한다(G2).
+- [x] 코드 방향(G2, [user] 2026-09-26)
+  - 기존 web UI 는 새로 짠다.
+  - 협업 엔진은 Yjs 를 유지한다.
+  - 진행 순서는 **로컬 편집 → 동시편집** 이다(decision log).
+- 슬라이스
+  1. 로컬 markdown 에디터: CodeMirror 라이브 프리뷰 + Yjs + 브라우저 저장, 새 shell ([#15](https://github.com/nerdchanii/realtime-markdown-editor/issues/15))
+  2. 동시편집: 같은 문서 구조에 Hocuspocus provider 를 붙이고 협업 연결 인증(ADR-0012 §1)을 넣는다.
 - 권한 모델을 확정한 뒤, policy 에 따라 다음을 고친다(진단에서 발견된 항목):
   - collab 연결 인증
   - internal API 인증

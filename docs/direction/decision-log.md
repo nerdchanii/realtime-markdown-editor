@@ -29,3 +29,5 @@ ADR 로 만들 만큼 크지는 않지만 PR 이 끝난 뒤에도 남아야 하�
 | 2026-09-26 | ~~UI lint 는 정규식 ratchet 이다~~ 철회. 정규식 lint 는 우회가 끝없이 나와 효과가 없다. 제거하고 AST 도구와 border 예외 레이어는 #13 에서 정한다 | G2 | user | user | - | - | #12 |
 | 2026-09-26 | markdown 편집 화면에서 Tiptap 식 고정 toolbar 를 두지 않는다. 서식 명령은 단축키, 명령 팔레트, 필요할 때 나타나는 작은 도구로 제공한다 | G1 | agent:claude-code | pending | 2026-10-03 | 라이브 프리뷰 구현에서 고정 toolbar 가 필요하다고 판단되면 | #7 PR |
 | 2026-09-26 | ADR-0015 §5 규칙 세부. 가짜 border(`box-shadow`, `outline`, `background-image`)는 `none` 이나 token 만 허용한다. Tailwind 는 `source(none)` 으로 TSX utility 를 만들지 않는다. SCSS 는 지금 있는 파일 목록에만 남긴다. 기존 위반은 bulk suppression 으로 기록하고, 기록은 줄이는 방향으로만 바꾼다 | G1 | agent:claude-code | pending | 2026-10-03 | 규칙이 정당한 스타일을 반복해서 막거나, suppression 정리가 작업을 막으면 | #13 PR |
+| 2026-09-26 | 협업 엔진은 Yjs 를 유지한다. Loro, Automerge, yrs, Yorkie 와 같은 편집 기록으로 비교했을 때 Yjs 는 타이핑 속도에서 충분히 빠르고, Hocuspocus 와 CodeMirror 바인딩이 검증되어 있다 | G2 | user | user | - | 버전 기록(time travel)이나 아주 큰 문서가 핵심 요구가 되면 Loro 를 다시 본다 | Issue #15 |
+| 2026-09-26 | 기존 web UI 는 재사용하지 않고 새로 짠다. 진행 순서는 로컬 편집(브라우저 저장, 계정 없음) → 동시편집(서버 sync, 협업 인증)이다. 문서 구조는 처음부터 동시편집용 Yjs 구조를 쓴다 | G2 | user | user | - | 로컬 슬라이스가 동시편집 검증을 지나치게 늦추면 | Issue #15 |
