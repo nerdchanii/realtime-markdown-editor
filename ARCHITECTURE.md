@@ -39,7 +39,7 @@ The system is a browser-based collaborative Markdown editor backed by server-sid
 - Backend application: owns workspace, identity, document, collaboration, checkpoint metadata, and artifact use-case flow.
 - Durable data: relational metadata plus S3-compatible object artifact storage.
 - Local persistence: browser-local state for open-page offline editing and reconnect merge.
-- Future integrations: workflow hooks, notifications, external automation, PWA/desktop packaging.
+- Future integrations: workflow executor (accepted, ADR-0017), notifications, external automation, PWA/desktop packaging.
 
 ## Boundary Rules
 
@@ -79,4 +79,4 @@ workspace, document, persistence, and UI boundaries.
 
 - Cross-module domain import enforcement and current violation cleanup are implementation follow-ups.
 - Checkpoint artifact format and inspect path remain open under ADR-0003.
-- Workflow hooks, workflow execution, publish/draft visibility, and ownership-based visibility remain deferred until workflow capability promotion.
+- Workflow triggers, transition permission, and the workflow executor are accepted by [ADR-0017](docs/adr/0017-document-workflow-triggers-and-executor.md) and not implemented yet. See `docs/domain/models/workflow.md` and `docs/architecture/backend.md`. Publish/draft visibility and ownership-based visibility remain deferred.

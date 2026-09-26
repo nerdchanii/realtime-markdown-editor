@@ -60,6 +60,8 @@ ADR-0007 이후 기본 editor surface는 TipTap 기반 Rich Markdown authoring�
 
 Workflow/dashboard 중심 화면은 deferred다. `DocumentState`는 editor-first shell 안에서 직접 변경 가능한 foundation으로 노출할 수 있지만, workflow executor, transition guard, publish/draft visibility, ownership-based visibility는 workflow capability가 승격될 때 결정한다.
 
+> **승격 (2026-09-26)**: workflow executor 와 transition guard 는 [ADR-0017](0017-document-workflow-triggers-and-executor.md)(accepted)로 승격되었다. publish/draft visibility 와 ownership-based visibility 는 여전히 보류다.
+
 ## 후보안
 
 ### 1. Editor-first scope shell
@@ -124,3 +126,4 @@ UI는 editor-first 작성 흐름을 먼저 보여줘야 한다. Workspace와 wor
 | 2026-04-28 | editor-first shell, frontmatter export, DocumentState foundation에 맞게 정리 | nerdchanii |
 | 2026-04-29 | TF architecture review에 따라 accepted로 승격하고 workflow/dashboard deferred 원칙 명시 | nerdchanii |
 | 2026-04-30 | ADR-0007에 맞춰 CE-05 source/split policy를 rich authoring surface 중심으로 갱신 | nerdchanii |
+| 2026-09-27 | workflow executor 와 transition guard 가 ADR-0017 로 승격되었다는 표시 추가 | user |

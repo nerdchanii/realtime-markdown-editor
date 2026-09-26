@@ -49,5 +49,5 @@ related_adrs:
 
 - Billing, provisioning, invitation, organization administration은 보류한다.
 - Per-folder permission은 보류한다.
-- Project-level workflow state와 workflow hooks는 보류한다.
+- Project-level workflow state 는 보류한다. 문서 상태 전환에 붙는 워크플로우는 ADR-0017 로 승격되었고(accepted, 아직 구현 전), project 범위로 선언할 수 있다.
 - Multi-workspace administration은 보류한다.
