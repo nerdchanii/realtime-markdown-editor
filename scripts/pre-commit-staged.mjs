@@ -74,7 +74,7 @@ function needsCollabTypecheck(file) {
 
 function needsArchitectureCheck(file) {
   return (
-    /^apps\/.+\.(ts|tsx)$/.test(file) ||
+    /^apps\/.+\.(ts|tsx|css|scss)$/.test(file) ||
     /^packages\/.+\.ts$/.test(file) ||
     file === ".dependency-cruiser.cjs" ||
     file === "scripts/check-architecture.mjs" ||
@@ -84,8 +84,29 @@ function needsArchitectureCheck(file) {
   );
 }
 
+function needsCssLint(file) {
+  return (
+    /^apps\/web\/.+\.(css|scss)$/.test(file) ||
+    file === "stylelint.config.mjs" ||
+    file === "stylelint-suppressions.json" ||
+    file === "scripts/lint-css.mjs" ||
+    file === "pnpm-lock.yaml"
+  );
+}
+
+function needsFullEslint(file) {
+  return file === "eslint.config.mjs" || file === "eslint-suppressions.json";
+}
+
 function needsDocsCheck(file) {
-  return /\.md$/.test(file) || file === "scripts/check-docs.mjs";
+  return (
+    /\.md$/.test(file) ||
+    file === "scripts/check-docs.mjs" ||
+    file === "stylelint.config.mjs" ||
+    file === "eslint.config.mjs" ||
+    file === "scripts/check-architecture.mjs" ||
+    file === "apps/web/src/styles/global.css"
+  );
 }
 
 function needsTest(file) {
@@ -116,6 +137,7 @@ function commandsFor(stagedFiles, prettierFiles, lintFiles) {
     "eslint",
     "--no-warn-ignored",
   ]);
+  pushStyleCommands(commands, stagedFiles);
   pushConditionalCommand(
     commands,
     stagedFiles.some(needsTypecheck),
@@ -139,6 +161,21 @@ function commandsFor(stagedFiles, prettierFiles, lintFiles) {
   ]);
   pushConditionalCommand(commands, stagedFiles.some(needsTest), "workspace tests", ["test"]);
   return commands;
+}
+
+function isSuppressionsFile(file) {
+  return /^(eslint|stylelint)-suppressions\.json$/.test(file);
+}
+
+// Style rule checks (ADR-0015).
+function pushStyleCommands(commands, stagedFiles) {
+  pushConditionalCommand(commands, stagedFiles.some(needsFullEslint), "eslint on all files", [
+    "lint",
+  ]);
+  pushConditionalCommand(commands, stagedFiles.some(needsCssLint), "stylelint", ["lint:css"]);
+  pushConditionalCommand(commands, stagedFiles.some(isSuppressionsFile), "suppression ratchet", [
+    "suppressions:check",
+  ]);
 }
 
 function command(label, executable, args) {

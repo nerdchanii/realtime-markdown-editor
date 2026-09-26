@@ -13,6 +13,7 @@ related_documents:
   - docs/direction/2026-09-24-product-direction-interview.md
   - docs/adr/0005-ui-shell-scope-model.md
   - docs/adr/0013-document-type-model.md
+  - docs/adr/0015-plain-css-and-style-lint.md
   - DESIGN.md
 supersedes: []
 superseded_by: null
@@ -43,7 +44,7 @@ superseded_by: null
 - 문서 frontmatter 가 본문 텍스트로 보인다.
 - v0.3.2 `DESIGN.md`(지금은 [`docs/archive/design/DESIGN-v0.3.2.md`](../archive/design/DESIGN-v0.3.2.md))가 참조한 레퍼런스 이미지(Reference 01A/01B/03)는 저장소에 없었다.
 
-텍스트 규칙만으로는 지켜지지 않았다. 그래서 이 ADR 은 원칙을 짧게 두고, 스크린샷 리뷰로 확인한다. 기계 검증은 아직 없다. 도구는 [#13](https://github.com/nerdchanii/realtime-markdown-editor/issues/13) 에서 정한다.
+텍스트 규칙만으로는 지켜지지 않았다. 그래서 이 ADR 은 원칙을 짧게 두고 스크린샷 리뷰로 확인한다. 기계로 강제할 수 있는 스타일 규칙은 [ADR-0015](0015-plain-css-and-style-lint.md) 가 정한다.
 
 ## 결정
 
@@ -62,6 +63,7 @@ superseded_by: null
 
 - 영역은 **배경 톤과 여백으로** 구분한다.
 - 테두리는 **패널 사이 경계선 1px 까지만** 허용한다. `border-top`, `border-right`, `border-bottom`, `border-left` 가 이에 해당한다.
+  - [user] 2026-09-26 보완: 에디터 본문의 문서 요소(표, 구분선, code block 등)에도 선을 허용한다. 허용 레이어와 강제 방식은 [ADR-0015](0015-plain-css-and-style-lint.md) 를 따른다.
 - **요소를 테두리 박스나 card 로 감싸지 않는다.** 필드, 버튼, 목록 행, 설정 항목, 편집 본문이 모두 해당된다.
 - [agent] 세부 사항(G1, `ratify_by: 2026-10-03`):
   - 입력 필드는 테두리 대신 채워진 배경으로 구분한다. focus 는 outline 이나 ring 으로 표시한다.
@@ -81,13 +83,13 @@ superseded_by: null
 - 모든 색은 theme token(CSS custom property)으로만 쓴다. 하드코딩한 색은 테마를 깨뜨린다.
   - 지금 dark toolbar 가 흰색인 이유가 바로 이것이다.
 
-### 5. 검증 — [user] 스크린샷 before/after (lint 는 #13)
+### 5. 검증 — [user] 스크린샷 before/after 와 lint(ADR-0015)
 
 - **UI 를 바꾸는 PR 에는 변경 전후 스크린샷을 붙인다.** 다크와 라이트 둘 다 필요하다. 화면 단위로 승인받고 다음으로 넘어간다.
   - 기준 스크린샷은 `docs/design/current-ui/` 에 있다. 화면이 바뀌면 이 기준도 갱신한다.
 - **lint**: 정규식 기반 검사(`ui:check`)를 시도했지만 우회 경로가 계속 나와 제거했다([user] 2026-09-26, "정규식 lint 는 효과가 없다").
-  - AST 기반 도구(Stylelint, ESLint 플러그인)로 강제하는 방법은 [#13](https://github.com/nerdchanii/realtime-markdown-editor/issues/13) 에서 정한다.
-  - [user] border 는 필요할 때 쓸 수밖에 없다. border 를 넣는 레이어를 최소화하고, 그 레이어 안에서만 이유를 적은 예외 주석으로 허용하는 방식을 검토한다. 허용 레이어는 [open] 이다.
+  - 대신 AST 기반 도구(Stylelint, ESLint)로 강제한다. 규칙, 허용 레이어, 예외 방식은 [ADR-0015](0015-plain-css-and-style-lint.md) 에 있다.
+  - [user] border 는 필요할 때 쓸 수밖에 없다. border 를 넣는 레이어를 최소화한다. 예외는 lint 설정 override 로만 만든다.
 
 ### 6. 이미 정해진 금지 사항 (AGENTS.md 와 같음)
 
@@ -101,7 +103,7 @@ superseded_by: null
   - 이전 상세 명세(v0.3.2)는 `docs/archive/design/DESIGN-v0.3.2.md` 로 옮긴다.
   - 편집 화면은 ADR-0013(CodeMirror 라이브 프리뷰)을 따른다.
 - 현재 화면의 위반은 이 ADR 기준의 UI 결함으로 Issue 에 기록한다. 화면 단위 PR 로 고친다.
-- 스타일 규칙의 기계 검증은 #13 의 결정을 따른다.
+- 스타일 규칙의 기계 검증은 ADR-0015 를 따른다.
 
 ## 변경 이력
 
@@ -109,3 +111,4 @@ superseded_by: null
 | --- | --- | --- |
 | 2026-09-26 | 최초 결정 | user (방향), agent:claude-code (세부 G1) |
 | 2026-09-26 | 정규식 lint 제거, AST 도구와 border 예외 레이어는 #13 으로 넘김 | user |
+| 2026-09-26 | §2 에 에디터 본문 선 허용을 보완하고, 강제 방식을 ADR-0015 로 연결 | user |

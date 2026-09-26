@@ -195,6 +195,82 @@ for (const file of walk("apps/web/src")) {
   const content = readFileSync(file, "utf8");
   for (const specifier of importSpecifiersFor(file, content)) {
     failures.push(...frontendSpecifierFailuresFor(file, specifier));
+    // UI-006: code must not create another Tailwind entry (e.g. `import "tailwindcss/utilities.css"`).
+    if (/^tailwindcss(\/|$)/.test(specifier)) {
+      failures.push(
+        `UI-006: do not import Tailwind from code; global.css is the only entry: ${file}`,
+      );
+    }
+  }
+}
+
+// UI-007 (ADR-0015): styles are plain CSS. Only these existing SCSS files may remain; they are
+// removed with the Tiptap editor. Do not add entries. Remove an entry when its file is deleted.
+const legacyScssFiles = new Set([
+  "apps/web/src/components/tiptap-node/blockquote-node/blockquote-node.scss",
+  "apps/web/src/components/tiptap-node/code-block-node/code-block-node.scss",
+  "apps/web/src/components/tiptap-node/heading-node/heading-node.scss",
+  "apps/web/src/components/tiptap-node/horizontal-rule-node/horizontal-rule-node.scss",
+  "apps/web/src/components/tiptap-node/image-node/image-node.scss",
+  "apps/web/src/components/tiptap-node/image-upload-node/image-upload-node.scss",
+  "apps/web/src/components/tiptap-node/list-node/list-node.scss",
+  "apps/web/src/components/tiptap-node/paragraph-node/paragraph-node.scss",
+  "apps/web/src/components/tiptap-templates/simple/simple-editor.scss",
+  "apps/web/src/components/tiptap-ui-primitive/badge/badge-colors.scss",
+  "apps/web/src/components/tiptap-ui-primitive/badge/badge-group.scss",
+  "apps/web/src/components/tiptap-ui-primitive/badge/badge.scss",
+  "apps/web/src/components/tiptap-ui-primitive/button-group/button-group.scss",
+  "apps/web/src/components/tiptap-ui-primitive/button/button-colors.scss",
+  "apps/web/src/components/tiptap-ui-primitive/button/button.scss",
+  "apps/web/src/components/tiptap-ui-primitive/card/card.scss",
+  "apps/web/src/components/tiptap-ui-primitive/dropdown-menu/dropdown-menu.scss",
+  "apps/web/src/components/tiptap-ui-primitive/input/input.scss",
+  "apps/web/src/components/tiptap-ui-primitive/popover/popover.scss",
+  "apps/web/src/components/tiptap-ui-primitive/separator/separator.scss",
+  "apps/web/src/components/tiptap-ui-primitive/toolbar/toolbar.scss",
+  "apps/web/src/components/tiptap-ui-primitive/tooltip/tooltip.scss",
+  "apps/web/src/components/tiptap-ui/color-highlight-button/color-highlight-button.scss",
+  "apps/web/src/components/tiptap-ui/link-popover/link-popover.scss",
+  "apps/web/src/styles/_keyframe-animations.scss",
+  "apps/web/src/styles/_variables.scss",
+]);
+
+const skippedStyleDirs = new Set(["node_modules", "dist"]);
+
+function walkStyles(dir) {
+  return readdirSync(dir).flatMap((entry) => {
+    if (skippedStyleDirs.has(entry)) return [];
+    const path = join(dir, entry);
+    if (statSync(path).isDirectory()) return walkStyles(path);
+    return /\.(css|scss)$/.test(path) ? [toPosixPath(path)] : [];
+  });
+}
+
+// The whole web package is scanned, so a stylesheet outside src/ cannot slip past the checks.
+const styleFiles = walkStyles("apps/web");
+const scssFiles = new Set(styleFiles.filter((file) => file.endsWith(".scss")));
+for (const file of scssFiles) {
+  if (!legacyScssFiles.has(file)) {
+    failures.push(`UI-007: write styles in plain CSS, not SCSS (ADR-0015): ${file}`);
+  }
+}
+for (const file of legacyScssFiles) {
+  if (!scssFiles.has(file)) {
+    failures.push(`UI-007: remove the deleted SCSS file from legacyScssFiles: ${file}`);
+  }
+}
+
+// UI-006 (ADR-0015): Tailwind is imported once, with automatic source detection turned off.
+const tailwindEntry = "apps/web/src/styles/global.css";
+// Any Tailwind entry point counts: the package, its subpaths (`tailwindcss/utilities.css`) and url() form.
+const tailwindImport = /@import\s+(?:url\(\s*)?["']?tailwindcss(?:\/[^"')\s]*)?["']?\s*\)?[^;]*;/g;
+for (const file of styleFiles) {
+  const imports = readFileSync(file, "utf8").match(tailwindImport) ?? [];
+  const expected = file === tailwindEntry ? ['@import "tailwindcss" source(none);'] : [];
+  if (JSON.stringify(imports) !== JSON.stringify(expected)) {
+    failures.push(
+      `UI-006: only ${tailwindEntry} may import Tailwind, exactly as \`@import "tailwindcss" source(none);\`: ${file}`,
+    );
   }
 }
 

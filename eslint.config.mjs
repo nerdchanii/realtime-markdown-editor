@@ -1,3 +1,4 @@
+import eslintComments from "@eslint-community/eslint-plugin-eslint-comments";
 import js from "@eslint/js";
 import importPlugin from "eslint-plugin-import";
 import jsxA11y from "eslint-plugin-jsx-a11y";
@@ -47,6 +48,47 @@ const legacyMockImportFiles = [
   "apps/web/src/app/product-workspace-view-model.ts",
   "apps/web/src/features/editor/index.tsx",
   "apps/web/src/features/editor/useMockMarkdownDocument.ts",
+];
+
+// UI-005 (ADR-0015): inline `style` may only pass CSS custom properties (`--name`) to stylesheets.
+// Visual styles belong in CSS, where stylelint enforces UI-001..UI-004.
+const inlineStyle = "JSXAttribute[name.name='style'] > JSXExpressionContainer";
+const inlineStyleMessage =
+  "UI-005: inline style may only set CSS custom properties (`--name`). Put visual styles in CSS.";
+// UI-005 also covers imperative DOM styling. Only `style.setProperty("--name", value)` may pass values.
+const domStyleMessage =
+  "UI-005: do not style DOM nodes from code. Toggle a class, or pass a value with style.setProperty('--name', value).";
+// Matches both `node.style` and computed `node["style"]` access.
+const named = (path, name) => `:matches([${path}.name='${name}'], [${path}.value='${name}'])`;
+const domStyleSelectors = [
+  `AssignmentExpression > MemberExpression.left${named("object.property", "style")}`,
+  `AssignmentExpression > MemberExpression.left${named("property", "style")}`,
+  `AssignmentExpression > MemberExpression.left${named("property", "cssText")}`,
+  `CallExpression${named("callee.property", "setAttribute")}[arguments.0.value='style']`,
+  `CallExpression[callee.object.name='Object']${named("callee.property", "assign")} > MemberExpression.arguments:first-child${named("property", "style")}`,
+  `CallExpression${named("callee.property", "setProperty")}${named("callee.object.property", "style")} > .arguments:first-child:not(Literal[value=/^--/])`,
+];
+const inlineStyleRule = [
+  "error",
+  ...domStyleSelectors.map((selector) => ({ selector, message: domStyleMessage })),
+  {
+    selector: `${inlineStyle} > :not(ObjectExpression, TSAsExpression, TSSatisfiesExpression)`,
+    message: inlineStyleMessage,
+  },
+  // A type cast is allowed only around an object literal, whose keys the selectors below check.
+  {
+    selector: `${inlineStyle} > :matches(TSAsExpression, TSSatisfiesExpression) > .expression:not(ObjectExpression)`,
+    message: inlineStyleMessage,
+  },
+  { selector: `${inlineStyle} ObjectExpression > SpreadElement`, message: inlineStyleMessage },
+  {
+    selector: `${inlineStyle} ObjectExpression > Property[key.type!='Literal']`,
+    message: inlineStyleMessage,
+  },
+  {
+    selector: `${inlineStyle} ObjectExpression > Property[key.type='Literal'][key.value!=/^--/]`,
+    message: inlineStyleMessage,
+  },
 ];
 
 const frameworkAndProviderImports = [
@@ -214,6 +256,7 @@ export default [
   {
     files: reactFiles,
     plugins: {
+      "@eslint-community/eslint-comments": eslintComments,
       "jsx-a11y": jsxA11y,
       react,
       "react-hooks": reactHooks,
@@ -241,6 +284,9 @@ export default [
       "react/no-children-prop": "error",
       "react/no-danger": "error",
       "react/react-in-jsx-scope": "off",
+      "no-restricted-syntax": inlineStyleRule,
+      // UI exceptions are path overrides in config, never inline disable comments (ADR-0015).
+      "@eslint-community/eslint-comments/no-restricted-disable": ["error", "no-restricted-syntax"],
     },
   },
 ];
