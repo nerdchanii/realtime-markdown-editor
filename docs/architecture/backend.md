@@ -20,7 +20,7 @@ product boundary로 동작하도록 유지한다.
 | `CollaborationModule` | collaboration provider adapters, sync orchestration ports, artifact extraction/storage ports                            |
 | `apps/collab` runtime | Hocuspocus/Yjs websocket runtime, live collaboration provider state, realtime adapter execution                         |
 
-`HistoryModule`, workflow hooks module, and projection-only module are deferred. They must not become
+`HistoryModule` and projection-only module are deferred. The workflow capability is accepted by ADR-0017 but not implemented yet. They must not become
 required boundaries just because a file or empty module exists in current code. Deferral does not
 apply to auth, authorization, persistence integrity, or runtime validation required for current
 product routes.
@@ -162,6 +162,16 @@ Create a separate `HistoryModule` only when one of these becomes true:
 - retention or compliance needs independent ownership,
 - checkpoint artifact inspect semantics need independent invariants.
 
-Create a workflow capability or workflow executor only when `DocumentState` needs transition policy, external hook execution, ownership/visibility policy, or external reverse updates. Until then, `DocumentState` remains a value/state owned by `Document`.
+(목표, [ADR-0017](../adr/0017-document-workflow-triggers-and-executor.md) accepted, 아직 구현 전) 워크플로우 capability 와 실행기는 더 이상 보류가 아니다.
+
+- `DocumentState` 는 `Document` 가 가진 value/state 로 남는다. 변경은 `ChangeDocumentState` use case 로만 한다.
+  - server 범위: `authorize(actor, "document.state.change", document)` 와 workspace 의 전환별 guard 를 판정한다. 상태 변경과 outbox 이벤트를 한 DB 트랜잭션으로 커밋한다.
+  - local 범위: 같은 use case 를 local 저장 adapter 로 실행한다. 권한은 항상 허용이고 outbox 는 없다.
+- 커밋 뒤 outbox relay 가 이벤트를 실행기와 `apps/collab` 에 전달한다. `apps/collab` 은 연결된 클라이언트에게 stateless 알림을 보낸다.
+- 워크플로우 실행기는 `apps/api`, `apps/collab` 과 나란히 별도 프로세스로 배포한다(앱 이름 초안 `apps/workflow`).
+  - 전달은 최소 한 번이고, 이벤트 id 로 중복 실행을 막는다.
+  - 실행기는 서비스 자격증명으로 인증한다. 동작마다 `{ principal: 에이전트, onBehalfOf: owner }` actor 로 policy 판정을 받는다. 실행기에게 넓은 권한을 따로 주지 않는다.
+  - 에이전트 동작은 ADR-0016 의 문서 연산 use case 를 부른다.
+- Workflow 설정과 실행 기록의 모델은 `docs/domain/models/workflow.md` 에 있다.
 
 Create a projection-only module only when query complexity, projection versioning, or conflict semantics no longer fit local read-model composition.

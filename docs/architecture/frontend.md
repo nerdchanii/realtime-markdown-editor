@@ -81,9 +81,11 @@ Properties, links/backlinks, `DocumentState`, workspace navigation, account cont
 workflow controls support the editor-first flow. They are not decorative extensions when they make the
 product understandable, trustworthy, or recoverable.
 
-`DocumentState` controls are allowed as direct value/state changes in the current product slice.
-Transition policy, publish/draft visibility, ownership-based visibility, and external workflow
-execution are deferred until workflow capability promotion.
+`DocumentState` controls are direct value/state changes in the current implementation. (목표,
+[ADR-0017](../adr/0017-document-workflow-triggers-and-executor.md) accepted, 아직 구현 전) 상태는 Y.Doc 밖의 문서
+레코드에 있고 `ChangeDocumentState` use case 로만 바꾼다. 화면은 server 문서의 상태를 API 로 조회하고 협업 서버의
+stateless 알림으로 갱신하며, local 문서의 상태는 기기 저장소 레코드에서 읽는다. 전환 권한이 없으면 상태 컨트롤을
+막는다. 워크플로우는 server 문서에서만 실행된다. Publish/draft visibility and ownership-based visibility remain deferred.
 
 Frontend work should preserve the product context around the editor. The UI must make the current
 workspace/document/member context visible enough for a user to understand where edits, presence,

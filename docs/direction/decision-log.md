@@ -10,6 +10,7 @@ ADR 로 만들 만큼 크지는 않지만 PR 이 끝난 뒤에도 남아야 하�
 
 - `decided_by`: `user` 또는 `agent:<도구>`
 - `ratified_by`: `user`, `lazy-consensus`, `pending`
+- 날짜는 한국 시간(KST) 기준이다. git 커밋 시각(UTC)과 하루 어긋나 보일 수 있다.
 - G1 은 `ratify_by` 날짜까지 사용자가 이의를 제기하지 않으면 `lazy-consensus` 로 확정한다.
 
 | 날짜 | 결정 | 게이트 | decided_by | ratified_by | ratify_by | revisit_if | 출처 |
@@ -24,7 +25,7 @@ ADR 로 만들 만큼 크지는 않지만 PR 이 끝난 뒤에도 남아야 하�
 | 2026-09-26 | 옛 schema 버전의 IndexedDB draft 는 읽지 않고 삭제한다(draft 키에 schema 버전 포함) | G1 | agent:claude-code | pending | 2026-10-03 | 개발 중 draft 유실이 문제가 되면 | PR #9 |
 | 2026-09-26 | checkpoint snapshot 은 `{ type, schemaVersion, content }` 형태로 type 을 표시한다. 타입별 snapshot 과 viewer 가 정의되기 전에는 그 타입을 출시하지 않는다 | G1 | agent:claude-code | pending | 2026-10-03 | code 타입 구현에서 다른 형태가 필요하면 | PR #9 |
 | 2026-09-26 | ADR-0012 §1 구현 방식: 단일 `authorize` policy, 서명된 짧은 TTL collab token, `onAuthenticate` 검증, internal 서비스 인증. 사용자가 말한 "policy 에 따른 권한" 원칙을 에이전트가 구체화했다 | G1 | agent:claude-code | pending | 2026-10-03 | 구현 중 token 방식이 Hocuspocus 제약과 맞지 않으면 | PR #9 |
-| 2026-09-26 | member agent 의 역할은 `WorkspaceMembership` 에 저장하고, membership 은 principal(`User` 또는 member `Agent`)을 참조한다 | G1 | agent:claude-code | pending | 2026-10-03 | 에이전트 참여 ADR(#4)에서 다른 모델이 필요해지면 | PR #9 |
+| 2026-09-26 | member agent 의 역할은 `WorkspaceMembership` 에 저장하고, membership 은 principal(`User` 또는 member `Agent`)을 참조한다 | G1 | agent:claude-code | user | - | 에이전트 참여 ADR(#4)에서 다른 모델이 필요해지면 | PR #9 |
 | 2026-09-26 | ADR-0014 세부: 입력 필드는 채워진 배경과 focus ring 으로 구분한다. 떠 있는 표면은 배경, 그림자, radius 로 구분하고 내부 박스는 쓰지 않는다. 패널 접힘은 단축키와 명령 팔레트로도 조작하고 사용자별로 기억한다 | G1 | agent:claude-code | pending | 2026-10-03 | 스크린샷 리뷰에서 입력이나 표면 구분이 약하다고 판단되면 | #7 PR |
 | 2026-09-26 | ~~UI lint 는 정규식 ratchet 이다~~ 철회. 정규식 lint 는 우회가 끝없이 나와 효과가 없다. 제거하고 AST 도구와 border 예외 레이어는 #13 에서 정한다 | G2 | user | user | - | - | #12 |
 | 2026-09-26 | markdown 편집 화면에서 Tiptap 식 고정 toolbar 를 두지 않는다. 서식 명령은 단축키, 명령 팔레트, 필요할 때 나타나는 작은 도구로 제공한다 | G1 | agent:claude-code | pending | 2026-10-03 | 라이브 프리뷰 구현에서 고정 toolbar 가 필요하다고 판단되면 | #7 PR |
@@ -38,3 +39,8 @@ ADR 로 만들 만큼 크지는 않지만 PR 이 끝난 뒤에도 남아야 하�
 | 2026-09-26 | 협업 연결 token TTL 기본값은 120초, 최대 900초다. 만료 판정에 clock skew 허용은 두지 않는다 | G1 | agent:claude-code | user | - | provider 재연결과 token 갱신 흐름을 붙일 때 TTL 이 너무 짧거나 서버 간 시계 차이가 문제가 되면 | 슬라이스 2 협업 연결 인증 PR |
 | 2026-09-26 | 협업 세션 발급 응답(`POST /documents/:documentId/collaboration-sessions`)에 `connection { token, expiresAt, access }` 를 싣는다. collab 이 쓰는 internal 세션 조회 응답에는 token 을 싣지 않는다 | G1 | agent:claude-code | user | - | token 발급을 별도 endpoint 로 떼어야 할 이유가 생기면 | 슬라이스 2 협업 연결 인증 PR |
 | 2026-09-26 | [user] 협업 연결 인증을 넣은 뒤 기존 `apps/web` 의 협업 서버 연결이 끊기는 상태를 감수한다(token 을 보내지 않는 legacy provider). `apps/web` 은 새 앱이 동작하면 제거한다. 이 연결에 의존하는 e2e 는 삭제하지 않고 skip 하며, editor provider 슬라이스에서 대체한다 | G2 | user | user | - | `apps/web` 제거가 늦어져 그 사이 동시편집 회귀를 확인해야 하면 | PR #19 |
+| 2026-09-26 | 에이전트 편집 기본 동작은 하나로 고정하지 않고, 권한 모델에 따라 달라지는 모드 단계(수동 / 편집 수락 / 자동 / 자동+크루즈 / 모두 허용)로 둔다. 크루즈는 요청자가 자리를 비워도 긴 작업을 이어가는 모드다. 권한(상한)과 모드(선택)를 두 축으로 나누는 구조는 에이전트 제안에 사용자가 방향만 동의했고, 세부는 ADR-0016(proposed)의 [open] 질문으로 남는다 | G2 | user | user | - | 모드가 너무 많아 사용자가 구분하지 못하거나, 공유 문서에서 협업자 노출 문제가 허용 최대 모드로 해결되지 않으면 | PR #18, Issue #4 |
+| 2026-09-26 | 문서 워크플로우는 ADR-0016 과 분리해 ADR-0017(proposed)에서 다룬다. 워크플로우는 주인과 트리거를 선언하고, 에이전트는 주인의 권한 범위 안에서 워크플로우가 선언한 모드로 실행된다. 상태 전환 같은 메타데이터 변경도 권한으로 제한하고, 권한이 있는 사람만 워크플로우를 트리거한다(GitHub 모델). `DocumentState` 는 Y.Doc 밖(DB)에 두고 API use case 에서 권한 판정과 outbox 기록을 한다(ADR-0013 meta 개정). 연쇄 실행은 허용하고 깊이나 횟수 상한으로 순환을 끊는다. 실행기는 api, collab 과 나란히 별도 프로세스로 배포하고 outbox 로 이벤트를 받는다. 세부(트리거 종류, guard, 설정 위치, 상한 값, 재시도, 주인 권한 상실, local 상태 위치)는 [open] | G2 | user | user | - | 연쇄 상한이 정상 흐름을 자주 끊거나, 상태를 Y.Doc 밖에 두어 오프라인과 local 경험이 크게 나빠지면 | PR #18, Issue #4 |
+| 2026-09-26 | ADR-0016(에이전트 참여)과 ADR-0017(문서 워크플로우)의 남은 질문을 모두 추천안대로 확정하고 두 ADR 을 accepted 로 바꾼다. 추천이 명시되지 않은 항목은 초안에 가장 가까운 안을 택했다(각 ADR 의 "결정된 질문" 절에 표시). ADR-0016 이 유지한 member agent 역할 저장 모델(G1)도 함께 추인한다 | G2 | user | user | - | 각 ADR 의 revisit_if | PR #18, Issue #4 |
+| 2026-09-26 | ADR-0017 Q8 정정: local 문서도 `DocumentState` 를 지원한다. 상태 정본은 데이터 정본(ADR-0011 범위별 권위)을 따라 server 는 DB, local 은 기기 저장소의 문서 레코드이며 어느 범위든 Y.Doc 밖이다. 같은 `ChangeDocumentState` use case 를 local adapter 로 실행하고(권한 항상 허용, outbox 없음), local 에서는 워크플로우를 실행하지 않는다(기기 안 실행기는 데스크톱 패키징 뒤). 승격 때 상태를 옮기되 워크플로우를 트리거하지 않는다. 앞선 반영("local 은 상태 미지원")은 승인된 추천과 달라 정정했다 | G2 | user | user | - | 데스크톱 패키징으로 기기 안 실행기가 가능해지면 local 워크플로우를 다시 본다 | PR #18, Issue #4 |
+| 2026-09-27 | ADR-0016 모드 단계를 단조롭게 개정한다. 모든 단계는 아래 단계가 바로 할 수 있는 것을 모두 포함한다. 수동은 모두 제안, 편집 수락은 안전한 본문 편집만 바로 반영하고 위험한 본문 편집과 구조 변경은 확인, 자동은 본문 편집 전부와 안전한 구조 변경을 바로 반영하고 위험한 구조 변경만 확인, 자동+크루즈는 자동과 같되 확인 항목을 제안으로 쌓고 계속, 모두 허용은 권한 상한 안에서 모두 한다. 위험도는 서버 규칙으로 판정한다 | G2 | user | user | - | 허용 최대 모드로 걸어 둔 상한이 실제 사용에서 위험한 변경을 막지 못하면 | PR #18 (Codex 리뷰), Issue #4 |
