@@ -1,0 +1,35 @@
+/* Theme tokens (ADR-0015 UI-003). The only file where color literals may appear. Dark is the default. */
+:root,
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --color-bg: #0f1012;
+  --color-surface: #131417;
+  --color-surface-hover: #1a1c20;
+  --color-surface-active: #22252b;
+  --color-divider: #23252a;
+  --color-text: #e4e5e8;
+  --color-text-muted: #9b9ea6;
+  --color-text-faint: #6c6f77;
+  --color-accent: #8b96ff;
+  --color-selection: #2c3350;
+  --color-code-bg: #1b1d22;
+  --color-quote-bar: #3a3d45;
+  --focus-ring: 0 0 0 2px #8b96ff66;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+  --color-bg: #ffffff;
+  --color-surface: #f6f6f7;
+  --color-surface-hover: #ededef;
+  --color-surface-active: #e4e4e8;
+  --color-divider: #e6e6e9;
+  --color-text: #1c1d20;
+  --color-text-muted: #5e6068;
+  --color-text-faint: #8a8c93;
+  --color-accent: #4b56d2;
+  --color-selection: #d9ddff;
+  --color-code-bg: #f1f1f3;
+  --color-quote-bar: #d3d4d9;
+  --focus-ring: 0 0 0 2px #4b56d255;
+}

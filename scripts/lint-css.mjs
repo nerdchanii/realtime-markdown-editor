@@ -11,7 +11,7 @@ import { fileURLToPath } from "node:url";
 
 const repoRoot = fileURLToPath(new URL("..", import.meta.url));
 const suppressionsPath = join(repoRoot, "stylelint-suppressions.json");
-const targets = ["apps/web/**/*.{css,scss}", "--ignore-pattern", "apps/web/dist/**"];
+const targets = ["apps/{web,editor}/**/*.{css,scss}", "--ignore-pattern", "apps/*/dist/**"];
 const prune = process.argv.includes("--prune");
 
 function stylelint(args, stdio = "inherit") {

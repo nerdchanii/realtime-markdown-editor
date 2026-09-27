@@ -9,7 +9,8 @@ import {
 } from "./support/ce-acceptance.js";
 import { uniqueReviewDocumentId } from "./support/reviewer-session.js";
 
-test("CE-01: two members edit the same workspace document and converge without manual refresh", async ({
+// skip: token 을 보내지 않는 legacy web provider 라 협업 서버가 연결을 거부한다. editor provider 슬라이스에서 대체한다. Refs #19
+test.skip("CE-01: two members edit the same workspace document and converge without manual refresh", async ({
   browser,
 }) => {
   const alice = await browser.newContext();

@@ -24,10 +24,10 @@ UI 작업을 하기 전에 이 문서를 읽는다. 결정의 근거와 출처�
 1. **요소를 테두리 박스나 card 로 감싸지 않는다.**
    - 영역은 배경 톤과 여백으로 구분한다.
    - border 는 두 곳에서만 쓴다.
-     - 레이아웃 CSS(`apps/web/src/layouts/**/*.css`)의 패널 경계선: 한쪽 변, 1px, token 색
-     - 에디터 본문 CSS(`apps/web/src/features/editor/editor-content.css`)의 문서 요소: 표, 구분선, code block 등
+     - 레이아웃 CSS(`apps/*/src/layouts/**/*.css`)의 패널 경계선: 한쪽 변, 1px, token 색
+     - 에디터 본문 CSS(`apps/*/src/features/editor/editor-content.css`)의 문서 요소: 표, 구분선, code block 등
    - 예외는 lint 설정 override 로만 만든다. 코드 안의 disable 주석은 무시되거나 오류가 된다.
-2. **색은 theme token 으로만 쓴다.** 색 literal 은 token 파일(`apps/web/src/styles/tokens.css`)에서만 정의한다.
+2. **색은 theme token 으로만 쓴다.** 색 literal 은 token 파일(`apps/*/src/styles/tokens.css`)에서만 정의한다.
 3. **스타일은 plain CSS 로 쓴다.** semantic class 에 CSS 를 쓰고, 새 SCSS, Tailwind utility, `@apply` 는 쓰지 않는다.
 4. 요청하지 않은 기능, 섹션, 장식을 추가하지 않는다.
 5. 동작하지 않는 기능을 동작하는 것처럼 보여주지 않는다. 기능이 없으면 명시적인 빈 상태를 보여준다.

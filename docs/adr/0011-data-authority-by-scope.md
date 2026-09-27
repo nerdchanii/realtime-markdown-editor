@@ -17,6 +17,7 @@ related_documents:
 supersedes:
   - ADR-0003 (IndexedDB 범위 제한 항목만)
 superseded_by: null
+partially_superseded_by: ADR-0017
 ---
 
 # ADR-0011: 데이터 권위는 workspace 범위별로 명시한다
@@ -137,6 +138,7 @@ C 안의 평가:
 1. **데이터 권위를 workspace 범위 속성으로 명시한다.** `authority: server | local`. 모든 쓰기 경로는 대상 workspace 의 authority 를 안다.
 2. **문서 편집 상태의 write 정본은 Yjs document 다. 두 범위 모두 같다.**
    - 본문, title, properties, 필요하면 DocumentState 가 모두 Yjs 안의 구분된 field 에 있다.
+   - **개정 (2026-09-26, [user])**: `DocumentState` 는 두 범위 모두 Yjs 밖의 문서 레코드에 둔다. 정본 위치는 이 ADR 의 범위별 권위를 따른다(server 는 DB, local 은 기기 저장소). 세부는 [ADR-0017](0017-document-workflow-triggers-and-executor.md) §4 에 있다.
    - 이 점은 ADR-0009 의 핵심 제안을 받아들인다.
    - Postgres 행(`documents.markdownBody`, `document_properties`)은 server 범위의 read projection 이다. 목록, 검색, 권한 join 에 쓴다.
    - direct REST write 는 projection 수정 경로로 쓰지 않는다. server 측 Yjs mutation 을 거친다.
@@ -188,3 +190,4 @@ C 안의 평가:
 | 2026-09-25 | 최초 제안 (proposed) | agent:claude-code |
 | 2026-09-25 | C 안 선택, local 범위 즉시 도입으로 accepted. 세부 질문 3개는 open | user |
 | 2026-09-25 | 세부 결정: 서버 읽기 가능 sync(E2E 는 나중), 회수 시 sync 차단 + 사본 삭제 시도, 계정 없는 local 사용 허용 | user |
+| 2026-09-26 | 개정: DocumentState 는 두 범위 모두 Yjs 밖 문서 레코드에 두고, 정본 위치는 범위별 권위를 따른다(ADR-0017) | user |

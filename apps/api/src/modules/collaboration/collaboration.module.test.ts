@@ -12,6 +12,9 @@ import { CollaborationModule } from "@/modules/collaboration/collaboration.modul
 const documentKey = "workspace_task077/document_task077_yjs";
 const encodedDocumentKey = Buffer.from(documentKey, "utf8").toString("base64url");
 
+// CollaborationModule 은 협업 연결 token 설정 없이 시작하지 않는다. 테스트 전용 값이다.
+process.env.RME_COLLAB_TOKEN_SECRET ??= "rme-test-collab-token-signing-0123456789";
+
 @Module({ imports: [DatabaseModule, CollaborationModule] })
 class CollaborationModuleSmokeTestModule {}
 

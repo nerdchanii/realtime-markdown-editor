@@ -11,6 +11,9 @@ import type { ApiErrorResponseDto } from "@rme/contracts/http";
 import { AppModule } from "@/app.module.js";
 import { configureHttpBoundary } from "@/interfaces/http/http-boundary.js";
 
+// AppModule 은 협업 연결 token 설정 없이 시작하지 않는다. 테스트 전용 값이다.
+process.env.RME_COLLAB_TOKEN_SECRET ??= "rme-test-collab-token-signing-0123456789";
+
 @Controller("boundary-errors")
 class BoundaryErrorsController {
   @Get("unauthenticated")

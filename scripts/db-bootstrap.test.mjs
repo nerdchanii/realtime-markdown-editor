@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import os from "node:os";
 import test from "node:test";
 
 import {
@@ -57,23 +58,26 @@ test("Postgres quoting helpers escape identifiers and literals", () => {
   assert.equal(quotePostgresLiteral("rme_'quoted'"), "'rme_''quoted'''");
 });
 
-test("buildPgIsReadyArgs checks the maintenance database in the container", () => {
-  assert.deepEqual(buildPgIsReadyArgs("postgres"), [
-    "pg_isready",
-    "-U",
-    "postgres",
-    "-d",
-    "postgres",
-  ]);
+test("buildPgIsReadyArgs targets the host and port from the bootstrap plan", () => {
+  assert.deepEqual(
+    buildPgIsReadyArgs({
+      postgresHost: "db.internal",
+      postgresHostPort: "55433",
+      postgresUser: "postgres",
+    }),
+    ["pg_isready", "-h", "db.internal", "-p", "55433", "-U", "postgres", "-d", "postgres"],
+  );
 });
 
-test("buildBootstrapPlan defaults to the main local database", () => {
-  assert.deepEqual(buildBootstrapPlan({}), {
+test("buildBootstrapPlan defaults to the main local database as the current OS user", () => {
+  const currentUser = os.userInfo().username;
+  assert.deepEqual(buildBootstrapPlan({ env: {} }), {
     databaseName: "realtime_markdown_editor",
-    databaseUrl: "postgresql://postgres:postgres@127.0.0.1:5432/realtime_markdown_editor",
+    databaseUrl: `postgresql://${currentUser}@127.0.0.1:5432/realtime_markdown_editor`,
     migrate: false,
+    postgresHost: "127.0.0.1",
     postgresHostPort: "5432",
-    postgresUser: "postgres",
+    postgresUser: currentUser,
   });
 });
 
@@ -87,13 +91,14 @@ test("buildBootstrapPlan derives host port and database names from DATABASE_URL"
       databaseName: "rme_task_080",
       databaseUrl: "postgresql://postgres:postgres@127.0.0.1:55432/rme_task_080",
       migrate: true,
+      postgresHost: "127.0.0.1",
       postgresHostPort: "55432",
       postgresUser: "postgres",
     },
   );
 });
 
-test("buildBootstrapPlan lets POSTGRES_HOST_PORT make Compose and Prisma agree", () => {
+test("buildBootstrapPlan lets POSTGRES_HOST_PORT override the DATABASE_URL port", () => {
   assert.deepEqual(
     buildBootstrapPlan({
       envText: [
@@ -105,6 +110,7 @@ test("buildBootstrapPlan lets POSTGRES_HOST_PORT make Compose and Prisma agree",
       databaseName: "rme_task_081",
       databaseUrl: "postgresql://postgres:postgres@127.0.0.1:55433/rme_task_081",
       migrate: false,
+      postgresHost: "127.0.0.1",
       postgresHostPort: "55433",
       postgresUser: "postgres",
     },
@@ -124,6 +130,7 @@ test("buildBootstrapPlan can prefer an explicit env file over process env", () =
       databaseName: "rme_task_env_file",
       databaseUrl: "postgresql://postgres:postgres@127.0.0.1:55432/rme_task_env_file",
       migrate: false,
+      postgresHost: "127.0.0.1",
       postgresHostPort: "55432",
       postgresUser: "postgres",
     },

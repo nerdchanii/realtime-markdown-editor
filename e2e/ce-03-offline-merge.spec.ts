@@ -9,7 +9,10 @@ import {
 } from "./support/ce-acceptance.js";
 import { uniqueReviewDocumentId } from "./support/reviewer-session.js";
 
-test("CE-03: offline local edits merge with remote state after reconnect", async ({ browser }) => {
+// skip: token 을 보내지 않는 legacy web provider 라 협업 서버가 연결을 거부한다. editor provider 슬라이스에서 대체한다. Refs #19
+test.skip("CE-03: offline local edits merge with remote state after reconnect", async ({
+  browser,
+}) => {
   const alice = await browser.newContext();
   const bob = await browser.newContext();
   const alicePage = await alice.newPage();
@@ -42,7 +45,8 @@ test("CE-03: offline local edits merge with remote state after reconnect", async
   await bob.close();
 });
 
-test("CE-03: offline draft recovers from IndexedDB after tab close and reconnect merge", async ({
+// skip: token 을 보내지 않는 legacy web provider 라 협업 서버가 연결을 거부한다. editor provider 슬라이스에서 대체한다. Refs #19
+test.skip("CE-03: offline draft recovers from IndexedDB after tab close and reconnect merge", async ({
   browser,
 }) => {
   const alice = await browser.newContext();

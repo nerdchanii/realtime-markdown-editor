@@ -12,9 +12,15 @@ status: proposed
 - (목표, ADR-0013) `Document` 는 `type` 을 가진다. 첫 타입은 `markdown`, 두 번째는 `code` 다.
   - type 은 만들 때 정하고 바꾸지 않는다.
 - (목표, ADR-0013) Y.Doc 은 두 루트로 나뉜다.
-  - `meta` (Y.Map): title, properties, DocumentState. core 가 관리한다.
+  - `meta` (Y.Map): title, properties. core 가 관리한다.
+  - `DocumentState` 는 `meta` 에 두지 않고 Y.Doc 밖의 문서 레코드에 둔다. server 범위는 DB, local 범위는 기기 저장소의 문서 레코드다. (목표, ADR-0017 accepted, 아직 구현 전)
   - `content`: type 이 관리한다. `markdown` 타입은 `Y.Text` 가 유일한 본문 정본이다.
 - (목표, ADR-0013) projection(`toText`, `toMarkdown`, `extractLinks`)은 type module 이 제공한다. 서버에서도 계산할 수 있어야 한다.
+- 구현 상태: 새 앱 `apps/editor`(local 범위, #15)가 `type`, `meta`/`content` 구조를 구현했다.
+  - 지금의 `meta` 는 `type`, `schemaVersion`, `title`, `createdAt` 이다. properties 와 DocumentState 는 아직 없다.
+  - projection 은 `toText`, `toMarkdown` 만 있다.
+  - 기존 `apps/web` 과 API 는 아직 이전 구조다.
+- [open] local 범위 문서는 `Folder` 없이 평평한 목록에 속한다. 아래의 "모든 `Document` 는 하나의 `Folder` 에 속한다"는 규칙이 local 범위에도 적용될지는 workspace 계층 결정(#6)에서 정한다.
 
 모든 `Document`는 정확히 하나의 `Folder`에 속하며 `folderId`를 필수로 가진다. Project root나 workspace root에 바로 보이는 document도 domain에서는 `ProjectRootFolder` 또는 `WorkspaceRootFolder` 아래 document다.
 

@@ -1,14 +1,17 @@
-// Style rules for apps/web (ADR-0015). Each rule carries the id listed in DESIGN.md §2.
+// Style rules for the web apps (ADR-0015). Each rule carries the id listed in DESIGN.md §2.
 // Exceptions live only in this file as path overrides. Inline `stylelint-disable` comments are
 // ignored (`ignoreDisables`), so a rule cannot be switched off from inside a stylesheet.
 // Existing violations are recorded in stylelint-suppressions.json and may only shrink.
 
 // Layer that may draw panel dividers: one side, 1px, token color (UI-001).
-const layoutFiles = ["apps/web/src/layouts/**/*.css"];
+const layoutFiles = ["apps/web/src/layouts/**/*.css", "apps/editor/src/layouts/**/*.css"];
 // Rendered document content, where lines carry meaning (tables, rules, code blocks) (UI-001).
-const editorContentFiles = ["apps/web/src/features/editor/editor-content.css"];
+const editorContentFiles = [
+  "apps/web/src/features/editor/editor-content.css",
+  "apps/editor/src/features/editor/editor-content.css",
+];
 // The only place color literals may appear: theme token definitions (UI-003).
-const tokenFiles = ["apps/web/src/styles/tokens.css"];
+const tokenFiles = ["apps/web/src/styles/tokens.css", "apps/editor/src/styles/tokens.css"];
 
 const tokenValue = "/^var\\(--[\\w-]+\\)$/";
 const nonZero = ["/^(?!\\s*(0|none)\\s*$)/"];

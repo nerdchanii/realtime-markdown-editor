@@ -32,6 +32,8 @@ export type CollaborationSession = Readonly<{
   currentMember: CollaborationMember;
   allowedMembers: readonly CollaborationMember[];
   sync: CollaborationSyncState;
+  /** archived 문서는 content.write 가 거부된다(ADR-0012 §2). 응답 DTO 에는 싣지 않는다. */
+  documentArchived: boolean;
 }>;
 
 export type CollaborationSessionLookup = Readonly<{

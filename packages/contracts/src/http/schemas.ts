@@ -502,6 +502,7 @@ export const httpSchemaCatalog = [
       { name: "currentMember", kind: "object", required: true },
       { name: "allowedMembers", kind: "array", required: true, itemSchema: "RealtimeMemberDto" },
       { name: "sync", kind: "object", required: true },
+      { name: "connection", kind: "object", required: true },
     ],
   },
 ] as const satisfies readonly HttpSchemaDescriptor[];

@@ -86,7 +86,7 @@ function needsArchitectureCheck(file) {
 
 function needsCssLint(file) {
   return (
-    /^apps\/web\/.+\.(css|scss)$/.test(file) ||
+    /^apps\/(web|editor)\/.+\.(css|scss)$/.test(file) ||
     file === "stylelint.config.mjs" ||
     file === "stylelint-suppressions.json" ||
     file === "scripts/lint-css.mjs" ||

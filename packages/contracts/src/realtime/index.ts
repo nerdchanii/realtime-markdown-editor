@@ -61,4 +61,17 @@ export type IssuedCollaborationSessionDto = Readonly<{
   currentMember: RealtimeMemberDto;
   allowedMembers: readonly RealtimeMemberDto[];
   sync: DocumentSyncStateDto;
+  connection: CollaborationConnectionGrantDto;
+}>;
+
+export type CollaborationAccessDto = "read" | "write";
+
+/**
+ * 협업 서버 연결에 쓰는 짧은 TTL 의 서명된 token 이다(ADR-0012 §1).
+ * token 은 문서, principal, 허용 action 에 묶인다. `read` 연결은 협업 서버가 read-only 로 연다.
+ */
+export type CollaborationConnectionGrantDto = Readonly<{
+  token: string;
+  expiresAt: string;
+  access: CollaborationAccessDto;
 }>;

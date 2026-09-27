@@ -104,6 +104,10 @@ ADR 은 에이전트가 비교안과 추천안을 `proposed` 로 작성하고, �
   - 첫 타입은 `markdown` 이다. Markdown 텍스트(`Y.Text`)가 정본이고, CodeMirror 라이브 프리뷰로 편집한다.
   - 두 번째 타입은 `code` 다. rich-text 는 보류한다.
   - ADR-0007 을 대체한다.
+- 에이전트 참여: [ADR-0016](../adr/0016-agent-participation-protocol-and-edit-mode.md) **accepted** (2026-09-26).
+  - 문서 연산 API + MCP 로 참여한다. 편집은 권한 상한 안에서 고른 모드 단계(수동 / 편집 수락 / 자동 / 자동+크루즈 / 모두 허용)로 반영된다.
+- 문서 워크플로우: [ADR-0017](../adr/0017-document-workflow-triggers-and-executor.md) **accepted** (2026-09-26).
+  - 워크플로우는 주인과 트리거를 선언한다. 상태 전환은 권한으로 제한하고 `DocumentState` 는 DB 에 둔다. 연쇄를 허용하되 상한으로 끊고, 별도 실행기가 실행한다.
 
 ## 단계 4. 코드 방향 결정과 policy 기반 수정
 
@@ -115,7 +119,7 @@ ADR 은 에이전트가 비교안과 추천안을 `proposed` 로 작성하고, �
   1. 로컬 markdown 에디터: CodeMirror 라이브 프리뷰 + Yjs + 브라우저 저장, 새 shell ([#15](https://github.com/nerdchanii/realtime-markdown-editor/issues/15))
   2. 동시편집: 같은 문서 구조에 Hocuspocus provider 를 붙이고 협업 연결 인증(ADR-0012 §1)을 넣는다.
 - 권한 모델을 확정한 뒤, policy 에 따라 다음을 고친다(진단에서 발견된 항목):
-  - collab 연결 인증
+  - collab 연결 인증: token 발급과 `onAuthenticate` 검증까지 구현했다. 연결 중 권한 회수와 token 갱신은 남았다.
   - internal API 인증
   - 비밀번호 backfill migration
   - CORS 와 cookie
@@ -126,6 +130,6 @@ ADR 은 에이전트가 비교안과 추천안을 `proposed` 로 작성하고, �
 
 ## 언제든 끼워 넣을 수 있는 저위험 정비 (G0)
 
-- collab 의 `*.spec.ts`, API 의 `http-boundary.spec.ts` 가 test glob 에 포함되지 않아 실행되지 않는 문제
+- API 의 `http-boundary.spec.ts` 가 test glob 에 포함되지 않아 실행되지 않는 문제(collab 의 `*.spec.ts` 는 협업 연결 인증 PR 에서 test 에 포함했다)
 - listener capture 해제 불일치(`use-element-rect.ts`, `use-scrolling.ts`)
 - Playwright 포트를 env 에서 읽도록 변경

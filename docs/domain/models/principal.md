@@ -5,9 +5,13 @@ status: active
 
 # docs/domain/models/principal.md
 
-> **목표 모델 (ADR-0012 accepted, 아직 구현 전)**
+> **목표 모델 (ADR-0012 accepted, 일부 구현)**
 >
 > 현재 코드에는 `User` 와 `WorkspaceMembership` 만 있다. 아래 계약은 앞으로 구현할 기준이다.
+>
+> - 구현됨: 협업 연결 token 과 그 발급 policy 는 `User` principal 과 문서 workspace 의 멤버십으로 판정한다.
+>   `authorize` 는 지금 `content.read`, `content.write` 만 다룬다(`apps/api/src/modules/identity/domain/authorization-policy.ts`).
+> - 아직 없음: presence(awareness)와 작성자 신원을 서버가 principal 로 강제하는 것(협업 연결 token 은 principal 을 싣지만 client 가 awareness 신원을 직접 싣는다), `LocalUser`, `Agent`, `admin` 역할(DB 는 `owner`, `member` 두 값이다), 나머지 action 과 HTTP 경로의 policy 적용.
 
 ## 계약
 
@@ -32,7 +36,7 @@ Actor     = { principal, onBehalfOf?: User | LocalUser }
 - presence 신원은 서버가 인증된 principal 로 정한다. client 가 주장한 값은 쓰지 않는다.
 - delegated agent 의 권한은 위임한 사용자의 권한을 넘을 수 없다. 사용자 권한이 줄어들면 함께 줄어든다.
 - LocalUser 를 계정에 연결할 때 충돌이 있으면 자동으로 병합하지 않고 사용자에게 확인한다(G1).
-- 에이전트의 편집 기본 동작(제안 모드인지 직접 편집인지)은 에이전트 참여 결정(#4)이 정한다. principal 모델은 신원과 권한만 다룬다.
+- 에이전트 편집이 제안으로 남는지 바로 반영되는지는 권한 상한과 편집 모드로 정한다. 계약은 [agent-edit.md](agent-edit.md)(ADR-0016)에 있다. principal 모델은 신원과 권한만 다룬다.
 
 ## 관련 결정
 
