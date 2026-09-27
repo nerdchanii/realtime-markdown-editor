@@ -10,16 +10,16 @@ test("Product: account settings update the signed-in user profile", async ({ pag
   await expect(page.getByTestId("document-title")).toHaveValue(titleFromDocumentId(documentId));
 
   await page.getByLabel("Open profile menu").click();
-  await page.getByRole("button", { name: "Account settings" }).click();
-  await page.getByLabel("Name").fill(profileName);
+  await page.getByRole("menuitem", { name: "Account settings" }).click();
+  await page.getByLabel("Name", { exact: true }).fill(profileName);
   await page.getByRole("button", { name: "Save account" }).click();
 
   await expect(page.getByText("Account saved.")).toBeVisible();
   await page.reload();
   await expect(page.getByTestId("document-title")).toHaveValue(titleFromDocumentId(documentId));
   await page.getByLabel("Open profile menu").click();
-  await page.getByRole("button", { name: "Account settings" }).click();
-  await expect(page.getByLabel("Name")).toHaveValue(profileName);
+  await page.getByRole("menuitem", { name: "Account settings" }).click();
+  await expect(page.getByLabel("Name", { exact: true })).toHaveValue(profileName);
 });
 
 function titleFromDocumentId(documentId: string) {

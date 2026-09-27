@@ -21,7 +21,7 @@ test("Product: owner can add, promote, and remove a workspace member", async ({
   await expect(page.getByTestId("document-title")).toHaveValue(titleFromDocumentId(documentId));
 
   await page.getByLabel("Open profile menu").click();
-  await page.getByRole("button", { name: "Workspace settings" }).click();
+  await page.getByRole("menuitem", { name: "Workspace settings" }).click();
   await page.getByLabel("New member email").fill(memberEmail);
   await page.getByRole("button", { name: "Add member" }).click();
   await expect(page.getByText("Member added.")).toBeVisible();
